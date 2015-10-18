@@ -1,0 +1,246 @@
+/*ident	"@(#)cls4:tools/pt/README.ptenv	1.5" */
+
+/*******************************************************************************
+ 
+C++ source for the C++ Language System, Release 3.0.  This product
+is a new release of the original cfront developed in the computer
+science research center of AT&T Bell Laboratories.
+
+Copyright (c) 1993  UNIX System Laboratories, Inc.
+Copyright (c) 1991, 1992 AT&T and UNIX System Laboratories, Inc.
+Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+
+THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+Laboratories, Inc.  The copyright notice above does not evidence
+any actual or intended publication of such source code.
+
+*******************************************************************************/
+Template Environment Release Notes For 3.0.1
+January 1992
+
+
+INTRODUCTION
+
+This writeup describes the details of installing and using the
+template environment for 3.0.1.  It should be read in conjunction
+with the papers:
+
+	- Template Instantiation in C++ Release 3.0 - Overview
+
+	- Template Instantiation in C++ Release 3.0 - User Guide
+
+	- Template Instantiation in C++ Release 3.0 - Implementation Notes
+
+and chapter 14 in the Annotated Reference Manual.
+
+
+INSTALLATION
+
+There are seven parts to the template environment:
+
+	CC		- a modified version
+
+	ptcomp.c	- a C program to handle compile-time actions
+
+	ptlink.c	- a C program to handle link-time actions
+
+	ptutil.c	- utility functions
+
+	pt.h		- header for configuring the environment
+
+	dem.c		- the name demangler, used by ptlink
+
+	dem.h		- header file for the demangler
+
+CC points at the ptcomp and ptlink binaries.  These binaries are
+compiled in the makefiles.  However, if you need to do compilation
+separately, the steps are:
+
+	$ cc -c ptutil.c
+
+	$ cc ptcomp.c ptutil.o -o ptcomp
+
+	$ cc ptlink.c ptutil.o dem.c -o ptlink
+
+Note that the right setting of CLIP_UNDER is necessary in dem.c (see
+the demangler release notes).
+
+
+CUSTOMIZATION
+
+Necessary customization can be done by editting pt.h.  Any functions
+that might be nonportable are in ptutil.c, but you shouldn't have to
+edit this file.  What follows is a sequential walkthrough of pt.h.
+
+1.  NMPATH should be set to the path and options required to produce
+BSD or SysV.3 style nm output.  Typically this involves specifying -p
+as an option (for example, on HP or SysV.4 systems).
+
+2.  If your system has vfork() along with fork(), you should change
+the second entry in pt.h.  This will make subprogram invocation go
+faster.  vfork() is likely to be available only on BSD derivatives
+such as SunOS.
+
+3.  LSPATH should be set to the local path for ls.
+
+4.  SRC_EXT, INC_EXT, OBJ_EXT, ARC_EXT, and DDC_EXT should be set to
+the local values for your system.  These are used for files created in
+the repository, as well as for template and template argument type
+headers.
+
+5.  If your operating system supports long filenames (more than 14
+characters), enable LONG_NAMES or say "-DLONG_NAMES" when building
+ptlink.  This setting affects the names that are created by ptlink
+when it does instantiation; long names are nice but not essential.
+Note that even on systems with long name support, the archiver (ar)
+may not handle such names, and so object files from the repository
+would have to be renamed before an archive library is built.
+Typically, only BSD derivatives (HP, Sun) support long names.
+
+6.  There is an option SLOW_SYSTEM that should be set if you don't
+want to use the optimized versions of system() or popen() included in
+ptutil.c.
+
+7.  ptcomp.c and ptlink.c both assume repository locking.  If you
+don't want to use locking (with possible resulting conflicts), #define
+NO_LOCK.  Otherwise, choose the lock type fcntl(), lockf(), or flock()
+most suitable for your UNIX version.  Note that repository locking is
+only as good as the implementation of these system calls for a given
+version of UNIX.  Note also that there are stub functions controlled
+by NO_LOCK where you can implement your own locking scheme.  LOCK_MAX
+and LOCK_SLEEP can be changed to alter the sleep interval between
+attempts to get a lock, and the number of lock tries before a fatal
+error is given.
+
+8.  Signals are used in a couple of places.  If you don't wish to use
+them, to disable interrupts when the repository is being rewritten, or
+to facilitate cleanup of objects in the local directory, #define
+NO_SIGNAL.
+
+
+WHAT IF YOU HAVE YOUR OWN CC?
+
+The CC script as distributed has seven commented sections that delimit
+PT processing.  These are named:
+
+	# PT environment
+
+	# PT setup
+
+	# PT option parsing 1
+
+	# PT option parsing 2
+
+	# PT option parsing 3
+
+	# PT compile-time actions
+
+	# PT link-time actions
+
+Each section ends with '# end PT'.
+
+
+CC OPTIONS, CODING CONVENTIONS, EXAMPLES
+
+See the user guide.
+
+
+TOOLS
+
+The tools mentioned in the user guide are included in the
+distribution as tool1 and tool2.
+
+
+KNOWN PROBLEMS
+
+1.  The instantiation scheme does not work with DENSE (31-character
+names).
+
+2.  Literal arguments to templates are assumed to be constant (this is
+really a language change).
+
+3.  It is not possible to pass quoted strings using the -I and -D
+options to the link phase.  For example, -I" " will not work.
+
+4.  CC does not recognize .i files as being special for template
+purposes.  That is, no processing (ptcomp) is done on them.  This may
+or may not be changed in the future.  Likewise, the CC -F option has
+no effect on instantiation.
+
+5.  On some machine types (Sun SPARC), there are occasional problems
+with using fcntl() to lock repositories in /tmp or /usr/tmp.  The
+problem appears to be a bug in the kernel lock manager.  The patch
+from Sun to fix this problem is #100075-07.
+
+
+USE OF CHECKSUMS FOR DEPENDENCY MANAGEMENT
+
+The next section describes a feature new to 3.0.1.  It requires a
+one-time rebuilding of repositories.  3.0.1 is NOT compatible with 3.0
+repositories.  However, if you compile ptlink.c with -DCHECKSUM, you
+can get back the old scheme.  The new dependency checking scheme is
+roughly 50 times faster than the checksum approach.
+
+
+NEW DEPENDENCY MANAGEMENT SCHEME
+
+The 3.0 version of the template instantiation system has two schemes
+for checking whether instantiated objects are out of date.  The first
+scheme is use of checksums on the preprocessed instantiation file
+text.  This is accurate but relatively slow.
+
+The second approach is with the -ptt option; timestamps of #included
+headers in the instantiation file are compared with the timestamp of
+the instantiation object.  This is fast but fails to check for nested
+includes.
+
+What follows is a scheme for extending -ptt to handle nested includes.
+Note that some build systems such as nmake already provide this
+feature; the proposal is for a generic system usable anywhere.
+
+With the current scheme the repository contains an instantiation file
+such as Vector__pt__4_i1A.c which is compiled in directed mode to
+produce an instantiation object.  For example, this file might
+contain:
+
+	#include "Vector.h"
+	#include "Vector.c"
+	#include "A.h"
+
+-ptt digs out each of these headers and compares its timestamp against
+that of Vector__pt__4_i1A.o.
+
+The headers may, however, include other headers, whose timestamps are
+not checked.  To discover these other headers requires a cpp pass,
+which is no faster than taking a checksum.  Therefore a scheme must be
+devised to cache knowledge of the tree of headers implied by a given
+instantiation file.  Additionally, it is necessary to store with the
+header list the -I and -D options specified to CC.
+
+The cache will be stored with extension .he; for example,
+Vector__pt__4_i1A.he.  The first line will be the -I/-D options and
+subsequent lines a sorted list of the names of all headers as reported
+by cpp.  An object file will be considered out of date if it is older
+than any of the headers on the list.  This is in addition to the
+checks made to see if all needed members are present in the object.
+An object will also be considered out of date if the -I/-D options are
+changed from the previous time.
+
+The cache will be rebuilt just before this check if any of the
+following are true:
+
+	1.  The cache does not exist.
+
+	2.  Different -I/-D options are used from the previous time.
+
+	3.  The instantiation file is newer than the cache.
+
+	4.  Any of the files listed in the cache do not exist.
+
+	5.  Any of the files listed in the cache are newer than the
+	cache.
+
+	6.  The cache is corrupted.
+
+Cache corruption is detected by storing the cumulative length of all
+the previous cache lines as the last line of the cache.
