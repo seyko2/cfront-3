@@ -2321,9 +2321,8 @@ plugh:
 			case SM:	// place dtors after all "converted" DCLs
 				if (t1) {
 //					ccheck(e);
-					for (Pstmt ttt, tt=this;
-						(ttt=tt->s_list) && ttt->base==SM;
-						tt = ttt) ;
+					Pstmt ttt, tt=this;
+					for (; (ttt=tt->s_list) && ttt->base==SM; tt = ttt) ;
 					t2->s_list = ttt;
 					tt->s_list = ss;
 					//Cstmt = ostmt;
@@ -2592,7 +2591,8 @@ void expr::simpl_delete()
 			or vec_del_fct(p,vec_sz,elem_sz,~cl,1);
 */		 
 {
-	for (Ptype tt = e1->tp; tt->base==TYPE; tt=Pbase(tt)->b_name->tp);
+	Ptype tt = e1->tp;
+	for (; tt->base==TYPE; tt=Pbase(tt)->b_name->tp);
 	tt = Pptr(tt)->typ;
 //error('d',"simpl_delete() %t",e1->tp);
 	Pname cln = tt->is_cl_obj();

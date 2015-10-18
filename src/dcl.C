@@ -474,7 +474,7 @@ classdef::make_vec_ctor(Pname default_ctor)
 	Pname cn = this->k_tbl->find_cn(string);//SYM
 	if (cn) cn = Pbase(cn->tp)->b_name;
 	cc->stack(); 
-	cc->not= cn; 
+	cc->not4= cn; 
 	cc->cot = this;
         cc->c_this = tn;
 
@@ -776,7 +776,7 @@ xdr:
 		case FCT:
 			Pfct(tx)->def_context = cc->cot;
 			cc->stack();
-			cc->not = 0;
+			cc->not4 = 0;
 			cc->tot = 0;
 			cc->cot = 0;
 			friend_in_class++;
@@ -992,13 +992,13 @@ xdr:
 		}
 
 		if (
-			cc->not==0
+			cc->not4==0
 			||
 			(cc->cot->csu==UNION && !ansi_opt)
 			||
 			cc->cot->csu==ANON
 		) {
-			if (cc->not)
+			if (cc->not4)
 				error('s', "bit-field as member of union");
 			else
 				error("bit-field not inC");
@@ -1906,7 +1906,8 @@ xdr:
 						    case LONG:
 						    case LLONG:
 							if ( nt->tsizeof() < it->tsizeof() )
-								init = new texpr(G_CAST,nt,init)->typ(tbl);
+								init = new texpr(G_CAST,nt,init);
+								init = init->typ(tbl);
 						    }
 						}
 	
@@ -2071,7 +2072,8 @@ make_nested_name(char *s, Pclass cl)
 		++cnt;
 	}
 
-	for ( int i=0; i<cnt; i++ ) // <nnn><string>
+	int i=0;
+	for ( i=0; i<cnt; i++ ) // <nnn><string>
 		size += size_arr[i]>99?3:size_arr[i]<10?1:2;
 
 // error('d', "make_nested_name( %s, %t ) cnt: %d size: %d", s, cl, cnt, size );

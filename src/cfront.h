@@ -231,7 +231,7 @@ struct table : public node {
 	// return a pointer to the i'th entry, or 0 if it does not exist
 	Pname get_mem(int i) { return (i<=0 || free_slot<=i) ? 0 : entries[i]; }
 	void	del();
-	char* whatami();
+	const char* whatami();
 #ifdef DBG 
 	void dump( int verbose = 1 );
 #endif 
@@ -1116,7 +1116,7 @@ extern dcl_context ccvec[MAXCONT];
 struct dcl_context {
 	Pname	c_this;	/* current fct's "this" */
 	Ptype	tot;	/* type of "this" or 0 */
-	Pname	not;	/* name of "this"'s class or 0 */
+	Pname	not4;	/* name of "this"'s class or 0 */
 	Pclass	cot;	/* the definition of "this"'s class */
 	Ptable	ftbl;	/* current fct's symbol table */
 	Pname	nof;	/* current fct's name */

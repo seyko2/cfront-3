@@ -717,7 +717,8 @@ bit expr::not_simple(int inflag)
 		if (curr_icall) {
 			Pname n = (Pname)this;
 			int argno = int(n->n_val);
-			for (Pin il=curr_icall; il; il=il->i_next)
+			Pin il=curr_icall;
+			for (; il; il=il->i_next)
 				if (n->n_table == il->i_table) goto aok;
 			goto bok;
 		aok:
@@ -881,7 +882,8 @@ Pexpr fct::expand(Pname fn, Ptable scope, Pexpr ll)
 	int i = 0;
 	int not_simple = 0;	/* is a temporary argument needed? */
 
-	for (Pname n=at; n && ll; n=n->n_list, i++) {
+	Pname n=at;
+	for (; n && ll; n=n->n_list, i++) {
 		/*	check formal/actual argument pairs
 			and generate temporaries as necessary
 		*/

@@ -16,7 +16,7 @@
 #define implement2(a,t1,t2) name2(a,implement2)(t1,t2)
 
 
-extern genericerror(int,char*);
+extern int genericerror(int,char*);
 typedef int (*GPT)(int,char*);
 #define set_handler(generic,type,x) name4(set_,type,generic,_handler)(x)
 #define errorhandler(generic,type) name3(type,generic,handler)

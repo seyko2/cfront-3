@@ -246,7 +246,8 @@ void
 walker::free_fetched (void * addr)
 {
     if (control.fetcher != null_tfp)	/* null indicates no cross-address-space */
-       delete addr;
+        // delete addr;
+    	free(addr);
 }    
 
 int

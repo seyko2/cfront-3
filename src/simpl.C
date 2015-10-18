@@ -452,7 +452,8 @@ Pexpr call_ctor(Ptable tbl, Pexpr p, Pexpr ctor, Pexpr args, int d, Pexpr vb_arg
 	}
 	else {				// attach vbase arguments
 		if (args) {
-			for (Pexpr d = vb_args; d->e2; d=d->e2);
+			Pexpr d = vb_args;
+			for (; d->e2; d=d->e2);
 			d->e2 = args;
 		}
 		args = vb_args;
@@ -599,7 +600,8 @@ Pstmt fct::dtor_simpl(Pclass cl, Pexpr th)
 
 	Pbcl b = 0;	// get dtors in order with virtual bases last
 	Pbcl t = 0;
-	for (Pbcl l = cl->baselist; l; l=l->next) {
+	Pbcl l = cl->baselist;
+	for (; l; l=l->next) {
 		if (l->base != VIRTUAL) {
 			Pbcl x = new basecl(l->bclass,0);
 			if (t == 0)
@@ -775,7 +777,8 @@ int fct::ctor_simpl(Pclass cl, Pexpr th)
 
 		// dd = pointer argument for this base;
 		// non-zero if already initialized
-		for (Pname dd = f_this->n_list; dd!=argtype; dd=dd->n_list) 
+		Pname dd = f_this->n_list;
+		for (; dd!=argtype; dd=dd->n_list) 
 			if (strcmp(dd->string,bc->string)==0) break;
 
 		// initialize virtual base object
@@ -1028,8 +1031,8 @@ void fct::simpl()
 	switch (curr_fct->n_scope) {
 	case 0:
 	case PUBLIC:
-		cc->not = curr_fct->n_table->t_name;
-		cc->cot = Pclass(cc->not->tp);
+		cc->not4 = curr_fct->n_table->t_name;
+		cc->cot = Pclass(cc->not4->tp);
 		cc->tot = cc->cot->this_type;
 	}
 
@@ -1258,9 +1261,11 @@ void classdef::simpl()
 	cc->stack();
 	cc->cot = this;
 	cc->tot = this_type;
-	cc->not = memtbl->t_name;
+	cc->not4 = memtbl->t_name;
 
-	for (Pname m=memtbl->get_mem(i=1); m; NEXT_NAME(memtbl,m,i) ) {
+	i=1;
+	Pname m=memtbl->get_mem(i);
+	for (; m; NEXT_NAME(memtbl,m,i) ) {
 		if ( m->base == TNAME ) continue;
 		if ( has_ctor()
 		// ctor (function) name should have been mangled

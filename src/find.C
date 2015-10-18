@@ -341,7 +341,8 @@ finishing_up:
 	    int new_context = 0; // set when looking in enclosing contexts
 	    if ( cl && !same_class(cl,mec) ) {
 //error('d',"n%n cl%t fn%n mec%t",n,cl,fn,mec);
-		for (Pclass cx = cl; cx && cx->c_context==0; cx = cx->in_class);
+		Pclass cx = cl;
+		for (; cx && cx->c_context==0; cx = cx->in_class);
 		if ( cx ) { fn = cx->in_fct; ft = (Pfct)fn->tp; }
 		else { fn = 0; ft = 0; }
 		tbl = cl->memtbl;

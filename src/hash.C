@@ -251,7 +251,8 @@ void Hash::resize(int newsize)
   HashTableEntry* oldtab = tab ;
   int oldsize = size ;
   tab = new HashTableEntry[size = newsize] ;
-  for (int i = 0; i < size; ++i) 
+  int i = 0;
+  for (; i < size; ++i) 
     tab[i].status = EMPTY ;
   entry_count = 0 ;
   for (i = 0; i < oldsize; ++i)

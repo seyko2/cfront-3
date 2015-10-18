@@ -192,7 +192,8 @@ void expr::print()
 			Pname n = Pname(this);
 			int argno =  n->argno;
 
-			for (Pin il=curr_icall; il; il=il->i_next)
+			Pin il=curr_icall;
+			for (; il; il=il->i_next)
 				if (n->n_table == il->i_table)
 					goto aok;
 			goto bok;
@@ -567,7 +568,8 @@ void expr::print()
 						// that has been optimized away
 			Pname n = Pname(e1);
 			int argno = int(n->n_val);
-			for (Pin il=curr_icall; il; il=il->i_next)
+			Pin il=curr_icall;
+			for (; il; il=il->i_next)
 				if (il->i_table == n->n_table)
 					goto akk;
 			goto bkk;

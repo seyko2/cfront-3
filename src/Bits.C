@@ -104,7 +104,7 @@ Bits::operator^= (const Bits& x)
 }
 
 Bits&
-Bits::compl()
+Bits::compl4()
 {
 	register Bits_chunk* p = b;
 	register const Bits_chunk* lim = limit();
@@ -183,7 +183,7 @@ Bits
 operator~ (const Bits& x)
 {
 	Bits r = x;
-	r.compl();
+	r.compl4();
 	return r;
 }
 

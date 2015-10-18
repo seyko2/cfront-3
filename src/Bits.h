@@ -82,7 +82,7 @@ public:
 	Bits& operator^= (const Bits&);
 	Bits& operator<<= (int);
 	Bits& operator>>= (int);
-	Bits& compl();
+	Bits& compl4();
 	Bits& concat(const Bits&);
 	Bits& set(unsigned i) {
 		if (i < n)
@@ -105,7 +105,7 @@ public:
 			b[chunk(i)] &= ~(Bits_chunk(1) << (i&Bits_mask_ATTLC));
 		return *this;
 	}
-	Bits& compl(unsigned i) {
+	Bits& compl4(unsigned i) {
 		if (i < n)
 			b[chunk(i)] ^= Bits_chunk(1) << (i&Bits_mask_ATTLC);
 		return *this;

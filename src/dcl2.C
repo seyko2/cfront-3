@@ -1001,7 +1001,8 @@ void stmt::dcl(int forflag)
 			int non_trivial = 0;
 			int count = 0;
 			Pname tail = ss->d;
-			for (Pname nn=tail; nn; nn=nn->n_list) {
+			Pname nn=tail;
+			for (nn=tail; nn; nn=nn->n_list) {
 				//	find tail;
 				//	detect non-trivial declarations
 				count++;

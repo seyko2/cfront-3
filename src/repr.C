@@ -238,6 +238,9 @@ void otbl_init()
 	new_op(" ::new",GNEW);
 	new_op(" constructor call",VALUE);
 	new_op(" ::delete",GDELETE);
-	new_op(ansi_opt?" long double":" double",LDOUBLE);
 	new_op(" typedef",TPDEF); // did not want to introduce new TOKEN
+	if (ansi_opt)
+		new_op(" long double",LDOUBLE);
+	else
+		new_op(" double",LDOUBLE);
 }

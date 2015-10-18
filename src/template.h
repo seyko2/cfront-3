@@ -19,7 +19,10 @@ any actual or intended publication of such source code.
 *    All rights reserved.
 *******************************************************************************/
 
+#ifndef __GNUC__
 enum bool { false, true };
+#endif
+
 extern Pclass current_instantiation;
 extern Pfct current_fct_instantiation;
 
@@ -222,7 +225,7 @@ public:
   	Pbase basetype() {return basep; } // uninstantiated base type
   	Pbase inst_basetype(Pexpr actuals); // specific instantiation basetype 
   	Pclass classtype() { return Pclass(basep->b_name->tp); }
-  	Pname typename(Pexpr actuals);
+  	Pname typename4(Pexpr actuals);
  	Pfunt collect_function_member(Pname); 
  	Pdata collect_data_member(Pname);
   	bool instantiate_bodies(); 

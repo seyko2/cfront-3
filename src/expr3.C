@@ -1923,7 +1923,8 @@ Pexpr expr::dovalue(Ptable tbl)
 			}
 			else { // int( x, y )
 				error("more than oneA for basicTK");
-				for ( Pexpr e = e1;  e->e2->e2;  e = e->e2 )
+				Pexpr e = e1;
+				for (;  e->e2->e2;  e = e->e2 )
 					e->base = CM;
 				e->base = CM;
 				e->e2 = e->e2->e1;

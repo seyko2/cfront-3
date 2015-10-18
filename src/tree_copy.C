@@ -61,7 +61,7 @@ copy_walker (Pnode& node, node_class cl, void * info,
 	Pclass c;
 	Pbcl   bcl;
 	Pin    iline;
-	ia   * ia;
+	struct ia * ia;
 	Pname  n;
 	Pptr p;
       } n;

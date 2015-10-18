@@ -293,8 +293,8 @@ int error(int t, loc* lc, const char* s, const ea& a0, const ea& a1, const ea& a
 		else if (c == '%') {
 			switch (c = *s++) {
 			case 'k':	// TOK assumed passed as an int
-			{	TOK x = TOK(a->i);
-				if (0<x && x<=MAXTOK && keys[x])
+			{	int x = TOK(a->i);
+				if (0 < x && x<=MAXTOK && keys[x])
 					fprintf(out_file," %s",keys[x]);
 				else
 					fprintf(out_file," token(%d)",x);

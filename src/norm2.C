@@ -174,7 +174,8 @@ name_list::name_list(Pname ff, Plist ll)
 nlist::nlist(Pname n)
 {
 	head = n;
-	for (Pname nn=n; nn->n_list; nn=nn->n_list);
+	Pname nn=n;
+	for (; nn->n_list; nn=nn->n_list);
 	tail = nn;
 }
 
@@ -183,7 +184,8 @@ void nlist::add_list(Pname n)
 	if (n->tp && (n->tp->defined & IN_ERROR)) return;
 
 	tail->n_list = n;
-	for (Pname nn=n; nn->n_list; nn=nn->n_list);
+	Pname nn=n;
+	for (; nn->n_list; nn=nn->n_list);
 	tail = nn;
 }
 

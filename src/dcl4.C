@@ -40,7 +40,8 @@ static Pname get_vf(Pname n_pvf, Pclass cl) {
 	Pname n_vf = cl->memtbl->look(n_pvf->string,0);
 	if (n_vf  && n_pvf->tp  && n_vf->tp) {
 		if (n_vf->tp->base == OVERLOAD) {
-			for (Plist gl = Pgen(n_vf->tp)->fct_list; gl; gl = gl->l) {
+			Plist gl = Pgen(n_vf->tp)->fct_list;
+			for (; gl; gl = gl->l) {
 				if (!Pfct(n_pvf->tp)->check(gl->f->tp, VIRTUAL))
 					break;
 			}
@@ -250,13 +251,11 @@ Pbcl classdef::get_base( char *s )
 */
 {
 //error('d',"%t::get_base(%s) baselist%d %t",this,s,this?baselist:0,this?baselist->bclass:0);
-	for (Pbcl b = baselist; b; b = b->next) {
+	Pbcl b = baselist;
+	for (; b; b = b->next) {
 //error('d',"  b%t s %s",b->bclass,s);
-		for (
-			char *s1 = s, *s2 = b->bclass->string;
-			*s1 && *s2 && *s1 == *s2;
-			s1++, s2++
-		)
+		char *s1 = s, *s2 = b->bclass->string;
+		for (;*s1 && *s2 && *s1 == *s2;	s1++, s2++)
 			;
 
 		if (!(*s1 || *s2))
@@ -541,7 +540,8 @@ int classdef::do_virtuals(Pvirt vtab, char* str, int leftmost, bit virt_flag)
 		else
 			Voffset = Voffset + vtab->vclass->get_offset(vtab->string);
 		Pname vn;
-		for (int i=0; vn=ivec[i].n; i++) {
+		int i=0;
+		for (; vn=ivec[i].n; i++) {
 		/*
 			go through virtual table's list of virtuals:
 			first see if the function is simply inherited
@@ -1170,7 +1170,7 @@ Pname classdef::make_itor(int def)
 		if (cn)
 			cn = Pbase(cn->tp)->b_name;
 		cc->stack();
-		cc->not = cn;
+		cc->not4 = cn;
 		cc->cot = this;
 	}
 	Pname fn = new name(string);
@@ -1426,7 +1426,7 @@ int make_assignment(Pname cn)
 	s->s_list = new estmt(RETURN,no_where,rv,0);
 
 	cc->stack();
-	cc->not = cn;
+	cc->not4 = cn;
 	cc->cot = cl;
 
 	cl->c_xref |= C_ASS;		// now it has X::operator=(const X&)
@@ -1555,7 +1555,8 @@ void classdef::dcl(Pname cname, Ptable tbl)
 		Pbcl ll = 0;
 		Pbcl lll = 0;
 		Pbcl vlist = 0;
-		for (Pbcl lx, l=baselist; l; l=lx) {	// remove bad bases
+		Pbcl lx, l=baselist;
+		for (; l; l=lx) {	// remove bad bases
 			Pclass cl = l->bclass;
 
 			lx = l->next;
@@ -1617,7 +1618,8 @@ void classdef::dcl(Pname cname, Ptable tbl)
 			baselist = vlist;
 
 		lll = 0;
-		for (l=baselist; l; l=l->next) {	// detect unmanageable duplicates
+		l=baselist;
+		for (; l; l=l->next) {	// detect unmanageable duplicates
 			Pclass b = l->bclass;
 
 			for (ll=baselist; ll; ll=ll->next)
@@ -1781,7 +1783,7 @@ void classdef::dcl(Pname cname, Ptable tbl)
 		memtbl->grow((nmem<=2)?3:nmem);
 
 	cc->stack();
-	cc->not = cname;
+	cc->not4 = cname;
 	cc->cot = this;
 
 	byte_offset = usz = boff;
@@ -1800,7 +1802,8 @@ void classdef::dcl(Pname cname, Ptable tbl)
 	PERM(cct);
 	PERM(bt);
 
-	for (Pname px, p=mem_list; p; p=px) {
+	Pname px, p=mem_list;
+	for (; p; p=px) {
 	/*
 		look at each member;
 		declare it and determine its visibility
@@ -2273,7 +2276,8 @@ this breaks CC884232
 	}
 //error("byte_offset %d bit_offset %d",byte_offset,bit_offset);
 
-	for (Pbcl b = baselist; b; b = b->next) { // allocate virtual base pointers
+	Pbcl b = baselist;
+	for (; b; b = b->next) { // allocate virtual base pointers
 		if (b->base != VIRTUAL)
 			continue;
 		Pclass bcl = b->bclass;
@@ -2531,8 +2535,9 @@ this breaks CC884232
 	// set global context to match current behavior in dcl.c 
 	//    for declaration of friends (needed for find_name())
 	cc->stack();
-	cc->cot = 0; cc->not = 0; cc->tot = 0; cc->c_this = 0;
-	for (Plist fl=friend_list; fl; fl=fl->l) {
+	cc->cot = 0; cc->not4 = 0; cc->tot = 0; cc->c_this = 0;
+	Plist fl=friend_list;
+	for (; fl; fl=fl->l) {
 		Pname p = fl->f;
 		Pfct f = Pfct(p->tp);
 

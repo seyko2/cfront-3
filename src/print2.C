@@ -1703,7 +1703,8 @@ void basetype::dcl_print()
 
 	default:
 		if (emode) {
-			if (0<base && base<=MAXTOK && keys[base])
+			int base2 = base;
+			if (0<base2 && base2<=MAXTOK && keys[base])
 				fprintf(out_file," %s",keys[base]);
 			else
 				putch('?');
@@ -2376,7 +2377,8 @@ void classdef::dcl_print(Pname n)
 	c_body = 3;
 
 	int i;
-	for (Pname nn=memtbl->get_mem(i=1); nn; NEXT_NAME(memtbl,nn,i) ) {
+	Pname nn=memtbl->get_mem(i=1);
+	for (; nn; NEXT_NAME(memtbl,nn,i) ) {
 		if ( nn->base == TNAME ) continue;
 		if ( nn->base==NAME &&
 			nn->n_anon==0 &&

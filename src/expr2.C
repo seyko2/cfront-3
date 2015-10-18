@@ -138,7 +138,7 @@ int expr::lval(TOK oper)
 	def:
 		if (ignore_const==0 && tp->tconst()) {
 			if (oper) {
-				char *ms = vec_const?"array":fct_const?"function":"const type";
+				const char *ms = vec_const?"array":fct_const?"function":"const type";
 				if (base == NAME) {
 					if (vec_const && Pname(this)->n_scope==ARG) break;
 					error("%s%s%n",es,ms,this);
@@ -617,7 +617,8 @@ long long str_to_llong(register const char* p)
 				    }
 				}
 			} else
-				for (j=0;exp<j;j--) i=i*(0.1);
+				// for (j=0;exp<j;j--) i=i*(0.1);
+				for (j=0;exp<j;j--) i /= 10;
 			return i;
 		}
 		default:

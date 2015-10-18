@@ -676,7 +676,7 @@ main(int argc, char* argv[])
 	ST sick = ST(&signal);		// (or C) versions <signal.h>
 	(*sick)(SIGILL,core_dump);
 	(*sick)(SIGIOT,core_dump);
-	(*sick)(SIGEMT,core_dump);
+//	(*sick)(SIGEMT,core_dump);
 	(*sick)(SIGFPE,core_dump);
 	(*sick)(SIGBUS,core_dump);
 	(*sick)(SIGSEGV,core_dump);

@@ -55,7 +55,8 @@ static void vbase_pointers(Pname fn, Pclass cl)
 		}	
 				
 		if (d) {
-			for (Pname dd =d;;) {
+			Pname dd =d;
+			for (;;) {
 				if (d->n_list == 0) {
 					d->n_list = f->f_args->n_list;
 					break;
@@ -317,7 +318,8 @@ Pexpr vbase_args(Pfct a, Pname bn)
 	if (b->base == OVERLOAD)
 		b = Pfct(Pgen(b)->fct_list->f->tp);	// doesn't matter which
 	for (Pname d = b->f_args->n_list; d!=b->argtype; d=d->n_list) {
-		for (Pname dd = a->f_args->n_list; dd; dd=dd->n_list)
+		Pname dd = a->f_args->n_list;
+		for (; dd; dd=dd->n_list)
 			if (strcmp(dd->string,d->string)==0)	// using strcmp is a trick
 				break;
 
@@ -486,14 +488,14 @@ void fct::dcl(Pname n)
 	case 0:
 	case PUBLIC:
 	{
-		cc->not = n->n_table->t_name;
-		cc->cot = Pclass(cc->not->tp);
+		cc->not4 = n->n_table->t_name;
+		cc->cot = Pclass(cc->not4->tp);
 		cc->tot = cc->cot->this_type;
 		if (f_this)
 			f_this->n_table = ftbl;		// fake for inline printout
 		cc->c_this = f_this;
 
-		Pclass cl = Pclass(cc->not->tp);
+		Pclass cl = Pclass(cc->not4->tp);
 
 		if (
 			cl->c_body==3
@@ -643,7 +645,7 @@ zaq:					// protect against: class x; x f(); class x { x(x&); ....
 	defined |= DEFINED;
 	if (f_inline && inline_restr && returns->base!=VOID) {
 		f_inline = 0;
-		char* s = (inline_restr & 32) ? "continue"
+		const char* s = (inline_restr & 32) ? "continue"
 			: (inline_restr & 16) ? "break"
 			: (inline_restr & 8) ? "loop"
 			: (inline_restr & 4) ? "switch"
@@ -659,7 +661,7 @@ zaq:					// protect against: class x; x f(); class x { x(x&); ....
                         cc->cot->class_base == INSTANTIATED &&
                         cc->cot->c_body == 1 ) {
                                 current_instantiation = cc->cot;
-                                cc->not->dcl_print(0);
+                                cc->not4->dcl_print(0);
                                 current_instantiation = 0;
                 }
 		n->dcl_print(0);
@@ -2048,7 +2050,7 @@ void dargs(Pname, Pfct f, Ptable tbl)
 	if ( f->memof ) {
 		cc->stack();
 		cc->cot = f->memof;
-		cc->not = f->memof->memtbl->t_name;
+		cc->not4 = f->memof->memtbl->t_name;
 		cc->tot = f->memof->this_type;
 		tbl = f->memof->memtbl;
 	}
@@ -2317,7 +2319,7 @@ Pname name::dofct(Ptable tbl, TOK scope)
 		error('d',&where,"  n_oper%k init %d f_virtual %d f_inline %d",n_oper,n_initializer,f->f_virtual,f->f_inline);
 	});
 
-	in_class_dcl = cc->not!=0;
+	in_class_dcl = cc->not4 != 0;
 
 	if (f->f_inline)
 		n_sto = STATIC;
@@ -2338,7 +2340,7 @@ Pname name::dofct(Ptable tbl, TOK scope)
 		etbl = Pclass(class_name->tp)->memtbl;
 	}
 	else {
-		class_name = cc->not;
+		class_name = cc->not4;
 
 		// beware of local function declarations in member functions
 		if (class_name && tbl!=cc->cot->memtbl) {
@@ -3000,8 +3002,9 @@ Pname name::dofct(Ptable tbl, TOK scope)
 			break;
 
 		default:
-			{		
-			for (Pname a=f->argtype; a; a=a->n_list) {
+			{
+			Pname a=f->argtype;
+			for (; a; a=a->n_list) {
 				if ( a->n_initializer )
 					error( "%n: operatorFs cannot take defaultA", this );
 			}
@@ -3010,7 +3013,9 @@ Pname name::dofct(Ptable tbl, TOK scope)
 				error("ATs must be fully specified for%n",nn);
 			}
 			if (class_name==0) {
-				for (a=f->argtype; a; a=a->n_list) {
+				a=f->argtype;
+				a=f->argtype;
+				for (; a; a=a->n_list) {
 					Ptype tx = a->tp->skiptypedefs();
 					if (tx->is_ref())
 						tx = Pptr(tx)->typ;

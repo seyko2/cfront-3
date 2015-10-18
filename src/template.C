@@ -903,7 +903,7 @@ templ_compilation::end(Pname p)
           	Pname namep = k_find_name(p->string,Gtbl,HIDDEN);//SYM
           	if ( namep == 0 || namep->base==NAME ) // namep = 0;
                 {
-			char* s = (p->string ? p->string : "");
+			const char* s = (p->string ? p->string : "");
 			if (*s && (s[0] != '_' || s[1] != '_' || s[2] != 'C'))
 				error("nestedYC %s", s);
 			else {
@@ -1361,7 +1361,7 @@ templ::instantiate_bodies()
 	  		    fn->n_redefined = 1; // note overriding definitions 
        	    }
 
-		cc->stack(); cc->cot=0; cc->not=0; cc->tot=0; cc->c_this=0;
+		cc->stack(); cc->cot=0; cc->not4=0; cc->tot=0; cc->c_this=0;
 		for (Pfunt fnt=fns; fnt; fnt=fnt->next) {
 			Pcons templ_ref_copy = fnt->templ_refs;
 			Pname fn = inst->function_copy(fnt,templ_ref_copy);
@@ -1419,7 +1419,7 @@ templ::instantiate_bodies()
 		cc->unstack();
 
       	    	inst->status = data_instantiated; 
-		cc->stack(); cc->cot=0; cc->not=0; cc->tot=0; cc->c_this=0;
+		cc->stack(); cc->cot=0; cc->not4=0; cc->tot=0; cc->c_this=0;
         	for (Pdata dat=data; dat; dat=dat->next) 
 		{
 			Pcons templ_ref_copy = dat->templ_refs;
@@ -1523,8 +1523,8 @@ templ_compilation::current_template(Pname p, Pexpr actuals)
        		(!owner && ((p->tp->base == COBJ) && (t == ccl)))))
     	{ // Check whether the formal and actual types are identical
       		Pexpr actual = actuals;
-      		for (Plist formal = params; formal && actual; 
-			formal = formal->l, actual = actual->e2)
+      		Plist formal = params;
+      		for (; formal && actual; formal = formal->l, actual = actual->e2)
 		{
 			if (formal->f->n_template_arg == template_type_formal)
 			{
@@ -1633,7 +1633,8 @@ check_funct_formals(Plist formals, Pname namep)
 			continue;
 		}
 
-		for (Pname a = Pfct(namep->tp)->argtype; a; a = a->n_list )
+		Pname a = Pfct(namep->tp)->argtype;
+		for (; a; a = a->n_list )
 		{
 			Ptype t = a->tp;
 			int found = 0;
@@ -1702,7 +1703,8 @@ basic_template::check_formals(Plist f2)
  * or a forward definition of a class 
  * against the formals for the class  */
 {
-  	for (Plist f1 = formals; f1 && f2; f1=f1->l, f2=f2->l)
+	Plist f1 = formals;
+  	for (; f1 && f2; f1=f1->l, f2=f2->l)
     		if (f1->f->base != f2->f->base) 
       			switch (f1->f->n_template_arg) {
       			    case template_type_formal:
@@ -1767,7 +1769,9 @@ vec_eval(Ptype p)
 bool 
 templ::check_actual_args(Pexpr actual)
 { // check actual template arguments against formals
-	for (Plist formal=formals; formal && actual; 
+
+	Plist formal=formals;
+	for (; formal && actual; 
 		formal=formal->l, actual=actual->e2)
 	{
 // error('d',"check_actual_args: formal %n %t", formal->f, formal->f->tp);
@@ -1893,7 +1897,8 @@ templ_compilation::friend_template(Pexpr actuals)
 {
 	// Check whether the formal and actual types are identical
       	Pexpr actual = actuals;
-      	for (Plist formal = params; formal && actual; 
+      	Plist formal = params;
+      	for (; formal && actual; 
 		formal = formal->l, actual = actual->e2)
 	{
 		if ((formal->f->tp == actual->e1->tp) || 
@@ -2068,7 +2073,7 @@ parametrized_typename(Pname p, Pexpr actuals, bit in_friend)
 
   	if (t) {
 		ref_in_friend = in_friend;
-    		Pname tname = t->typename(actuals);
+    		Pname tname = t->typename4(actuals);
 		ref_in_friend = 0;
     		return (tname ? tname : p);
   	}
@@ -2077,7 +2082,7 @@ parametrized_typename(Pname p, Pexpr actuals, bit in_friend)
 }
 
 Pname 
-templ::typename(Pexpr actuals) 
+templ::typename4(Pexpr actuals) 
 { // obtain typename associated with an instantiation
   	return (check_actual_args(actuals) 
 		? get_inst(actuals)->tname : 0);
@@ -2687,7 +2692,8 @@ expr_match(Pexpr a1, Pexpr a2)
   case REF:
     return (expr_match(a1->e1, a2->e1)) ;
   case IVAL:
-    return (ival *)a1->i1 == (ival *)a2->i1 ;
+    //return (ival *)a1->i1 == (ival *)a2->i1 ;
+    return a1->i1 == a2->i1 ;
   case ICON:
   case CCON:
 	{
@@ -3216,7 +3222,8 @@ funct_inst::bind_formals()
 // error('d',"funct_inst::bind_formals: %n status: %d", tname,status );
 	int count = def->get_formals_count();
 
-  	for (Plist formal=inst_formals; formal; formal=formal->l)
+	Plist formal=inst_formals;
+  	for (; formal; formal=formal->l)
 	{
 	/* 3.1/4.0: redo is-ftempl_match to set binding in order of formals */
 	/* this will make `bind_formal' faster ... */
@@ -3901,7 +3908,7 @@ templ_inst::instantiate(bool reinstantiate) {
 			Ptempl_inst(pc->car)->instantiate();
 
 		tempdcl = 1;
-		cc->stack(); cc->cot=0; cc->not=0; cc->tot=0; cc->c_this=0;
+		cc->stack(); cc->cot=0; cc->not4=0; cc->tot=0; cc->c_this=0;
 		curr_inst=this;
       		if (!((pb->b_name->dcl(gtbl,EXTERN) == 0) || error_count)) 
 		{
@@ -4288,7 +4295,7 @@ funct_inst::instantiate(bool reinstantiate) {
 
 	fcurr_inst=this;
 
-	cc->stack(); cc->cot = 0; cc->not = 0; cc->tot = 0; cc->c_this = 0;
+	cc->stack(); cc->cot = 0; cc->not4 = 0; cc->tot = 0; cc->c_this = 0;
 	if (!((tname = tname->dcl(gtbl, EXTERN)) == 0) || error_count) 
 	{
 		fcurr_inst=this;

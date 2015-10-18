@@ -277,13 +277,14 @@ void table::grow(int g)
 
 void table::reinit() 
 { // reuse table for stmt::simpl
-	for (int i = 1; i<free_slot; i++) entries[i] = 0;
+	int i = 1;
+	for (; i<free_slot; i++) entries[i] = 0;
 	for (i=0; i<hashsize; i++) hashtbl[i] = 0;
 	free_slot = 1;
 }
 
 
-char*
+const char*
 table::whatami()
 {
 	if ( this == 0 ) return "<null table>";
@@ -383,7 +384,8 @@ Pname ktable::get_mem(int i)
 {
     if ( !k_tiny ) return k_t->get_mem(i);
     else {
-	for ( Pname n = k_n;  n && i>1;  --i, n = n->n_tbl_list ) ;
+    	Pname n = k_n;
+	for (;  n && i>1;  --i, n = n->n_tbl_list ) ;
 	return n;
     }
 }

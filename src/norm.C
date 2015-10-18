@@ -798,7 +798,8 @@ Pname start_cl(TOK t, Pname c, Pbcl b)
 
 //error('d',"ccl%t %d ll %d %s",ccl,ccl,ccl->lex_level,ccl->k_tbl->whereami());
 	if (b) {	// list of base classes
-		for (Pbcl bx, bb=b, l=0; bb; bb = bx) {
+		Pbcl bx, bb=b, l=0;
+		for (;bb; bb = bx) {
 			bx = bb->next;
 			bb->next = 0;
 
@@ -1541,7 +1542,8 @@ skipp:
 						f->argtype = (Pname)f->argtype->e1;
 					    } else { // int i( x, y )
 						error("more than oneA for basicTIr");
-						for ( Pexpr e = f->argtype;  e->e2->e2;  e = e->e2 )
+						Pexpr e = f->argtype;
+						for ( ;  e->e2->e2;  e = e->e2 )
 							e->base = CM;
 						e->base = CM;
 						e->e2 = e->e2->e1;
