@@ -52,17 +52,12 @@ void* chunk(int i)	// get memory that is not to be freed
 	return cp;
 }
 
-/*
- * plan 9 has size_t
- * #ifdef __HAVE_SIZE_T
- */
+#ifdef __HAVE_SIZE_T
 #include <new.h>
 #define NEW_SIZE size_t
-/*
- * plan 9 #else
- * #define NEW_SIZE unsigned 
- * #endif
- */
+#else
+#define NEW_SIZE unsigned 
+#endif
 
 void* operator new(NEW_SIZE sz)	// get memory that might be freed
 {

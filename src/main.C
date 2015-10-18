@@ -59,7 +59,7 @@ int noinst,nodatainst;
 static void core_dump(int = 0)
 {
 	if (error_count)
-		fprintf(stderr,"%s: sorry, cannot recover from previous error\n", prog_name);
+		fprintf(stderr,"sorry, cannot recover from previous error\n");
 	else 
 		error('i',"bus error (or something nasty like that)");
 #ifdef TEST_SUITE
@@ -440,16 +440,12 @@ void run()
 		dtor = n;
 	}
 
+#ifdef PATCH
 		/*For fast load: make a static "__link" */
- 		/*
- 		 * plan 9:
-		 * always do it, since it doesn't interfere with munch
-		 * add arguments so it will type check
-		 */
 	if (ctor || dtor) {
 		printf("static struct __linkl { struct __linkl * next;\n");
 		if ( ansi_opt )
-			printf("void (*ctor)(void); void (*dtor)(void); } __link = \n");
+			printf("void (*ctor)(); void (*dtor)(); } __link = \n");
 		else
 			printf("char (*ctor)(); char (*dtor)(); } __link = \n");
 		putstring("{ (struct __linkl *)0, ");
@@ -464,6 +460,7 @@ void run()
 			putch('0');
 		putstring("};\n");
 	}
+#endif
 
 	 DB( if(Rdebug>=1) error( 'd', "run: vlist: %d", vlist ); );
 	 do {
@@ -610,8 +607,7 @@ int Pdebug = 0;
 int Rdebug = 0;
 int Sdebug = 0;
 int Tdebug = 0;
-int Ydebug = yydebug;
-
+//Ydebug == yydebug initialized in y.tab.c
 void
 process_debug_flags( char* p )
 {
@@ -666,8 +662,6 @@ main(int argc, char* argv[])
 {
 	register char * cp;
 	char* afile = "";
-
-	prog_name = argv[0];
 #ifdef unix
 
 #ifdef COMPLETE_SIG_PF
@@ -719,8 +713,7 @@ main(int argc, char* argv[])
 					goto xx;
 				case 'x':	// read cross compilation table
 					if (read_align(afile = cp+1)) {
-						fprintf(stderr,"%s: %s bad size-table (option +x)\n",
-							prog_name, afile);
+						fprintf(stderr,"bad size-table (option +x)\n");
 						exit(11);
 					}
 					goto xx;
@@ -731,7 +724,7 @@ main(int argc, char* argv[])
 						vtbl_opt = *cp-'0';
 						break;
 					default:
-						fprintf(stderr,"%s: bad +e option\n", prog_name);
+						fprintf(stderr,"bad +e option\n");
 						exit(11);
 					}
 					break;
@@ -758,7 +751,7 @@ main(int argc, char* argv[])
 						ansi_opt = *cp-'0';
 						break;
 					default:
-						fprintf(stderr,"%s: bad +a option\n", prog_name);
+						fprintf(stderr,"bad +a option\n");
 						exit(11);
 					}
 					break;
@@ -775,7 +768,7 @@ main(int argc, char* argv[])
 					pt_opt = 1;
 					pt_file = fopen (cp+1, "w");
 					if (pt_file == NULL) {
-						fprintf(stderr, "%s: %s - open failed\n", prog_name, cp+1);
+						fprintf(stderr, "Failed to open %s\n", cp+1);
 						exit(11);
 					}
 					goto xx;
@@ -784,7 +777,7 @@ main(int argc, char* argv[])
 					dtpt_opt=1;
 					dtpt_file = fopen(cp+1,"r");
 					if (dtpt_file == NULL) {
-						fprintf(stderr,"%s: %s - open failed\n", prog_name,cp+1);
+						fprintf(stderr,"Failed to open %s\n",cp+1);
 						exit(11);
 					}
 					char tempstring[1024];
@@ -828,14 +821,14 @@ main(int argc, char* argv[])
 					}
 					goto xx;
 				default:
-					fprintf(stderr,"%s: +%c bad option, ignored\n",prog_name, *cp);
+					fprintf(stderr,"%s: unexpected option: +%c ignored\n",prog_name,*cp);
 
 				}
 			}
 		xx:
 			break;
 		default:
-			fprintf(stderr,"%s: '%s' - bad argument\n",prog_name, cp);
+			fprintf(stderr,"%s: bad argument \"%s\"\n",prog_name,cp);
 			exit(11);
 		}
 	}

@@ -2770,7 +2770,7 @@ void enumdef::dcl(Pname n, Ptable tbl)
 		if (p->n_initializer) {
 			Pexpr i = p->n_initializer->typ(tbl);
 			Neval = 0;
-			long ii = i->eval();
+			long long ii = i->eval();
 //			if (largest_int<ii)
 //				error("long enumerator");
 			if (i->tp) {
@@ -2806,6 +2806,12 @@ void enumdef::dcl(Pname n, Ptable tbl)
 							CHECKU(long)
 						else
 							CHECKS(long)
+						break;
+					case LLONG:
+						if (u)
+							CHECKU(long long)
+						else
+							CHECKS(long long)
 						break;
 					default:
 						// for error checking

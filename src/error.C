@@ -266,7 +266,7 @@ int error(int t, loc* lc, const char* s, const ea& a0, const ea& a1, const ea& a
 		break;
         case 'i':
 		if (error_count++) {
-			fprintf(out_file,"%s: cannot recover\n", prog_name);
+			fprintf(out_file,"sorry, cannot recover from earlier errors\n");
 			out_file = of; // restore for fflush()
 #ifdef TEST_SUITE
 			ext(INTERNAL2);
@@ -275,7 +275,7 @@ int error(int t, loc* lc, const char* s, const ea& a0, const ea& a1, const ea& a
 #endif
 		}
 		else
-			fprintf(out_file,"%s: internal error - ",prog_name);
+			fprintf(out_file,"internal %s error: ",prog_name);
         }
 
 	ea argv[4];
@@ -417,7 +417,7 @@ int error(int t, loc* lc, const char* s, const ea& a0, const ea& a1, const ea& a
 			ext(SORRY);
 #endif
 		if (MAXERR<++error_count) {
-			fprintf(stderr,"%s: too many errors, giving up\n", prog_name);
+			fprintf(stderr,"Sorry, too many errors\n");
 			ext(7);
 		}
 	}

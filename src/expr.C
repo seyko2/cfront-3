@@ -275,6 +275,8 @@ extern int exact1(Pname,Ptype); // place in cfront.h
 
 int bound;
 int chars_in_largest;	// no of characters in largest int
+int chars_in_largestl;	// no of characters in largest long
+int chars_in_largestll;	// no of characters in largest long long
 
 static bit 
 ptr_is_template_formal(Pptr p) 
@@ -569,6 +571,7 @@ Pexpr expr::typ(Ptable tbl)
 			octal or hexadecimal larger than largest unsigned int
 		 */
 	{	int ll = strlen(string);
+// long long logic added by rl 2014-09-06
 		switch (string[ll-1]) {
 		case 'l':
 		case 'L':
@@ -576,10 +579,23 @@ Pexpr expr::typ(Ptable tbl)
 			case 'u':
 			case 'U':
 				string[ll-2] = 0;
+		ulng:
 				tp = ulong_type;
 				goto cast_n_save;
+			case 'l':
+			case 'L':
+				switch (string[ll-3]) {
+				case 'u':
+				case 'U':
+					string[ll-3] = 0;
+		ullng:
+					tp = ullong_type;
+					goto cast_n_save;
+				}
+		llng:
+				tp = llong_type;
+				goto save;
 			}
-// FIXME: long long
 		lng:
 			tp = long_type;
 			goto save;
@@ -588,10 +604,14 @@ Pexpr expr::typ(Ptable tbl)
 			switch (string[ll-2]) {
 			case 'l':
 			case 'L':
+				switch (string[ll-3]) {
+				case 'l':
+				case 'L':
+					string[ll-3] = 0;
+					goto ullng;
+				}
 				string[ll-2] = 0;
-		ulng:
-				tp = ulong_type;
-				goto cast_n_save;
+				goto ulng;
 			default:
 				string[ll-1] = 0;
 		labuint:
@@ -614,12 +634,18 @@ Pexpr expr::typ(Ptable tbl)
 				if(ll == HSZ)
 					if(string[2]>='8') goto labuint;
 					else goto nrm;
-				if(SZ_INT==SZ_LONG) break;
+				if(SZ_INT==SZ_LLONG) break; /* goto ullng */
 				HSZ = SZ_LONG+SZ_LONG;
 				if(ll < HSZ) goto lng;
 				if(ll == HSZ)
 					if(string[2]>='8') goto ulng;
 					else goto lng;
+				if(SZ_LONG==SZ_LLONG) break; /* goto ullng */
+				HSZ = SZ_LLONG+SZ_LLONG;
+				if(ll < HSZ) goto llng;
+				if(ll == HSZ)
+					if(string[2]>='8') goto ullng;
+					else goto llng;
 				break;
 				}
 			default:   // OCTAL
@@ -633,9 +659,11 @@ Pexpr expr::typ(Ptable tbl)
 				if(nbits < IBITS) goto nrm;
 				if(nbits == IBITS) goto labuint;
 				if(nbits < BI_IN_BYTE*SZ_LONG) goto lng;
+				if(nbits == BI_IN_BYTE*SZ_LONG) goto ulng;
+				if(nbits < BI_IN_BYTE*SZ_LLONG) goto llng;
 				}
 			}
-			goto ulng;
+			goto ullng;
 		}
 		else {  // DECIMAL
 			if (ll<chars_in_largest) {
@@ -643,21 +671,40 @@ Pexpr expr::typ(Ptable tbl)
 				tp = int_type;
 				goto save;
 			}
-			if (ll>chars_in_largest) {
-				if(SZ_INT==SZ_LONG || ll>2*chars_in_largest)
-					goto ulng;
+			if (ll==chars_in_largest) {
+				char* p = string;
+				char* q = LARGEST_INT;
+				do if (*p>*q) {
+					if(SZ_INT==SZ_LONG) goto ulng;
+					goto lng; 
+				} while (*p++==*q++ && *p);
+				goto nrm;
+			}
+			// ll > chars_in_largest
+			if (ll<chars_in_largestl)
+				goto lng;
+			if (ll==chars_in_largestl) {
+				char* p = string;
+				char* q = LARGEST_LONG;
+				do if (*p>*q) {
+					if(SZ_LONG==SZ_LLONG) goto ullng;
+					goto llng; 
+				} while (*p++==*q++ && *p);
 				goto lng;
 			}
-			// ll == chars_in_largest
+			// ll > chars_in_largestl
+			if (ll<chars_in_largestll)
+				goto llng;
+			// ll >= chars_in_largestll
 			char* p = string;
-			char* q = LARGEST_INT;
+			char* q = LARGEST_LLONG;
 			do if (*p>*q) {
-				if(SZ_INT==SZ_LONG) goto ulng;
-				goto lng; 
+				goto ullng;
 			} while (*p++==*q++ && *p);
+			goto llng;
 		}
+		// unreachable
 
-		goto nrm;
 	}
 	case CCON:
 		tp = c_strlen(string)<5 ? char_type : int_type;	// stored as 'a'
@@ -1441,6 +1488,7 @@ Pexpr expr::typ(Ptable tbl)
 				case SHORT:
 				case INT:
 				case LONG:
+				case LLONG:
 				case EOBJ:
 					break;
 				default:
@@ -1843,7 +1891,7 @@ Pexpr expr::typ(Ptable tbl)
 						// if (p==2-2)
 						// YUCK!
 			Neval = 0;
-			long i = e2->eval();
+			long long i = e2->eval();
 			if (Neval==0 && i==0) {
 				DEL(e2);
 				e2 = zero;
@@ -1852,7 +1900,7 @@ Pexpr expr::typ(Ptable tbl)
 		}
 		else if (r2=='P' && r1=='I') {
 			Neval = 0;
-			long i = e1->eval();
+			long long i = e1->eval();
 			if (Neval==0 && i==0) {
 				DEL(e1);
 				e1 = zero;
@@ -2336,6 +2384,7 @@ Pexpr expr::typ(Ptable tbl)
 		{	Ptype t = e2->tp->skiptypedefs();
 			switch (t->base) {
 			case LONG:
+			case LLONG:
 			case FLOAT:
 			case DOUBLE:
 			case LDOUBLE:
@@ -2344,6 +2393,7 @@ Pexpr expr::typ(Ptable tbl)
 		}
 			// no break
 		case LONG:
+		case LLONG:
 			if (b==ASSIGN
 			&& Pbase(t1)->b_unsigned
 			&& e2->base==UMINUS

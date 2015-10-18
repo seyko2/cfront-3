@@ -3133,9 +3133,6 @@ dummy_dtor( TOK q, TOK d )
 	case LONG:
 		dt->tp2 = dt->tpdef = long_type;
 		break;
-	case VLONG:
-		dt->tp2 = dt->tpdef = vlong_type;
-		break;
 	case FLOAT:
 		dt->tp2 = dt->tpdef = float_type;
 		break;

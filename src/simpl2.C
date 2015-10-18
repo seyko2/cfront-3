@@ -1187,7 +1187,7 @@ void expr::simpl()
 	if (tp==int_type || tp==defa_type) {
 		Neval = 0;
 		no_sizeof = 1;	// do not convert sizeof's to ints
-		long i = eval();
+		long long i = eval();
 		no_sizeof = 0;
 		if (Neval == 0) {
 			base = IVAL;

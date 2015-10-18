@@ -40,6 +40,8 @@ struct ss {
 	int i1;
 	double a3; char c3;
 	long l1;
+	double la3; char lc3;
+	long long ll1;
 	double a4; char c4;
 	float f1;
 	double a6; char c5;
@@ -82,12 +84,14 @@ int a123456780 = 2;
 
 main()
 {
-	char largest[50];
+	char largest[100];
 	char c = 1;
 	int i1 = 0;
 	int i2 = 0;
 	long i = 1L;
-	unsigned int	large;
+	unsigned int		large;
+	unsigned long		largel;
+	unsigned long long	largell;
 
 	if (a123456789 == a123456780)
 		fprintf(stderr,"Warning: Your C compiler is dangerous.\nIt strips trailing characters off long identifiers without warning.\nGet a new one\n");
@@ -121,6 +125,8 @@ main()
 	out("#define DAL_INT",(int)&oo.i1-(int)&oo.c2);
 	out("#define DSZ_LONG",sizeof(long));
 	out("#define DAL_LONG",(int)&oo.l1-(int)&oo.c3);
+	out("#define DSZ_LLONG",sizeof(long long));
+	out("#define DAL_LLONG",(int)&oo.ll1-(int)&oo.lc3);
 	out("#define DSZ_FLOAT",sizeof(float));
 	out("#define DAL_FLOAT",(int)&oo.f1-(int)&oo.c4);
 	out("#define DSZ_DOUBLE",sizeof(double));
@@ -147,8 +153,16 @@ main()
 	out("#define DAL_BPTR",(int)&oo.p1-(int)&oo.c6);
 	large = (unsigned)~0;
 	large = large >> 1;
-	sprintf(largest,"%d",large);	/* largest integer */
+	sprintf(largest,"%d",large);		/* largest integer */
 	outstr("#define DLARGEST_INT",largest);
+	largel = (unsigned long)~0;
+	largel = largel >> 1;
+	sprintf(largest,"%ld",largel);		/* largest long */
+	outstr("#define DLARGEST_LONG",largest);
+	largell = (unsigned long long)~0;
+	largell = largell >> 1;
+	sprintf(largest,"%lld",largell);	/* largest long long */
+	outstr("#define DLARGEST_LLONG",largest);
 	switch (sizeof(struct st1)) {
 	case 1:
 		i1 = sizeof(struct st2)!=sizeof(struct st3);

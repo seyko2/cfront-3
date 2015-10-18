@@ -35,7 +35,6 @@ lex.c:
 #include "tqueue.h"
 #include "template.h"
 #include "Block.h"
-#include <unistd.h>
 
 # define  CCTRANS(x) x
 
@@ -282,6 +281,7 @@ ktbl_init()
 	new_key("if",LOC,IF);
 	new_key("int",INT,TYPE);
 	new_key("long",LONG,TYPE);
+	new_key("long long",LLONG,TYPE);
 	new_key("return",LOC,RETURN);
 	new_key("register",REGISTER,TYPE);
 	new_key("static",STATIC,TYPE);
@@ -335,20 +335,10 @@ void loc::putline()
 
 void loc::put(FILE* p)
 {
-	int l;
-	char cwd[4096];
-
-	// plan9: reduce chatter in error messages
-	::getcwd(cwd, sizeof(cwd));
-	l = strlen(cwd);
-
 	if ( 0<=file && file <= Nfile ) {
 		char* f = file_name[file];
 		if (f==0) f = src_file_name;
-
-		if(strncmp(f, cwd, l) == 0)
-			f += l+1;
-		fprintf(p,"%s:%d ",f,line);
+		fprintf(p,"\"%s\", line %d: ",f,line);
 	}
 }
 
@@ -1035,6 +1025,15 @@ TOK tlex()
 				case 'l':
 				case 'L':
 					pch(lxchar);
+					switch(get(lxchar)) {
+					case 'l':
+					case 'L':
+						pch(lxchar);
+						break;
+					default:
+						saved=lxchar;
+						break;
+					}
 					break;
 				default:
 					saved=lxchar;
@@ -1048,6 +1047,19 @@ TOK tlex()
 					break;
 				}
 				switch(get(lxchar)) {
+				case 'l':
+				case 'L':
+					pch(lxchar);
+					switch(get(lxchar)) {
+					case 'u':
+					case 'U':
+						pch(lxchar);
+						break;
+					default:
+						saved=lxchar;
+						break;
+					}
+					break;
 				case 'u':
 				case 'U':
 					pch(lxchar);

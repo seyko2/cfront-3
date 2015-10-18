@@ -102,15 +102,17 @@ DB(if(Ndebug>=1)error('d',"'%k'->type_adj(%k) --%t b_xname%n",base,t,this,b_xnam
 			b_const = 1;	break;
 	case UNSIGNED:	b_unsigned = 1;	break;
 	case SHORT:	b_short = 1;	break;
-	case LONG:
-#ifdef VL
-			if (b_long)
-				base = VLONG;
-			else
-#endif
-			if (base == DOUBLE)
+	case LONG:	if (base == DOUBLE) {
+				if (b_long) {
+					error('w',"redundant long declarators");
+					b_long = 0;
+				}
 				base = LDOUBLE;
-			else
+			} else if (b_long > 1) {
+				error('w',"too many long declarators");
+			} else if (b_long) {
+				b_long = 2;
+			} else
 				b_long = 1;
 			break;
 	case FRIEND:
@@ -125,6 +127,8 @@ DB(if(Ndebug>=1)error('d',"'%k'->type_adj(%k) --%t b_xname%n",base,t,this,b_xnam
 			b_sto = t;
 		break;
 	case DOUBLE:
+		if (b_long > 1)
+			error('w',"excessive long declarators");
 		if (b_long) {
 			t = LDOUBLE;
 			b_long = 0;
@@ -179,7 +183,7 @@ static TOK type_set( Pbase b )
 {
 	TOK t = 0;
 
-	if ( b->b_vlong ) t = VLONG;
+	if ( b->b_long > 1 ) t = LLONG;
 	else if ( b->b_long ) t = LONG;
 	else if ( b->b_short ) t = SHORT;
 	else if ( b->b_unsigned ) t = UNSIGNED;
@@ -280,22 +284,14 @@ Pbase basetype::check(Pname n)
 		if (b_name->base == TNAME) error('i',"TN%n inCO %p",b_name,this);
 	}
 
-	if (b_long || b_short || b_vlong) {
-// FIXME: long long
-		TOK vsl;
-
-		if (b_long) vsl = LONG;
-		if (b_short) vsl = SHORT;
-		if (b_vlong) vsl = VLONG;
-		if ((b_long && b_short) || (b_long && b_vlong) || (b_short && b_vlong))
-			error("badBT:long short%k%n",base,n);
-#ifndef VL
+	if (b_long || b_short) {
+		TOK sl = (b_short) ? SHORT : ((b_long>1) ? LLONG : LONG);
+		if (b_long && b_short) error("badBT:long short%k%n",base,n);
 		if (base != INT)
-			error("badBT:%k%k%n",vsl,base,n);
+			error("badBT:%k%k%n",sl,base,n);
 		else
-#endif
-			base = vsl;
-		b_short = b_long = b_vlong = 0;
+			base = sl;
+		b_short = b_long = 0;
 	}
 
 	if (b_typedef && b_sto) error("badBT:Tdef%k%n",b_sto,n);
@@ -313,8 +309,8 @@ Pbase basetype::check(Pname n)
 			default:
 				error("badBT: unsigned const %k%n",base,n);
 				b_unsigned = 0;
-			case VLONG:
 			case LONG:
+			case LLONG:
 			case SHORT:
 			case INT:
 			case CHAR:
@@ -325,12 +321,12 @@ Pbase basetype::check(Pname n)
 	}
 	else if (b_unsigned) {
 		switch (base) {
-		case VLONG:
-			delete this;
-			return uvlong_type;
 		case LONG:
 			delete this;
 			return ulong_type;
+		case LLONG:
+			delete this;
+			return ullong_type;
 		case SHORT:
 			delete this;
 			return ushort_type;
@@ -348,12 +344,12 @@ Pbase basetype::check(Pname n)
 	}
 	else {
 		switch (base) {
-		case VLONG:
-			delete this;
-			return vlong_type;
 		case LONG:
 			delete this;
 			return long_type;
+		case LLONG:
+			delete this;
+			return llong_type;
 		case SHORT:
 			delete this;
 			return short_type;
@@ -1400,7 +1396,7 @@ zse1:
 			case CHAR:
 			case SHORT:
 			case LONG:
-			case VLONG:
+			case LLONG:
 			case EOBJ:
 			case INT:
 //  typedef const unsigned cu_int;

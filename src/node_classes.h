@@ -87,6 +87,7 @@ struct token_class {
     { IF, nc_stmt },
     { INT, nc_basetype },
     { LONG, nc_basetype },
+    { LLONG, nc_basetype },
     { TPDEF, nc_tpdef },
     { NEW, nc_expr },
     { OPERATOR, nc_fct },

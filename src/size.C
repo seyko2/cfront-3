@@ -32,8 +32,8 @@ int SZ_INT = DSZ_INT;
 int AL_INT = DAL_INT;
 int SZ_LONG = DSZ_LONG;
 int AL_LONG = DAL_LONG;
-int SZ_VLONG = DSZ_VLONG;
-int AL_VLONG = DAL_VLONG;
+int SZ_LLONG = DSZ_LLONG;
+int AL_LLONG = DAL_LLONG;
 int SZ_FLOAT = DSZ_FLOAT;
 int AL_FLOAT = DAL_FLOAT;
 int SZ_DOUBLE = DSZ_DOUBLE;
@@ -51,18 +51,20 @@ int SZ_BPTR = DSZ_BPTR;
 int AL_BPTR = DAL_BPTR;
 //int SZ_TOP = DSZ_TOP;
 //int SZ_BOTTOM = DSZ_BOTTOM;
-char* LARGEST_INT = DLARGEST_INT;
+char* LARGEST_INT = DLARGEST_INT,
+    * LARGEST_LONG = DLARGEST_LONG,
+    * LARGEST_LLONG = DLARGEST_LLONG;
 int F_SENSITIVE = DF_SENSITIVE;
 int F_OPTIMIZED =  DF_OPTIMIZED;
 
 static int arg1 = 0;
 
-int get_line(FILE* fp, char *f)
+int get_line(FILE* fp)
 {
 	char s[32];
 	char s2[32];
 
-	if (fscanf(fp,"%s ",s) == EOF) return 0;
+	if (fscanf(fp,"%s %s",s2,s) == EOF) return 0;
 
 	if (strcmp("DLARGEST_INT",s) == 0) { 
 		if (fscanf(fp," %s",s2)==EOF) return 0;
@@ -122,13 +124,13 @@ int get_line(FILE* fp, char *f)
 		return 1;
 	}
 
-	if (strcmp("DSZ_VLONG",s) == 0) {
-		SZ_VLONG = arg1;
+	if (strcmp("DSZ_LLONG",s) == 0) {
+		SZ_LLONG = arg1;
 		return 1;
 	}
 
-	if (strcmp("DAL_VLONG",s) == 0) {
-		AL_VLONG = arg1;
+	if (strcmp("DAL_LLONG",s) == 0) {
+		AL_LLONG = arg1;
 		return 1;
 	}
 
@@ -228,7 +230,6 @@ int get_line(FILE* fp, char *f)
 //		SZ_BOTTOM = arg2;
 		return 1;
 	}
-	fprintf(stderr, "%s: %s unknown alignment name\n", f, s);
 	return 0;
 }
 
@@ -241,7 +242,7 @@ int read_align(char* f)
 	}
 	FILE* fp = fopen(f,"r");
 	if (fp == 0) return 1;
-	while (get_line(fp, f)) ;
+	while (get_line(fp)) ;
 	return 0;
 }
 /*
@@ -254,6 +255,7 @@ print_align(char* s)
 	fprintf(stderr,"short	%d	%d\n",SZ_SHORT,AL_SHORT);
 	fprintf(stderr,"int	%d	%d	%s\n",SZ_INT,AL_INT,LARGEST_INT);
 	fprintf(stderr,"long	%d	%d\n",SZ_LONG,AL_LONG);
+	fprintf(stderr,"llong	%d	%d\n",SZ_LLONG,AL_LLONG);
 	fprintf(stderr,"float	%d	%d\n",SZ_FLOAT,AL_FLOAT);
 	fprintf(stderr,"double	%d	%d\n",SZ_DOUBLE,AL_DOUBLE);
 	fprintf(stderr,"ldouble	%d	%d\n",SZ_LDOUBLE,AL_LDOUBLE);

@@ -415,6 +415,7 @@ check_non_type_formal(Pname n)
   		case SHORT:
   		case INT:
   		case LONG:
+  		case LLONG:
   		case FIELD:
   		case EOBJ:
   		case COBJ:
@@ -2198,17 +2199,17 @@ stradd(char *&target, char *source, int numeric = 0) {
 }
 	
 void 
-stradd(char *&p, long i) {
+stradd(char *&p, long long i) {
   char s[64];
   char t[64];
   
   	if (!emode) { *p++ = 'L'; }
-  	sprintf(s,"%ld", i);
+  	sprintf(s,"%lld", i);
 	if (!emode) {
 		int len = strlen(s);
 		if (len >= 10)
-  	    		sprintf(t,"%ld_%s", len,s);
-        	else sprintf(t,"%ld%s", len,s);
+  	    		sprintf(t,"%lld_%s", len,s);
+        	else sprintf(t,"%lld%s", len,s);
   		stradd(p,t,1);
 	}
   	else stradd(p,s,0);
@@ -2323,7 +2324,7 @@ mangled_expr(char *p, Pexpr e, bool mangle_for_address = false)
 			if (emode)
 			{
 				Neval=0;
-				long e_eval = e->eval();
+				long long e_eval = e->eval();
 				if (!Neval)
 				{
       					stradd(p,e_eval);
@@ -2418,7 +2419,7 @@ mangled_expr(char *p, Pexpr e, bool mangle_for_address = false)
 		if (emode)
 		{
 			Neval=0;
-			long e_eval = e->eval();
+			long long e_eval = e->eval();
 			if (!Neval)
 			{
       				stradd(p,e_eval);
@@ -2553,32 +2554,32 @@ check_for_const(Pexpr a1, Pexpr a2)
 		while (a1->base == CAST || a1->base == G_CAST) {
 			TOK b1 = a1->tp2->skiptypedefs()->base;
 			if (b1 == CHAR || b1 == SHORT || b1 == INT ||
-			    b1 == LONG || b1 == ENUM || b1 == EOBJ)
+			    b1 == LONG || b1 == LLONG || b1 == ENUM || b1 == EOBJ)
 				break;
 			a1 = a1->e1;
 		}
 		while (a2->base == CAST || a2->base == G_CAST) {
 			TOK b2 = a2->tp2->skiptypedefs()->base;
 			if (b2 == CHAR || b2 == SHORT || b2 == INT ||
-			    b2 == LONG || b2 == ENUM || b2 == EOBJ)
+			    b2 == LONG || b2 == LLONG || b2 == ENUM || b2 == EOBJ)
 				break;
 			a2 = a2->e1;
 		}
-		long a1_eval = a1->eval();
-		long a2_eval = a2->eval();
+		long long a1_eval = a1->eval();
+		long long a2_eval = a2->eval();
 		if (Neval) return false;
 		return a1_eval==a2_eval;
 	}
 
   	if (a1->base == NAME && check_expr(a2->base)) {
 		Pname n = Pname(a1);
-		long a2_eval = a2->eval();
+		long long a2_eval = a2->eval();
 		return (!Neval && n->n_evaluated && (n->n_val == a2_eval));
     	}
         else
   	if (a2->base == NAME && check_expr(a1->base)) {
 		Pname n = Pname(a2);
-		long a1_eval = a1->eval();
+		long long a1_eval = a1->eval();
 		return (!Neval && n->n_evaluated && (n->n_val == a1_eval));
 	}
 
@@ -2702,7 +2703,7 @@ expr_match(Pexpr a1, Pexpr a2)
   case ZERO:
     return true ;
   case SIZEOF:
-    { long l1 = a1->eval(), l2 = a2->eval() ;
+    { long long l1 = a1->eval(), l2 = a2->eval() ;
       if (Neval) return false;
       return (l1 == l2) ;
     }
@@ -3072,7 +3073,7 @@ const_formal_hack(Pname n)
 		    return 0; // should not occur
 
   		case ZTYPE: case CHAR: case SHORT: case INT:
-  		case LONG: case FIELD: case EOBJ: case COBJ:
+  		case LONG: case LLONG: case FIELD: case EOBJ: case COBJ:
   		case TYPE: case ANY:
     		{ // a basetype node
       			Pbase b = Pbase(n->tp);

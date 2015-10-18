@@ -77,7 +77,6 @@ char* oper_name(TOK op)
 //				"_vec_delete"
 //				"_vec_new"
 //				"_main"
-//				"__main"	// Plan9 ape uses _main so c++ must use __main
 	}
 }
 
@@ -240,6 +239,5 @@ void otbl_init()
 	new_op(" constructor call",VALUE);
 	new_op(" ::delete",GDELETE);
 	new_op(ansi_opt?" long double":" double",LDOUBLE);
-//	new_op(" long long",VLONG);
 	new_op(" typedef",TPDEF); // did not want to introduce new TOKEN
 }

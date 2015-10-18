@@ -120,7 +120,9 @@ void simpl_init()
        char* ns = oper_name(NEW);
        char* ds = oper_name(DELETE);
 
-	size_t_type = ulong_type; /*Pvoid_type->tsizeof()>uint_type->tsizeof()?ulong_type:uint_type; Plan9 */
+	size_t_type = Pvoid_type->tsizeof()>uint_type->tsizeof()?
+                      Pvoid_type->tsizeof()>ulong_type->tsizeof()?ullong_type:ulong_type :
+                      uint_type;
 
        Pname nw = new name(ns);
        nw->n_oper = NEW;

@@ -129,7 +129,7 @@ basetype::basetype(TOK b, Pname n)
 	case REGISTER:	b_sto = b;	break;
 	case SHORT:	b_short = 1;	break;
 	case LONG:	b_long = 1;	break;
-	case VLONG:	b_vlong = 1;	break;
+	case LLONG:	b_long = 2;	break;
 	case ANY:
 	case ZTYPE:
 	case VOID:
@@ -238,7 +238,7 @@ Ptype tok_to_type(TOK b)
 	case CHAR:	t = char_type; break;
 	case SHORT:	t = short_type; break;
 	case LONG:	t = long_type; break;
-	case VLONG:	t = vlong_type; break;
+	case LLONG:	t = llong_type; break;
 	case UNSIGNED:	t = uint_type; break;
 	case FLOAT:	t = float_type; break;
 	case DOUBLE:	t = double_type; break;

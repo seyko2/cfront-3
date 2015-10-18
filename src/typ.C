@@ -22,13 +22,13 @@ Pbase short_type;
 Pbase int_type;
 Pbase char_type;
 Pbase long_type;
-Pbase vlong_type;
+Pbase llong_type;
 
 Pbase uchar_type;
 Pbase ushort_type;
 Pbase uint_type;
 Pbase ulong_type;
-Pbase uvlong_type;
+Pbase ullong_type;
 
 Pbase zero_type;
 Pbase float_type;
@@ -62,7 +62,7 @@ Ptype np_promote(TOK oper, TOK r1, TOK r2, Ptype t1, Ptype t2, TOK p, bit perr)
 	"r1" and "r2", respectively:
 		A	ANY
 		Z	ZERO
-		I	CHAR, SHORT, INT, LONG, VLONG, FIELD, or EOBJ
+		I	CHAR, SHORT, INT, LONG, LLONG, FIELD, or EOBJ
 		F	FLOAT DOUBLE LDOUBLE
 		P	PTR (to something) or VEC (of something)
 	test for compatability of the operands,
@@ -426,7 +426,7 @@ TOK type::kind(TOK oper, TOK v, bit perr)
 	case SHORT:
 	case INT:
 	case LONG:
-	case VLONG:
+	case LLONG:
 	case EOBJ:
 		return 'I';
 	case FLOAT:
@@ -596,7 +596,7 @@ xx:
 				error("UN in array dimension");
 			}
 			else {
-				long i;
+				long long i;
 				Neval = 0;
 				i = e->eval();
 				if (Neval == 0) {
@@ -677,7 +677,7 @@ xx:
 	{
 		Pbase f = Pbase(t);
 		Pexpr e = Pexpr(f->b_name);
-		long i;
+		long long i;
 		Ptype et;
 		e = e->typ(tbl);
 		f->b_name = Pname(e);
@@ -929,14 +929,14 @@ bit type::check(Ptype t, TOK oper, bit level)
 			case SHORT:
 			case INT:
 			case LONG:
-			case VLONG:
+			case LLONG:
 			case FLOAT:
 			case DOUBLE:
 			case LDOUBLE:
 			case FIELD:
 				switch (b2) {
 				case LONG:
-				case VLONG:
+				case LLONG:
 				case FLOAT:
 				case DOUBLE:
 				case LDOUBLE:
@@ -1204,7 +1204,7 @@ bit type::check(Ptype t, TOK oper, bit level)
 	case SHORT:
 	case INT:
 	case LONG:
-	case VLONG:
+	case LLONG:
 		if (Pbase(t1)->b_unsigned != Pbase(t2)->b_unsigned) {
 			if (level>0 || (oper==0 || oper==IGNORE_CONST))
 				return 1;

@@ -174,6 +174,7 @@ st:
 	case SHORT:
 	case INT:
 	case LONG:
+	case LLONG:
 		if (Pbase(t1)->b_unsigned != Pbase(t2)->b_unsigned) return 1;
 		break;
 	case COBJ:
@@ -208,6 +209,7 @@ int makeCM( Ptype t )
 	case SHORT:
 	case INT:
 	case LONG:
+	case LLONG:
 	case EOBJ:
 		return 0;
 	default: 

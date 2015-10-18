@@ -258,6 +258,7 @@ bit oper_okay(Ptype t, TOK b)
 	case SHORT:
 	case INT:
 	case LONG:
+	case LLONG:
 	case EOBJ:
 		return 1;
 	}
@@ -607,6 +608,7 @@ void stmt::dcl(int forflag)
 					case INT:
 					case CHAR:
 					case LONG:
+					case LLONG:
 					case SHORT:
 						if (
 							Pbase(rt)->b_unsigned
@@ -712,6 +714,7 @@ void stmt::dcl(int forflag)
 				case SHORT:
 				case INT:
 				case LONG:
+				case LLONG:
 				case FIELD:
 					break;
 				default:
@@ -765,10 +768,11 @@ void stmt::dcl(int forflag)
 				case SHORT:
 				case INT:
 				case LONG:
+				case LLONG:
 				case EOBJ:
 				{
 					Neval = 0;
-					long i = ss->e->eval();
+					long long i = ss->e->eval();
 					if (Neval == 0) {
 						Pstmt cs;
 						if (largest_int<i)
@@ -862,7 +866,7 @@ void stmt::dcl(int forflag)
 				case EOBJ:
 				case ZTYPE:
 				{
-					long i;
+					long long i;
 					Neval = 0;
 					i = ee->eval();
 	

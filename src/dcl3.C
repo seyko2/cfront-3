@@ -1973,10 +1973,10 @@ size_t_check(Ptype tp)
 {
 	if (tp->check(size_t_type,0) == 0) return 0;
 	int size_t_size = size_t_type->tsizeof();
-	if (size_t_size == uvlong_type->tsizeof() &&
-		tp->check(uvlong_type,0) == 0) return 0;
 	if (size_t_size == ulong_type->tsizeof() &&
 		tp->check(ulong_type,0) == 0) return 0;
+	if (size_t_size == ullong_type->tsizeof() &&
+		tp->check(ullong_type,0) == 0) return 0;
 	if (size_t_size == ushort_type->tsizeof() &&
 		tp->check(ushort_type,0) == 0) return 0;
 	return 1;
@@ -2194,7 +2194,7 @@ void dargs(Pname, Pfct f, Ptable tbl)
 					init->permanent = 2;
 					a->n_initializer = init;
 					Neval = 0;
-					long i = init->eval();
+					long long i = init->eval();
 					if (Neval == 0) {
 						a->n_evaluated = 1;
 						a->n_val = i;

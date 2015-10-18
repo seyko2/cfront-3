@@ -367,8 +367,8 @@ int* ncount;
 				break;
 			case 'U':
 			case 'C':
-//			case 'V':	// volatile
-//			case 'S':	// signed
+			case 'V':       // volatile
+			case 'S':       // signed
 			case 'P':
 			case 'R':
 				mods[mc++] = cc;
@@ -384,7 +384,6 @@ int* ncount;
 			case 'l':
 			case 'f':
 			case 'd':
-			case 'V':
 			case 'r':
 			case 'e':
 				type = cc;
@@ -1090,7 +1089,7 @@ int f;
 		case 'l':
 			t = "long";
 			break;
-		case 'V':
+		case 'm':
 			t = "long long";
 			break;
 		case 'f':

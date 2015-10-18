@@ -138,7 +138,7 @@ extern Pbase int_type;
 extern Pbase char_type;
 extern Pbase short_type;
 extern Pbase long_type;
-extern Pbase vlong_type;
+extern Pbase llong_type;
 extern Pbase uint_type;
 extern Pbase float_type;
 extern Pbase double_type;
@@ -149,7 +149,7 @@ extern Pbase void_type;
 extern Pbase uchar_type;
 extern Pbase ushort_type;
 extern Pbase ulong_type;
-extern Pbase uvlong_type;
+extern Pbase ullong_type;
 extern Ptype Pchar_type;
 extern Ptype Pint_type;
 extern Ptype Pvptr_type;
@@ -542,7 +542,7 @@ extern int processing_sizeof; // suppresscertain referencing errors for args to 
 #endif
 
 struct basetype : public type
-	/*	ZTYPE CHAR SHORT INT LONG FLOAT DOUBLE
+	/*	ZTYPE CHAR SHORT INT LONG LLONG FLOAT DOUBLE
 		FIELD EOBJ COBJ TYPE ANY
 	*/
 	/*	used for gathering all the attributes
@@ -560,7 +560,6 @@ struct basetype : public type
 	bit	b_virtual;
 	bit	b_short;
 	bit	b_long;
-	bit	b_vlong;
 	bit	b_bits;		/* number of bits in field */
 	bit	b_offset;	// bit offset of field
 	TOK	b_sto;		/* AUTO STATIC EXTERN REGISTER 0 */
@@ -762,7 +761,7 @@ struct expr : public node	/* PLUS, MINUS, etc. */
 	};
 	union {
 		Pexpr	e1;
-		long	i1;
+		long long	i1;
 		char*	string;
 	};
 	union {
@@ -792,8 +791,8 @@ struct expr : public node	/* PLUS, MINUS, etc. */
 	void	print();
         Pexpr   typ0(Ptable);
 	Pexpr	typ(Ptable);
-	long	eval();
-	unsigned long ueval(long,long);
+	long long	eval();
+	unsigned long long ueval(long long,long long);
 	int	lval(TOK);
 	Ptype	call_fct(Ptable);
 	Pexpr	address();
@@ -821,7 +820,7 @@ struct cast : public expr {		// G_CAST
 };
 
 struct ival : public expr {		// IVAL
-	ival(long ii) : expr (IVAL,0,0) { i1 = ii;}
+	ival(long long ii) : expr (IVAL,0,0) { i1 = ii;}
 };
 
 struct call : public expr {		// CALL
@@ -920,7 +919,7 @@ struct name : public expr {	// NAME TNAME DTOR and the lexical keywords
         };
 
 	/* n_val: the value of n_initializer */
-	long	n_val;		
+	long long	n_val;		
 	/* for inlines, the number of the argument when base == ANAME */
 	int argno;
 	static Pname name_free;
@@ -1112,7 +1111,7 @@ extern Pexpr expr_unlist(elist*);
 extern class dcl_context * cc;
 
 #define MAXCONT	100
-extern dcl_context ccvec[/*plan9 MACONT*/];
+extern dcl_context ccvec[MAXCONT];
 
 struct dcl_context {
 	Pname	c_this;	/* current fct's "this" */
@@ -1202,7 +1201,7 @@ extern bit simpl_friend; // are we simplifying a friend function
 extern bit in_return; // are we calling ref_init with a RETURN
 extern loc no_where;
 
-extern long str_to_long(const char*);
+extern long long str_to_llong(const char*);
 extern int c_strlen(const char* s);
 #endif
 

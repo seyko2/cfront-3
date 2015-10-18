@@ -511,7 +511,7 @@ latype( TOK t )
 	switch ( t ) {
 	default: // includes friend, typedef, storage classes, etc.
 		return 0;
-	case CHAR: case SHORT: case INT: case LONG:
+	case CHAR: case SHORT: case INT: case LONG: case LLONG:
 	case FLOAT: case DOUBLE:
         case UNSIGNED:
 		return 1;

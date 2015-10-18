@@ -1880,6 +1880,7 @@ xdr:
 					case EOBJ:
 						switch (it->base) {
 						case LONG:
+						case LLONG:
 						case FLOAT:
 						case DOUBLE:
 						case LDOUBLE:
@@ -1887,6 +1888,7 @@ xdr:
 						}
 						// no break
 					case LONG:
+					case LLONG:
 					{
 						if (
 							Pbase(nt)->b_unsigned
@@ -1902,6 +1904,7 @@ xdr:
 						    case SHORT:
 						    case INT:
 						    case LONG:
+						    case LLONG:
 							if ( nt->tsizeof() < it->tsizeof() )
 								init = new texpr(G_CAST,nt,init)->typ(tbl);
 						    }
@@ -1909,7 +1912,7 @@ xdr:
 	
 	
 						Neval = 0;
-						long i = init->eval();
+						long long i = init->eval();
 						if (Neval == 0 && ntc && scope!=ARG) {
 							nn->n_evaluated = n_evaluated = 1;
 							nn->n_val = n_val = i;

@@ -19,13 +19,15 @@ any actual or intended publication of such source code.
 #include "size.h"
 #include "template.h"
 
-extern int chars_in_largest;
+extern int chars_in_largest, chars_in_largestl, chars_in_largestll;
 int largest_int;
 
 void typ_init()
 {	
 	chars_in_largest = strlen(LARGEST_INT);
-	largest_int = int(str_to_long(LARGEST_INT));
+	chars_in_largestl = strlen(LARGEST_LONG);
+	chars_in_largestll = strlen(LARGEST_LLONG);
+	largest_int = int(str_to_llong(LARGEST_INT));
 
 	defa_type = new basetype(INT,0);	// note defa_type!=int_type
 	int_type = new basetype(INT,0);		// but they both represent `int'
@@ -52,14 +54,14 @@ void typ_init()
 	ulong_type->type_adj(UNSIGNED);
 	ulong_type->check(0);
 
-	vlong_type = new basetype(VLONG,0);
-	PERM(vlong_type); vlong_type->defined = DEFINED ;
-	vlong_type->check(0);
+	llong_type = new basetype(LLONG,0);
+	PERM(llong_type); llong_type->defined = DEFINED ;
+	llong_type->check(0);
 
-	uvlong_type = new basetype(VLONG,0);
-	PERM(uvlong_type); uvlong_type->defined = DEFINED ;
-	uvlong_type->type_adj(UNSIGNED);
-	uvlong_type->check(0);
+	ullong_type = new basetype(LLONG,0);
+	PERM(ullong_type); ullong_type->defined = DEFINED ;
+	ullong_type->type_adj(UNSIGNED);
+	ullong_type->check(0);
 
 	short_type = new basetype(SHORT,0);
 	PERM(short_type); short_type->defined = DEFINED ;
@@ -127,12 +129,11 @@ Pbase basetype::arit_conv(Pbase t)
 {
 // error('d', "arit_conv: this: %k %d %t %d", base, base, this, this );
 
-	bit l;
+	bit l, ll;
 	bit u;
 	bit f;
-	bit v;
 	bit l1 = (base == LONG);
-	bit v1 = (base == VLONG);
+	bit ll1 = (base == LLONG);
 	bit u1 = b_unsigned;
 	bit f1 = (base==FLOAT || base==DOUBLE || base==LDOUBLE);
 	if (t) {
@@ -140,17 +141,17 @@ Pbase basetype::arit_conv(Pbase t)
 // error('d', "arit_conv: t: %k %d %t %d", t->base, t->base, t, t );
 
 		bit l2 = (t->base == LONG);
-		bit v2 = (t->base == VLONG);
+		bit ll2 = (t->base == LLONG);
 		bit u2 = t->b_unsigned;
 		bit f2 = (t->base==FLOAT || t->base==DOUBLE || t->base==LDOUBLE);
 		l = l1 || l2;
-		v = v1 || v2;
+		ll = ll1 || ll2;
 		u = u1 || u2;
 		f = f1 || f2;
 	}
 	else {
 		l = l1;
-		v = v1;
+		ll = ll1;
 		u = u1;
 		f = f1;
 	}
@@ -160,10 +161,10 @@ Pbase basetype::arit_conv(Pbase t)
 		if (base==DOUBLE || (t && t->base==DOUBLE)) return double_type;
 		return float_type;
 	}
-	if (l & u) return ulong_type;
-	if (l & !u) return long_type;
-	if (v & u) return uvlong_type;
-	if (v & !u) return vlong_type;
+	if (l && u) return ulong_type;
+	if (l && !u) return long_type;
+	if (ll && u) return ullong_type;
+	if (ll && !u) return llong_type;
 	if (u) {
 		if (base==INT || (t && t->base==INT)) return uint_type;
 		if (SZ_SHORT==SZ_INT) // ANSIism
@@ -299,7 +300,7 @@ int type::align()
 	case SHORT:	return AL_SHORT;
 	case INT:	return AL_INT;
 	case LONG:	return AL_LONG;
-	case VLONG:	return AL_VLONG;
+	case LLONG:	return AL_LLONG;
 	case FLOAT:	return AL_FLOAT;
 	case DOUBLE:	return AL_DOUBLE;
 	case LDOUBLE:	return AL_LDOUBLE;
@@ -338,7 +339,7 @@ int type::tsizeof(int ptmc)
 	case SHORT:	return SZ_SHORT;
 	case INT:	return SZ_INT;
 	case LONG:	return SZ_LONG;
-	case VLONG:	return SZ_VLONG;
+	case LLONG:	return SZ_LLONG;
 	case FLOAT:	return SZ_FLOAT;
 	case DOUBLE:	return SZ_DOUBLE;
 	case LDOUBLE:	return SZ_LDOUBLE;
@@ -496,7 +497,7 @@ Ptype type::mkconst()
 	case CHAR:
 	case SHORT:
 	case LONG:
-	case VLONG:
+	case LLONG:
 	case FLOAT:
 	case DOUBLE:
 	case LDOUBLE:

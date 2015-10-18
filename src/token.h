@@ -84,6 +84,7 @@ extern char* keys[MAXTOK+1];
 #define IF		20
 #define INT		21
 #define LONG		22
+#define LLONG		122 // reusing value from ENDCAST
 #define NEW		23
 #define OPERATOR	24
 #define PUBLIC		25
@@ -166,7 +167,7 @@ extern char* keys[MAXTOK+1];
 #define UNOP		96	/* NOT COMPL */
 #define TYPE		97
 	/* TYPE =	INT FLOAT CHAR DOUBLE REGISTER STATIC EXTERN AUTO
-			LONG SHORT UNSIGNED INLINE FRIEND VIRTUAL */
+			LONG LLONG SHORT UNSIGNED INLINE FRIEND VIRTUAL */
 #define CATCH 98
 #define THROW 99
 #define TRY 100
@@ -257,8 +258,6 @@ extern char* keys[MAXTOK+1];
 //#define CONVERT	189
 #define TPDEF		190
 #define G_CAST		191
-#define VLONG		192
-#define VLONG		192
 
 // class parameterized types constants
 #define XVIRT	         200 /* class virt */

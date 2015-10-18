@@ -366,7 +366,7 @@ Pexpr mk_zero_init( Ptype tt, Pname obname, Pname currname )
 	case INT:
 	case EOBJ:
 	case LONG:
-	case VLONG:
+	case LLONG:
 	case FLOAT:
 	case DOUBLE:
 	case LDOUBLE:	// "int a;" == "int a = 0;"
@@ -605,6 +605,7 @@ void name::dcl_print(TOK list)
 		case EOBJ:
 		case CHAR:
 		case LONG:
+		case LLONG:
 		case SHORT:
 		tcx:
 			// do not allocate space for constants unless necessary
@@ -669,6 +670,7 @@ void name::dcl_print(TOK list)
 				case SHORT:
 				case INT:
 				case LONG:
+				case LLONG:
 				case EOBJ:
 					goto tcx;
 				}
@@ -1427,7 +1429,6 @@ xx:
 		d = 0;
 		if (!Pptr(t)->memof && Pptr(t)->ptname && Pptr(t)->ptname->tp) {
 			s = Pbase(Pptr(t)->ptname->tp)->b_name->string;
-			fprintf(stderr, "s=%lx name string\n", (long)s);
 			d = strlen(s);
 		}
 		if (Pptr(t)->memof || s) {
@@ -1436,12 +1437,10 @@ xx:
 				Pclass cl = Pptr(t)->memof;
 				char* ns = cl->nested_sig;
 				char* ls = cl->local_sig;
-				if ( ns ){ s = ns;
-				}
+				if ( ns ) s = ns;
 				else {
-					if ( ls ){ s = ls;
-					}else{ s = cl->string;
-					}
+					if ( ls ) s = ls;
+					else s = cl->string;
 					d = cl->c_strlen;
 				}
 			}
@@ -1451,9 +1450,7 @@ xx:
 				*p++ = '0' + (d % 100) / 10;
 			if (d)
 				*p++ = '0'+ d%10;
-
-			if(s)
-				while (*p++ = *s++);
+			while (*p++ = *s++);
 			--p;				// not the '\0'
 		}
 		else
@@ -1559,7 +1556,7 @@ xx:
 	case SHORT:	*p++ = 's';	break;
 	case INT:	*p++ = 'i';	break;
 	case LONG:	*p++ = 'l';	break;
-	case VLONG:	*p++ = 'V';	break;
+	case LLONG:	*p++ = 'm';	break;
 	case FLOAT:	*p++ = 'f';	break;
 	case DOUBLE:	*p++ = 'd';	break;
 	case LDOUBLE:	*p++ = 'r';	break;
@@ -1645,7 +1642,7 @@ void basetype::dcl_print()
 	case SHORT:
 	case INT:
 	case LONG:
-	case VLONG:
+	case LLONG:
 	case FLOAT:
 	case DOUBLE:
 	case LDOUBLE:
@@ -1809,7 +1806,7 @@ void type::dcl_print(Pname n)
 					case INT:
 					case EOBJ:
 					case LONG:
-					case VLONG:
+					case LLONG:
 					case FLOAT:
 					case DOUBLE:
 					case LDOUBLE:
@@ -2017,15 +2014,8 @@ void print_body(Pfct f)
 				f->body->where.putline();
 		}
 
-		if (MAIN) {	// call constructors
-//
-// 			putstring("{ _main(); ");
-// On Plan9 ape uses _main so c++ must use __main
-//
-			if(ansi_opt)
-				putstring("{ void __main(void); __main(); ");
-			else
-				putstring("{ __main(); ");
+		if (MAIN) {
+			putstring("{ _main(); ");	// call constructors
 			f->body->print();
 			puttok(RC);
 		}
@@ -2251,10 +2241,7 @@ void really_really_print(Pclass cl, Pvirt vtab, char* s, char* ss)
 		if (nn->n_initializer) {       // pure virtual
 			static int pv;
 			if (pv == 0) {	// VCVC void->char assumed
-				if(ansi_opt)	// plan 9: ansi version
-					fprintf(out_file,"void __pure_virtual_called(void);\n");
-				else
-					fprintf(out_file,"char __pure_virtual_called();\n");
+				fprintf(out_file,"char __pure_virtual_called();\n");
 				pv = 1;
 			}
 			continue;

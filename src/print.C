@@ -704,7 +704,7 @@ void expr::print()
 	{	// look for (&a == 0) etc.
 		Neval = 0;
 		binary_val = 1;
-		long i = cond->eval();
+		long long i = cond->eval();
 		binary_val = 0;
 		if (Neval == 0)
 			(i?e1:e2)->print();

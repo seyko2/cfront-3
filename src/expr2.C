@@ -522,16 +522,16 @@ int char_to_int(char* s)
 const int A10 = 'A'-10;
 const int a10 = 'a'-10;
 
-long str_to_long(register const char* p)
+long long str_to_llong(register const char* p)
 {
 	register int c,j;
 	register int dotflag=0;
 	register int dotcount=0;
-	register long exp=0;
-	register unsigned long i= 0;
+	register long long exp=0;
+	register unsigned long long i= 0;
 	const char* pp = p;
 
-// error( 'd', "str_to_long: %s", p );
+// error( 'd', "str_to_llong: %s", p );
 
 	if ((c=*p++) == '0') {
 		switch (c = *p++) {
@@ -605,10 +605,10 @@ long str_to_long(register const char* p)
 		{	int negative = 1;
 			if (*p == '+' || *p == '-')
 				negative = (*p++ == '-' ? -1 : 1);
-			exp=str_to_long(p)*negative;
+			exp=str_to_llong(p)*negative;
 			exp=exp-dotcount;
 			if (exp >= 1) {
-				unsigned long ii = i;
+				unsigned long long ii = i;
 				for (j=0;exp>j;j++, ii=i) {
 				    i = i*10;
 				    if (i<ii) {
@@ -621,7 +621,7 @@ long str_to_long(register const char* p)
 			return i;
 		}
 		default:
-		{       unsigned long ii = i;
+		{       unsigned long long ii = i;
 			i = i*10 + c-'0';
 			if (dotflag) dotcount++;
 			if (i<ii) goto bad;
@@ -629,7 +629,7 @@ long str_to_long(register const char* p)
 		}
 	return i;
 bad:
-	error("integer constant %s larger than the largest long",pp);
+	error("integer constant %s larger than the largest long long",pp);
 	return i;
 }
 
@@ -637,7 +637,7 @@ static void
 ftp_normalize(char*& str)
 /*
    strip off leading '0' in a scientific floating point string 
-   so that str_to_long() can process it correctly.
+   so that str_to_llong() can process it correctly.
 */
 {
 	char* p = str;
@@ -686,9 +686,9 @@ ftp_normalize(char*& str)
 				int sign = 1;
 				if (*p == '+' || *p == '-') 
 					sign = (*p++ == '-' ? -1 : 1);
-				long i = sign * str_to_long(p) - dotcnt - 1;
+				long long i = sign * str_to_llong(p) - dotcnt - 1;
 				char tmp[40]; // enough for 128-bit doubles
-				sprintf(tmp,"%-d",i);
+				sprintf(tmp,"%-lld",i);
 				if ((strlen(p)+(p-pp)) < strlen(tmp)) {
 					char *newstr = new char[
 						strlen(tmp)+(pp-str)+1];
@@ -697,7 +697,7 @@ ftp_normalize(char*& str)
 					str = newstr;
 					pp = str + offset;
 				}
-				sprintf(pp,"%-d",i);
+				sprintf(pp,"%-lld",i);
 				return;
 			  }
 		}
@@ -716,11 +716,11 @@ bit type::is_unsigned()
 char* Neval;
 bit binary_val;
 
-unsigned long expr::ueval(long x1, long x2)
+unsigned long long expr::ueval(long long x1, long long x2)
 {
-	unsigned long i1 = (unsigned long) x1;	
-	unsigned long i2 = (unsigned long) x2;
-//error('d',"ueval %k %ld %ld",base,x1,x2);
+	unsigned long long i1 = (unsigned long long) x1;	
+	unsigned long long i2 = (unsigned long long) x2;
+//error('d',"ueval %k %lld %lld",base,x1,x2);
 	switch (base) {
 	case UMINUS:	return -i2;
 	case UPLUS:	return i2;
@@ -771,7 +771,7 @@ unsigned long expr::ueval(long x1, long x2)
 	return 0;
 }
 
-long expr::eval()
+long long expr::eval()
 {
 	if (Neval) return 1;
 // error('d',"eval %k",base);
@@ -780,7 +780,7 @@ long expr::eval()
 	switch (base) {
 	case ZERO:	return 0;
 	case IVAL:	return i1;
-	case ICON:	return str_to_long(string);
+	case ICON:	return str_to_llong(string);
 	case CCON:	return char_to_int(string);
 	case FCON:	Neval = "float in constant expression"; return 1;
 	case STRING:	Neval = "string in constant expression"; return 1;
@@ -823,7 +823,7 @@ long expr::eval()
 		if (e1) {
 			il->i_next = curr_icall;
 			curr_icall = il;
-			long i = e1->eval();
+			long long i = e1->eval();
 			curr_icall = il->i_next;
 			return i;
 		}
@@ -865,7 +865,7 @@ long expr::eval()
 			else
 				e1->e2->base = ICON;
 		}		
-		long i = e1->eval();
+		long long i = e1->eval();
 		tt = tp2->skiptypedefs();
 
 		switch (tt->base) {
@@ -875,14 +875,15 @@ long expr::eval()
 		case ENUM:
 		case EOBJ:
 		case LONG:
+		case LLONG:
 		case INT:
 		case CHAR:
 		case SHORT:
 		     {
-			long j = (((~(unsigned long)0)<<(BI_IN_BYTE*(tp2->tsizeof()-1)))<<BI_IN_BYTE);
+			long long j = (((~(unsigned long long)0)<<(BI_IN_BYTE*(tp2->tsizeof()-1)))<<BI_IN_BYTE);
 			i &= ~j;
 			if (tt->is_unsigned()==0)
-			   if (long((i<<(BI_IN_BYTE*(sizeof(long)-tp2->tsizeof())))) < 0)
+			   if ((long long)(i<<(BI_IN_BYTE*(sizeof(long long)-tp2->tsizeof()))) < 0)
 				i |= j;
 			break;
 		     }
@@ -914,7 +915,7 @@ long expr::eval()
 		break;
 	case OROR:
 		if (binary_val) {	// a||b, don't evaluate b if a!=0
-			long i1 = (e1) ? e1->eval() : 0;
+			long long i1 = (e1) ? e1->eval() : 0;
 			if (Neval==0 && i1 && e1->tp->is_unsigned()==0) return i1;
 		}
 		break;
@@ -936,8 +937,8 @@ long expr::eval()
 		return 1;
 	}
 
-	long i1 = (e1) ? e1->eval() : 0;
-	long i2 = (e2) ? e2->eval() : 0;
+	long long i1 = (e1) ? e1->eval() : 0;
+	long long i2 = (e2) ? e2->eval() : 0;
 
 	if (binary_val && i1==9999 && i2==9999) {
 		Neval = "";
@@ -951,7 +952,7 @@ long expr::eval()
 		e2&&e2->tp&&e2->tp->is_unsigned()
 	    )
 	)
-		return (long) ueval(i1,i2);
+		return (long long) ueval(i1,i2);
 	
 	switch (base) {
 	case UMINUS:	return -i2;
@@ -1234,8 +1235,9 @@ Pexpr ptr_init(Pptr p, Pexpr init, Ptable tbl)
 	case CHAR:
 	case SHORT:
 	case LONG:
+	case LLONG:
 	{	Neval = 0;
-		long i = init->eval();
+		long long i = init->eval();
 		if (Neval)
 			error("badPIr: %s",Neval);
 		else
