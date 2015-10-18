@@ -69,7 +69,7 @@ extern int F_SENSITIVE;	// is field alignment sensitive to the type of the field
 extern int F_OPTIMIZED;	// can the compiler fit a small int field into a char?
 #endif
 
-#include "../szal.result"
+#include "./szal/szal.result"
 
 #define KTBLSIZE	123	/*	initial keyword table size */
 #define GTBLSIZE	257	/*	initial global name table size */

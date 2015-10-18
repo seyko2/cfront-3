@@ -82,7 +82,7 @@ int a123456789 = 1;	/* if this does not compile get a better C compiler */
 int a123456780 = 2;
 
 
-main()
+int main()
 {
 	char largest[100];
 	char c = 1;
@@ -181,4 +181,5 @@ main()
 	}
 	out("#define DF_SENSITIVE",i1); /* sensitive to field type */
 	out("#define DF_OPTIMIZED",i2); /* packs fields */
+	return 0;
 }
