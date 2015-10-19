@@ -1,0 +1,319 @@
+http://www.softwarepreservation.org/projects/c_plus_plus
+This is a text version of the web page, reformated.
+
+C++ Historical Sources Archive
+
+    Paul McJones, editor
+    paul@mcjones.org
+    http://www.mcjones.org/dustydecks/
+
+Abstract
+========
+
+This is a collection of design documents, source code, and other
+materials concerning the birth, development, standardization, and use of
+the C++ programming language.
+
+Contents
+========
+
+    Chronology
+    Cfront releases
+    Standardization documents
+    GNU g++ releases
+    Papers and articles about C++
+    Acknowledgments
+
+Chronology
+==========
+Sources: "C++ Timeline", D&E, page 4; HOPL-III paper.
+
+    1979 April		Work on C with Classes began
+    1979 October	First C with Classes (Cpre) running
+    1983 August		First C++ in use at Bell Labs
+    1984		C++ named
+    1985 February	Cfront Release E (first external C++ release)
+			Come Meet the Author
+    1985 October	Cfront Release 1.0 (first commercial release)
+
+    1986		First commercial Cfront PC port (Cfront 1.1,
+			Glockenspiel)
+
+    1987 February	Cfront Release 1.2
+
+    1987 December	First GNU C++ release (1.13)
+
+    1988		First Oregon Software C++ release [announcement];
+			first Zortech C++ release 
+
+    1989 June		Cfront Release 2.0
+
+    1989		The Annotated C++ Reference Manual; ANSI C++
+			committee (J16) founded (Washington, DC)
+
+    1990		First ANSI X3J16 technical meeting (Somerset, NJ)
+			[see group photograph, courtesy of Andrew
+			Koenig]; templates accepted (Seattle, WA);
+			exceptions accepted (Palo Alto, CA); first
+			Borland C++ release Somerset meeting group
+			portrait
+
+    1991    		First ISO WG21 meeting (Lund, Sweden);
+			The C++ Programming Language (2nd edition)
+			Cfront Release 3.0 (including templates); 
+
+    1992		First IBM, DEC, and Microsoft C++ releases
+
+    1993		Run-time type identification accepted (Portland,
+			Oregon); namespaces and string (templatized by
+			character type) accepted (Munich, Germany);
+			A History of C++: 1979-1991 published at HOPL2
+
+    1994		string (templatized by character type) (San
+			Diego, California);
+			the STL accepted (San Diego, CA and Waterloo, Canada)
+
+    1996		export accepted (Stockholm, Sweden)
+
+    1997		Final committee vote on the complete standard
+			(Morristown, New Jersey)
+
+    1998		ISO C++ standard ratified
+    2003		Technical Corrigendum; work on C++0x started
+
+    2004		Performance technical report; Library technical
+			report (hash tables, regular expressions, smart
+			pointers, etc.)
+
+    2005		First votes on features for C++0x (Lillehammer,
+			Norway); auto, static_assert, and rvalue
+			references accepted in principle
+
+    2006		First full committee (official) votes on features
+			for C++0x (Berlin, Germany)
+
+Cfront releases
+===============
+
+    NOTICE
+    The source code in this section is posted with the permission of the
+    copyright owner for historical research purposes only.
+
+ 
+Release E
+
+    Release E was the February 1985 "educational" release of Cfront. With
+    the exception of parts of the makefile, Stroustrup believes that
+    every word and every line of code of Release E was written by him.
+    The first page of the source code has a handwritten diagram of the
+    directory structure and a message to Stroustrup signed "SCD" (Steve
+    Dewhurst).
+
+  Source Code
+
+    Bjarne Stroustrup. master. Release E, AT&T Technologies, Inc.,
+    February 1985. PDF (302.5 kB) Includes README, master makefile, CC.
+
+    Bjarne Stroustrup. cfront. Release E, AT&T Technologies, Inc.,
+    February 1985. PDF (10.1 MB) Includes makefile, alloc.c, cfront.h,
+    dcl.c, dcl2.c, del.c, error.c, expand.c, expr.c, expr2.c, gram.y,
+    lex.c, main.c, misc.c, norm.c, norm2.c, print.c, repr.c, simpl.c,
+    size.c, size.h, table.c, token.h, typ.c, typ2.c, typedef.h,
+    size_align.
+
+    Bjarne Stroustrup. libraries. Release E, AT&T Technologies, Inc.,
+    February 1985. PDF (1.7 MB) Includes complex, new, stream, and task
+    libraries.
+
+    Bjarne Stroustrup. sscan. Release E, AT&T Technologies, Inc.,
+    February 1985. PDF (365.2 kB) Includes makefile, ldfacn.h, sscan.c,
+    CCcrt0.s, and CCmcrt0.s.
+
+  Documentation
+
+    C++. Release E, AT&T Bell Laboratories, November 1984. Loose leaf
+    documentation with Acco fastener. Table of contents. 2 pages. PDF
+    (40.6 kB)
+  
+    Bjarne Stroustrup. A C++ Tutorial. September 10, 1984, 20 pages. PDF
+    (1.3 MB)
+
+    Bjarne Stroustrup. Data Abstraction in C++. Undated, 23 pages. [The
+    HOPL2 paper cites a similarly named paper as: "Data Abstraction in C.
+    Bell Labs Technical Journal, Vol. 63, No. 8, Oct. 1984, pp
+    1701--1732. (Written in the summer of 1983)".] PDF (1.6 MB)
+
+    Bjarne Stroustrup. Operator Overloading in C++. Undated, 15 pages.
+    [The HOPL2 paper cites a paper of this name as: "Proceedings of the
+    IFIP WG2.4 Conference on System Implementation Languages: Experience
+    & Assessment, Sept. 1984".] PDF (923.1 kB)
+
+    Leonie V. Rose and Bjarne Stroustrup. Complex Arithmetic in C++.
+    Undated, 13 pages. [The HOPL2 paper cites a paper of this name as:
+    "Internal AT&T Bell Labs Technical Memorandum, Jan. 1984; reprinted
+    in AT&T C++ Translator Release Notes, Nov. 1985".] PDF (530.5 kB)
+
+    Bjarne Stroustrup. A Set of C++ Classes for Co-routine Style
+    Programming. Undated, 19 pages. [The HOPL2 paper cites a paper of
+    this name as: "A Set of C Classes for Co-routine Style Programming,
+    Bell Laboratories Computer Science Technical Report CSTR-90, Nov.
+    1980".] PDF (1.3 MB)
+
+    Bjarne Stroustrup. The C++ Programming Language - Reference Manual.
+    Undated, ii+50+vi pages. [Apparently originally released without
+    Contents or Index. It was preceded with a cover page and two pages,
+    Appendices B and C -- the main document does not include appendices.]
+    PDF (4.1 MB)
+
+    Anonymous. C++ (Release E) Installation Guide. November 1984, 1 page.
+    PDF (73.2 kB)
+
+    Anonymous. CC - C++ compiler. man page, section 1, November 5, 1984,
+    2 pages. PDF (119.4 kB)
+
+  Papers
+
+    B. Stroustrup. An Extensible I/O Facility for C++. Proceedings Summer
+    1985 USENIX Conference, June 1985, pages 57-70.
+
+	This paper describes the original C++ streams library, designed by
+	Stroustrup. Jerry Swartz extended that to the iostreams library.
+
+Release 1.0
+
+    Cfront 1.0, in October 1985, was the first commercial release.
+
+  Source Code
+
+    Release 1.0, AT&T Technologies, Inc. Files timestamped February 7,
+    1986. Copy provided by Willem Wakker of ACE Associated Computer
+    Experts (Amsterdam). .tar.gz (433 kB) unpacked
+  
+        README begins:
+        ident	"@(#)cfront:README	1.4"
+        This is the AT&T C++ Translator, Release 1
+
+  Documentation
+
+    Release Notes. UNIX System V AT&T Translator, 1985, 36 pages.
+    Abridged for MSDOS ADVANTAGE C++ by Lifeboat. Scan provided by
+    Jonathan Caves, who notes: "... this was the rebadged 'American'
+    release of Glockenspiel C++." PDF (2.5MB)
+
+Release 2.0
+
+    AT&T released Cfront 2.0 in June 1989.
+
+  Documentation
+
+    Release Notes. Select Code 307-90, C++ Language System, Release 2.0,
+    Unix System V, AT&T, 1989, 114 pages. Loose leaf documentation with
+    Acco fastener. PDF (5.2 MB)
+
+    Bjarne Stroustrup. Product Reference Manual. Select Code 307-146, C++
+    Language System, Release 2.0, Unix System V, AT&T, 1989, 158 pages.
+    Loose leaf documentation with Acco fastener. PDF (8.0 MB)
+
+    Library Manual. Select Code 307-145, C++ Language System, Release
+    2.0, Unix System V, AT&T, 1989, 226 pages. Loose leaf documentation
+    with Acco fastener. PDF (10.4 MB)
+
+        1. Complex Arithmetic in C++. Based on paper by Leonnie V. Rose
+	and Bjarne Stroustrup.
+
+        2. The Task Library. Based on these papers:
+
+            Bjarne Stroustrup and Jonathan Shopiro. A Set of C++ Classes
+	    for Co-routine Style Programming, Proceedings of the USENIX
+	    C++ Workshop, November 1987.
+
+            Jonathan Shopiro. Extending the C++ Class System for
+	    Real-Time Control.
+
+            Stacey Keenan. A Porting Guide for the C++ Coroutine Library.
+
+        3. Iostream Examples. Based on paper by Jerry Schwarz.
+        Appendix A. Manual pages.
+
+    Selected Readings . Select Code 307-144, C++ Language System, Release
+    2.0, Unix System V, AT&T, 1989, 224 pages. Loose leaf documentation
+    with Acco fastener. PDF (9.5 MB)
+
+        1. Evolution of C++: 1985 to 1989. Based on paper by Bjarne
+	Stroustrup.
+
+        2. An Introduction to C++. Based on paper by Keith Gorlen.
+
+        3. An Overview of C++. Based on paper by Bjarne Stroustrup,
+	published in ACM SIGPLAN Notices, October 1986, pages 7-18.
+
+        4. Object-Oriented Programming. Based on paper by Bjarne
+	Stroustrup: What is Object-Oriented Programming?, published in
+	IEEE Software magazine, May 1988, pages 10-20.
+
+        5. Multiple Inheritance. Based on paper by Bjarne Stroustrup:
+	Multiple Inheritance for C++, published in Proceedings of the
+	EUUUG Spring Conference, May 1987.
+
+        6. Type-Safe Linkage for C++. Based on paper by Bjarne
+	Stroustrup, published in Computing Systems, Volume VI, Number 4,
+	Fall 1988, pages 371-404.
+
+        7. Access Rules for C++. Based on a paper by Phil Brown.
+        Appendix A. Manual pages for C++: CC, c++filt, and demangle.
+
+Release 3.0
+
+    Lucent released Cfront 3.0 in 1991.
+    Bjarne Stroustrup notes, "A warning that Cfront 3 is pre-standard and
+    emphatically not recommended for use or further development might be
+    in place."
+
+  Source Code
+
+    C++. Release 3.0.3, AT&T Bell Laboratories, May 1994.
+        Unpacked
+        Compressed tar archive
+
+Standardization documents
+=========================
+
+    ISO IEC JTC1/SC22/WG21 C++ Standards Committee Papers.
+    Collected papers, 1992-2006. online at open-std.org
+    Papers written or co-authored by Bjarne Stroustrup. online at
+    www.research.att.com
+
+GNU g++ releases
+================
+
+    See here or here.
+
+Papers and articles about C++
+=============================
+
+    Tony Griggs. New C++ Language Extends C Programming Capabilities.
+    Bell Labs News, Volume 24, Number 51, December 17, 1984, pages 1-2.
+    PDF
+
+    Bjarne Stroustrup. A History of C++: 1979-1991.
+    In Proceedings of the the Second ACM SIGPLAN Conference on History of
+    Programming Languages (Cambridge, Massachusetts, United States, April
+    20 - 23, 1993). ACM Digital Library
+	PDF at research.att.com
+	Also appears in: T. J. Bergin and R. G. Gibson, Eds. History of
+	Programming languages---II. ACM Press, 1996.
+
+    Bjarne Stroustrup. Evolving a language in and for the real world: C++
+    1991-2006.
+        In Proceedings of the Third ACM SIGPLAN Conference on History of
+	Programming Languages (San Diego, California, June 09 - 10,
+	2007). HOPL III. ACM Press, New York, NY, 4-1-4-59. ACM Digital
+	Library Preprint, May 25, 2007. PDF at research.att.com
+
+Acknowledgments
+===============
+
+    Bjarne Stroustrup;
+    Chuck Allison (timeline correction);
+    Jonathan Caves (Cfront 1.0 release notes);
+    Willem Wakker and ACE Associated Computer Experts, Amsterdam (Cfront 1.0 source).
