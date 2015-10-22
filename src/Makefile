@@ -9,7 +9,7 @@ OFILES	=	Bits.o alloc.o block.o dcl.o dcl2.o dcl3.o dcl4.o \
 		expr3.o find.o hash.o lalex.o lex.o main.o norm.o \
 		norm2.o print.o print2.o repr.o simpl.o simpl2.o \
 		size.o table.o template.o tree_copy.o tree_walk.o \
-		typ.o typ2.o y.tab.o
+		typ.o typ2.o y.tab.o _stdio.o
 
 
 COMDEP0	= 	szal.result Makefile \
@@ -134,6 +134,9 @@ typ2.o:	typ2.C $(COMDEP)
 
 y.tab.o: y.tab.C $(COMDEP)
 	$(CC) $(CCFLAGS) -c y.tab.C 
+
+_stdio.o: _stdio.c
+	cc -c _stdio.c
 
 clean:
 	-@rm szal.result szal/szal

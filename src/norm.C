@@ -144,6 +144,8 @@ DB(if(Ndebug>=1)error('d',"'%k'->type_adj(%k) --%t b_xname%n",base,t,this,b_xnam
 			base = t; 
 		break;
 	case SIGNED:
+		// error('w',"\"%k\" not implemented (ignored)",t);
+		break;
 	case VOLATILE:
 		error('w',"\"%k\" not implemented (ignored)",t);
 		break;

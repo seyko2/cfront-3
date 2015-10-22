@@ -147,6 +147,8 @@ basetype::basetype(TOK b, Pname n)
 		b_name = n;
 		break;
 	case SIGNED:
+		// error('w',"\"%k\" not implemented (ignored)",b);
+		break;
 	case VOLATILE:
 		error('w',"\"%k\" not implemented (ignored)",b);
 		break;

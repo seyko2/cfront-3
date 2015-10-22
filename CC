@@ -14,7 +14,7 @@
 	LIBRARY=$CF/libC.a
 	
 	ccC="gcc -w"
-	cppC="cpp"
+	cppC="cpp -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0"
 
 # -----------------------------------------
 

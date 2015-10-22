@@ -46,10 +46,10 @@ fillscratch:
 	cd scratch/src; $(CC) -I../../src         -I../../incl -Fc -..c ../../src/*.C;
 	cd scratch/lib; $(CC) -I../../lib/complex -I../../incl -Fc -..c ../../lib/new/*.C
 	cd scratch/lib; $(CC) -I../../lib/complex -I../../incl -Fc -..c ../../lib/static/*.C
-	rm scratch/lib/munch..c
+#	-@rm scratch/lib/munch..c
 #Dont need a real munch here:
 	echo "main(){ exit(0); }" >scratch/mnch/munch..c
-	chmod +x CC patch/CC scratch/bsd.sed
+	# chmod +x CC patch/CC scratch/bsd.sed
 	cp lib/mk/_stdio..c     scratch/lib/_stdio..c
 	rm -f scratch/lib/exit..c
 

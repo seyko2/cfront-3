@@ -18,9 +18,9 @@ any actual or intended publication of such source code.
 #ifndef __SYSENT_H
 #define __SYSENT_H
 
-#ifndef __TYPES_H
-#include <sys/types.h>
-#endif
+//#ifndef __TYPES_H
+//#include <sys/types.h>
+//#endif
 
 
 #ifndef __WAIT_H

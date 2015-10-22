@@ -5,10 +5,10 @@
 
 extern "C" {
     #ifndef __GNUC__
-	void *malloc(size_t);
+	void *malloc(unsigned);
 	void free(void *);
-	void *realloc(void *, size_t);
-	void *calloc(size_t, size_t);
+	void *realloc(void *, unsigned);
+	void *calloc(unsigned, unsigned);
     #else
 	#include <stdlib.h>
     #endif
