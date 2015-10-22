@@ -42,4 +42,16 @@ struct flock {
 	/* Remove lock(s) */
 #define	F_UNLCK	03
 
-extern int fcntl (int, int, int);
+#undef open
+#undef fcntl
+#undef creat
+
+extern "C" {
+	int fcntl(int, int, ...);
+	int open(const char*, int, ...);
+	int creat(const char*, mode_t);
+	int close(int fd);int close(int fd);
+	int write(int fd, const void *buf, unsigned count);
+	int read(int fd, void *buf, unsigned count);
+	int lseek(int fildes, int offset, int whence);
+}

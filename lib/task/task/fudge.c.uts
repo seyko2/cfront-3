@@ -1,0 +1,209 @@
+/*ident	"@(#)cls4:lib/task/task/fudge.c.uts	1.3" */
+/*******************************************************************************
+ 
+C++ source for the C++ Language System, Release 3.0.  This product
+is a new release of the original cfront developed in the computer
+science research center of AT&T Bell Laboratories.
+
+Copyright (c) 1993  UNIX System Laboratories, Inc.
+Copyright (c) 1991, 1992 AT&T and UNIX System Laboratories, Inc.
+Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+
+THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+Laboratories, Inc.  The copyright notice above does not evidence
+any actual or intended publication of such source code.
+
+*******************************************************************************/
+#include <task.h>
+#include "hw_stack.h"
+
+// UTS frame fudger
+
+/* careful -- stack frame not self-describing */
+// STACK GROWS DOWN
+
+
+int*	Skip_pc_p;	// global to hold fudged return pc.
+			// See comments in hw_stack.c.
+
+FrameLayout::FrameLayout(int *fp)
+{
+ 	/*
+         * Given a ptr to a frame, find out how many registers were
+         * saved in that frame. The solution requires us to find
+         * and decode the stm instruction of the function that saved
+         * the registers.
+         *
+         * A function call of f() under uts look like either one of
+         *
+         *      l       r15, =a(f)		lr	r15, rX
+         *      balr    r14, r15		balr	r14, r15
+         *      dc      h'0'			dc	h'0'
+         *
+         * To do this, follow the saved pc (r14) back to the location
+         * following the call (balr), and back up to the preceding load  
+	 * instruction. Decode the load instruction to find the addr of
+	 * the called function. At that addr, disassemble the stm
+	 * instruction to determine which regs were saved.
+	 *
+	 * N.B.:This code assumes that UTS will save an ascending sequence
+	 *	of registers. It will not handle weird sequences which
+	 *	span r0, eg "stm 14, 12, 0(12)"
+	 *
+         */
+
+        unsigned        saved_r14;
+	unsigned	base_reg, index_reg;
+        unsigned        loadinst;
+        unsigned        displacement;
+        unsigned        **adcons;
+        unsigned        *faddr;
+
+        saved_r14 =  *(fp + 14);
+
+	/*
+ 	 * We have the return address. Now decide if the load instruction
+	 * is an l or lr. There is no foolproof method to do this, but we
+	 * can apply an heuristic which should work with all *compiled* code.
+	 *
+	 * Back up 4 bytes from the return addr and look for an lr opcode of
+	 * 0x18. We can be sure that 0x18 is not the middle of the longer 'l'
+	 * instruction since that would mean the compiler had generated code
+	 * using a base register of r1 (upper nibble of 0x18) , something which 
+	 * it would never do.
+	 */
+
+
+        loadinst  =  *((unsigned *)(saved_r14 - 4));
+
+
+	if (((loadinst & 0xff000000) >> 24) == 0x18) {
+
+		/*
+		 * lr r15, rX
+		 *
+		 * Mask off rX, index off fp to get its contents
+		 * (safe to assume the compiler saved rX) and look 
+		 * up the saved value of rX to find the function
+		 * addr. Although r15 contains the function addr as
+		 * well, it is never saved.
+		 */
+
+		 faddr = (unsigned *) *(fp + ((loadinst & 0x000f0000) >> 16));
+
+	} else {
+
+		/*
+		 * l r15, =a(f)
+		 */
+
+		loadinst  =  *((unsigned *)(saved_r14 - 6));
+
+		base_reg = (loadinst & 0x0000f000) >> 12;
+		if (base_reg != 0)
+			base_reg = *(fp + base_reg);
+
+
+		index_reg = (loadinst & 0x000f0000) >> 16;
+		if (index_reg != 0) 
+			index_reg = *(fp + index_reg);
+	
+		displacement = loadinst & 0x00000fff;
+
+		adcons = (unsigned **) (base_reg + index_reg + displacement);
+		faddr =  *adcons;
+	}
+
+	begreg = (*faddr & 0x00F00000) >> 20;
+	endreg = (*faddr & 0x000F0000) >> 16;
+
+	return;
+}
+
+
+/*
+ * Fudge frame of function-defined-by-f_fp (called "f" below)
+ * so that that function returns to its grandparent,
+ * in particular, so a parent task returns to the function that
+ * called the derived constructor (de_ctor), skipping de_ctor;
+ * the child will return to the derived constructor, which is its "main."
+ * To do this we will overwrite the old fp and pc (those saved by
+ * f) with the old-old ones (those saved by f's caller),
+ * and we will overwrite the register save area with registers saved by 
+ * f's caller (referred to as "skip" below).
+ *
+ * Since the size of the register save area is the same in each UTS stack,
+ * we don't have to worry about not having enough space to copy the 
+ * grandparent's regs.
+ */
+
+void
+task::fudge_return(int* f_fp)
+{
+	register int*	fp = f_fp;		// fp of frame-to-be-fudged
+	FrameLayout	lo(fp);			// frame to be fudged
+	register int*	skip_fp = (int*)OLD_FP(fp); // fp for f's caller (skip)
+	FrameLayout	skip_lo(skip_fp);	// frame for skip
+	register int*	fr_fp = FP();		// fp for fudge_return
+	FrameLayout	fr_lo(fr_fp);		// frame for fudge_return
+
+
+	// now copy saved registers
+	// copy any saved skip regs over corresponding f regs; if there isn't
+	// a corresponding f reg, copy over corresponding fudge_return reg;
+	// if there isn't a corresponding fr_reg, restore it explicitly.
+	register int*	to = FIRST_SAVED_REG_P(fp);
+	register int*	from = FIRST_SAVED_REG_P(skip_fp);
+	register int*	fr_to = FIRST_SAVED_REG_P(fr_fp);
+
+	for (register int r = 0; r < 16; r++, to++, from++, fr_to++) {
+		if ( lo.begreg <= r && r <= lo.endreg ) {
+			if ( skip_lo.begreg <= r && r <= skip_lo.endreg ) {
+				*to = *from;
+			} else {
+				// nothing to do
+			}
+		} else if ( skip_lo.begreg <= r && r <= skip_lo.endreg ) {
+			if ( fr_lo.begreg <= r && r <= fr_lo.endreg ) {
+				*fr_to = *from;
+			} else {
+				// Not used in f or fudge return
+				// restore explicitly
+				switch(r) {
+				case 2:
+					set_r2(from);
+					break;
+				case 3:
+					set_r3(from);
+					break;
+				case 4:
+					set_r4(from);
+					break;
+				case 5:
+					set_r5(from);
+					break;
+				case 6:
+					set_r6(from);
+					break;
+				case 7:
+					set_r7(from);
+					break;
+				case 8:
+					set_r8(from);
+					break;
+				case 9:
+					set_r9(from);
+					break;
+				case 10:
+					set_r10(from);
+					break;
+				default:
+					// Oops--don't expect other regs
+					// to be saved
+					task_error(E_REGMASK, this);
+					break;
+				}
+			}
+		}
+	}
+}

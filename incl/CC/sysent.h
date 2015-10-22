@@ -63,7 +63,7 @@ extern "C" {
 	int creat(const char*, mode_t);
 	int mkdir(const char*, mode_t);
 	off_t lseek(int, off_t, int);
-//	int write(int, const void*, unsigned);
+	int write(int, const void*, unsigned);
 }
 
 #endif

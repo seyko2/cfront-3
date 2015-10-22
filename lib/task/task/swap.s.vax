@@ -1,0 +1,158 @@
+	.file	"swap.s.vax"
+#	ident	"@(#)cls4:lib/task/task/swap.s.vax	1.3"
+###############################################################################
+#
+# C++ source for the C++ Language System, Release 3.0.  This product
+# is a new release of the original cfront developed in the computer
+# science research center of AT&T Bell Laboratories.
+#
+# Copyright (c) 1993  UNIX System Laboratories, Inc.
+# Copyright (c) 1991, 1992   AT&T and UNIX System Laboratories, Inc.
+# Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+#
+# THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+#	
+# Laboratories, Inc.  The copyright notice above does not evidence
+# any actual or intended publication of such source code.
+#
+###############################################################################
+
+#	swap of DEDICATED
+# call swap(*running_task, *to_run_task, is_new_child, running_is_terminated)
+# This routine saves the fp in running's t_framep.
+# If running is a SHARED task, we must save its stack size as well,
+# although the stack does not need to be copied out here.
+# It then restores to_run's t_framep to be the current fp.
+# If to_run is a new child, it explicitly restores the registers from
+# New_task_regs.  If to_run is not a new child, it simply returns.
+# If running_task is TERMINATED, then we don't need to do a save.
+
+	.globl _swap
+	.align	1
+_swap:
+	.word	0xfc0		# entry mask; save all user regs (r11-r6)
+	movl	8(ap),r2	# r2 = to_run
+	movl	16(ap),r1	# r1 = running_is_terminated
+	cmpl	$1,r1		# if running is TERMINATED
+	jeql	.L_RESTORE	#	skip save
+	movl	4(ap),r1	# r1 = running
+
+	# save state of running task
+	movl	fp,20(r1)	# running->t_framep = fp
+	movl	52(r1),r0	# r0 = running->t_mode
+	cmpl	$2,r0		# if running->t_mode == SHARED
+	jneq	.L_RESTORE
+	# the code here to save the t_size is the same as for sswap
+
+	subl3	sp,32(r1),r0		# r0 = running->t_basep - sp
+					# (size in bytes)
+	divl3	$4,r0,36(r1)		# running->t_size = r0 / 4 (int)
+
+.L_RESTORE:
+	movl	12(ap),r1	# r1 = is_new_child
+
+	# restore state of to_run_task
+	movl	20(r2),fp	# fp = to_run->t_framep
+
+	# if is_new_child, restore registers
+	tstl	r1
+	jeql	.L_RET
+	# new child task effectively returns from task::task, so we need
+	# to set the return value to "this"
+	movl	24(r2),r0		# r0 = to_run->th
+	moval	_New_task_regs,r2	# r2 = address of New_task_regs
+	movl	0(r2),r6
+	movl	4(r2),r7
+	movl	8(r2),r8
+	movl	12(r2),r9
+	movl	16(r2),r10
+	movl	20(r2),r11
+.L_RET:
+	ret
+
+#	swap of SHARED
+# sswap(*running, *prevOnStack, *to_run, is_new_child, running_is_terminated)
+# This routine saves the fp in running's t_framep and the stack size in t_size.
+# Then it copies out the target stack to prevOnStack's t_savearea. 
+# If to_run is not a new child, it then copies the saved stack of to_run
+# (from t_savearea) to the target stack, and then restores to_run's t_framep
+# to be the current fp.  We don't need to restore state of a child 
+# to_run object, because it's already in place.
+# If running_task is TERMINATED, then we don't need to do a save,
+# and if running_task is TERMINATED and equals prevOnStack, then we don't
+# have to do the stack copy.
+	.globl _sswap
+	.align	1
+_sswap:
+	.word	0xfc0		# entry mask; save all user regs (r11-r6)
+	movl	4(ap),r1		# r1 = running
+	movl	8(ap),r11		# r11 = prevOnStack
+	movl	20(ap),r0		# r0 = running_is_terminated
+	cmpl	$1,r0			# if running is TERMINATED
+	jeql	.L_SKIP			#	skip save
+		#save hw state of running
+	movl	fp,20(r1)		# running->t_framep = fp
+	subl3	sp,32(r1),r0		# r0 = running->t_basep - sp
+					# (size in bytes)
+	divl3	$4,r0,36(r1)		# running->t_size = r0 / 4 (int)
+	jmp	.L_SAVE
+
+.L_SKIP:	#if running is TERMINATED and running == prevOnStack,
+		#then we can skip the stack copy too
+	cmpl	r1,r11		# if running == prevOnStack
+	jeql	.L_REST			#	skip save
+
+.L_SAVE:	#copy out target stack to prevOnStack->t_savearea
+	movl	36(r11),r10		# r10 = prevOnStack->t_size (count)
+	pushl	r10
+	calls	$1,_swap_call_new	# get count bytes of storage
+	ashl	$2,r10,r10		# scale r10 to bytes
+	addl2	r10,r0			# r0 = base of new space, plus 1
+	subl2	$4,r0			# r0 = base of new stack (to)
+	movl	r0,40(r11)		# prevOnStack->t_savearea = r0 (to)
+	movl	32(r11),r2		# r2 = prevOnStack->t_basep (from)
+	movl	36(r11),r10		# r10 = prevOnStack->t_size (count)
+.L1:		#copy out loop
+	tstl	r10			# while (count > 0)
+	jeql	.L2
+	decl	r10			# count--
+	movl	(r2),(r0)		# to = from
+	cmpl	-(r2),-(r0)		# to--, from--
+	jmp 	.L1
+.L2:
+.L_REST:
+	movl	16(ap),r1		# r1 = is_new_child
+	cmpl	$1,r1			# if is_new_child == 1
+	jeql	.L6			# 	skip the copy-in loop
+	#copy into target stack from to_run->t_savearea
+	movl	12(ap),r11		# r11 = to_run
+	movl	32(r11),r0		# r0 = to_run->t_basep (to)
+	movl	36(r11),r10		# r10 = to_run->t_size (count)
+		# Kick up the %sp if new stack will be taller than current.
+	ashl	$2,r10,r2		# r2 = new stack height in bytes.
+	subl3	r2,r0,r1		# r1 = target sp
+	subl2	sp,r1			# r1 = r1 - sp
+	cmpl	r1,$0			# if r1 < 0, kick up sp
+	jgeq	.L3
+	addl2	r1,sp
+.L3:	movl	40(r11),r2		# r2 = to_run->t_savearea (from)
+.L4:		# copy in loop
+	tstl	r10			# while (count > 0)
+	jeql	.L5
+	decl	r10			# count--
+	movl	(r2),(r0)		# to = from
+	cmpl	-(r2),-(r0)		# --to, --from
+	jmp 	.L4
+
+.L5:		# restore state of to_run
+	movl	20(r11),fp		# fp = to_run->t_framep
+	# finally, delete to_run's t_savearea
+	movl	36(r11),r1		# r1 = to_run->t_size
+	ashl	$2,r1,r1		# scale size to bytes
+	movl	40(r11),r2		# r2 = to_run->t_savearea
+	subl2	r1,r2			# get low address of savearea
+	addl2	$4,r2
+	pushl	r2
+	calls	$1,_swap_call_delete
+	movl	$0,40(r11)		# to_run->t_savearea = 0
+.L6:	ret

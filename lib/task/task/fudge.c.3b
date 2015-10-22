@@ -1,0 +1,403 @@
+/*ident	"@(#)cls4:lib/task/task/fudge.c.3b	1.5" */
+/*******************************************************************************
+ 
+C++ source for the C++ Language System, Release 3.0.  This product
+is a new release of the original cfront developed in the computer
+science research center of AT&T Bell Laboratories.
+
+Copyright (c) 1993  UNIX System Laboratories, Inc.
+Copyright (c) 1991, 1992 AT&T and UNIX System Laboratories, Inc.
+Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+
+THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+Laboratories, Inc.  The copyright notice above does not evidence
+any actual or intended publication of such source code.
+
+*******************************************************************************/
+#include <task.h>
+#include <stdio.h>
+#include "hw_stack.h"
+
+// 3B frame fudger
+
+//Frames not self-describing!
+//STACK GROWS UP
+
+#ifdef u3b
+	/*
+	 * On the 3B20, the call instruction is call num,dst
+	 * where num is the number of arguments to the function
+	 * and dst is the address of the called function.
+	 * There are 4 possible opcodes for the call instruction:
+	 * 3 are optimizations possible when num can be represented in 4 bits
+	 * (the usual case), and further depend on the addressing mode used.
+	 * This code assumes that destination addresses will only be 
+	 * pc-relative, absolute, or absolute deferred.
+	 */
+
+const int GEN_CALL	= 0x78;
+const int OPT_GEN_CALL	= 0x79;
+const int PC_REL_CALL	= 0x77;
+const int IMM_CALL	= 0xB9;
+
+const int ABSOLUTE_DESC		= 0x08;
+const int PC_REL_DESC		= 0x06;
+const int ABSOLUTE_DEF_DESC	= 0x09;
+
+#define IS_CALL_OPCODE(instr)						\
+	(((MACHINE_BYTE)(instr) == (MACHINE_BYTE)GEN_CALL)	||	\
+	 ((MACHINE_BYTE)(instr) == (MACHINE_BYTE)OPT_GEN_CALL)	||	\
+	 ((MACHINE_BYTE)(instr) == (MACHINE_BYTE)PC_REL_CALL)	||	\
+	 ((MACHINE_BYTE)(instr) == (MACHINE_BYTE)IMM_CALL))
+
+const int N_CALL_INSTR_SIZES = 3;
+short call_size[N_CALL_INSTR_SIZES] = {4, 6, 7};
+
+#undef	SAVE_OPERAND	/* not needed for u3b */
+
+/* src op is not important in decoding the call instruction on u3b */
+#define	SRC_OP_DESC(instr)		/* not needed for u3b */
+#define	IS_LEGAL_SRC_OP()	1
+#undef	SRC_OP_SIZE	/* not needed for u3b */
+const int OPCODE_SIZE = 1;
+const int OPERAND1_SIZE = 1;
+
+#define	DST_OP_DESC(instr)	\
+	(((unsigned char *)(instr))[OPCODE_SIZE] & 0x0f)
+
+#define IS_LEGAL_DST_OP(desc)			\
+	(((desc) == ABSOLUTE_DESC)	||	\
+	 ((desc) == PC_REL_DESC)	||	\
+	 ((desc) == ABSOLUTE_DEF_DESC)		\
+	)
+#define	HAS_LEGAL_OPERANDS(call_instr)			\
+	(IS_LEGAL_DST_OP((DST_OP_DESC(poss_callp))) ||	\
+	 (call_instr[0] == PC_REL_CALL))
+
+
+/* Given a pointer to a call instruction,
+ * yield a pointer to the called function */
+unsigned int
+call_dst_ptr(unsigned char* callp)
+{
+	int offset = 0;
+	// points past operand1 and/or descriptor to address or offset
+	unsigned char* dst_op_p = callp + OPCODE_SIZE + OPERAND1_SIZE;
+	switch(*callp)	{
+	case PC_REL_CALL:			// 16-bit pc-relative address
+		offset = dst_op_p[0] << 8 | dst_op_p[1];
+		if (callp[1] & 0x80)		// negative offset
+			offset = -(offset);
+		unsigned char* next_pc = callp + 4;	// relative to NEXT pc
+		return (unsigned int)((short*)next_pc + offset);
+	case GEN_CALL:
+	case OPT_GEN_CALL:
+		switch(DST_OP_DESC(callp))	{
+		case ABSOLUTE_DESC:	// 24-bit absolute address
+			return	(dst_op_p[0] << 20 |
+				 dst_op_p[1] << 12 |
+				 dst_op_p[2] <<  4 |
+				 dst_op_p[3] >>  4 ) & 0x00ffffff;
+		case ABSOLUTE_DEF_DESC:	// 24-bit absolute deferred address
+			int* addr_p =
+				(int*) ((dst_op_p[0] << 20 |
+					 dst_op_p[1] << 12 |
+					 dst_op_p[2] <<  4 |
+					 dst_op_p[3] >>  4 ) & 0x00ffffff);
+			return (unsigned int)(*addr_p);
+		case PC_REL_DESC:	// 24-bit pc-relative address
+			offset = (dst_op_p[0] << 20 |
+				  dst_op_p[1] << 12 |
+				  dst_op_p[2] <<  4 |
+				  dst_op_p[3] >>  4 );
+			if (dst_op_p[0] & 0x08)	// negative offset
+				offset |= 0xff000000;
+			else			// positive offset
+				offset &= 0x00ffffff;
+			return (unsigned int)(callp + offset);
+		default:			// illegal descriptor
+			object::task_error(E_FUNCS, (object*)0);
+		}
+	case IMM_CALL:				// 24-bit immediate address
+		return	(dst_op_p[0] << 20 |
+			 dst_op_p[1] << 12 |
+			 dst_op_p[2] <<  4 |
+			 dst_op_p[3] >>  4 ) & 0x00ffffff;
+	default:				// illegal call instruction
+		object::task_error(E_FUNCS, (object*)0);
+	}
+	// should never get here, but keeps the compilers happy
+	return (unsigned int)0;
+}	/* call_dst_ptr */
+
+
+#else	/* m32:  u3b2, u3b5, u3b15 */
+
+/*
+ * On the 3B2, the call instruction is CALL src,dst
+ * where src is the address of the new ap (where the args were
+ * already pushed on the stack) and dst is the address of the
+ * called function.  src and dst can be various lengths:
+ * src will be a byte, halfword, or word displacement
+ * and dst will be absolute, or be a byte, halfword, or word displacement.
+ * Byte displacement = 2 bytes, halfword = 3, word = 5;
+ * the opcode = 1 byte; absolute = 5 bytes--12 possible combinations
+ * and 6 possible instr lengths.
+ */
+
+
+#define IS_CALL_OPCODE(instr) ((MACHINE_BYTE)(instr) == (MACHINE_BYTE)0x2c)
+
+const int BYTE_DISPL		= 0xC0;
+const int HALFWORD_DISPL	= 0xA0;
+const int WORD_DISPL		= 0x80;
+const int ABSOLUTE		= 0x70;
+const int REG_SP		= 0x0C;
+const int REG_PC		= 0x0F;
+
+const int N_CALL_INSTR_SIZES = 6;
+short call_size[N_CALL_INSTR_SIZES] = {5, 6, 7, 8, 9, 11};
+
+/* CALL's src operand descriptor needed to determine size of src operand */
+#define SRC_OP_DESC(instr)	(((unsigned char *)(instr))[1])
+#define SRC_OP_SIZE(desc) 				\
+	((MODE_FIELD(desc) == BYTE_DISPL)	? 2 :	\
+	 (MODE_FIELD(desc) == HALFWORD_DISPL)	? 3 :	\
+	 (MODE_FIELD(desc) == WORD_DISPL)	? 5 :	\
+	 ((object::task_error(E_FUNCS, (object*)0)))		\
+	)
+const int OPCODE_SIZE = 1;
+const int DESC_SIZE = 1;
+
+#define	DST_OP_DESC(instr)		\
+	(((unsigned char *)(instr))	\
+		[OPCODE_SIZE + SRC_OP_SIZE(SRC_OP_DESC(instr))])
+#define	MODE_FIELD(desc)	((desc) & 0xf0)
+#define	REG_FIELD(desc)		((desc) & 0x0f)
+
+#define IS_LEGAL_SRC_OP(desc)	/* assumes sp-relative displ */	\
+	(((MODE_FIELD(desc) == BYTE_DISPL)		||	\
+	  (MODE_FIELD(desc) == HALFWORD_DISPL)		||	\
+	  (MODE_FIELD(desc) == WORD_DISPL)			\
+	 ) && (REG_FIELD(desc) == REG_SP)			\
+	)
+/* destination displacement is probably pc-relative, but we don't
+ * make that assumption.  It could be a call through a function pointer.
+ */
+#define IS_LEGAL_DST_OP(desc)						\
+	((MODE_FIELD(desc) == BYTE_DISPL)		||		\
+	 (MODE_FIELD(desc) == HALFWORD_DISPL)		||		\
+	 (MODE_FIELD(desc) == WORD_DISPL)		||		\
+	 ((MODE_FIELD(desc) == ABSOLUTE) && (REG_FIELD(desc) == REG_PC))\
+	)
+#define	HAS_LEGAL_OPERANDS(call_instr)			\
+	(IS_LEGAL_SRC_OP((SRC_OP_DESC(call_instr)))	\
+	&& IS_LEGAL_DST_OP((DST_OP_DESC(call_instr))))
+
+
+/* Given a pointer to a call instruction, yield a pointer to
+ * the called function */
+unsigned int
+call_dst_ptr(unsigned char* callp)
+{
+	int sop_size = SRC_OP_SIZE(SRC_OP_DESC(callp));
+	unsigned char* dst_op_p =
+		/* points past the dst desc, to addr or offset */
+		callp + OPCODE_SIZE + sop_size + DESC_SIZE;
+	int offset = 0;		// offset for displacement modes
+	switch(MODE_FIELD(DST_OP_DESC(callp))) {
+	case BYTE_DISPL:
+		offset = dst_op_p[0];
+		if(*dst_op_p & 0x80) {
+			/* negative--do sign extension for offset */
+			offset |= 0xffffff00;
+		}
+		return (unsigned int)(callp + offset);
+	case HALFWORD_DISPL:
+		// bytes are in reverse order, must flip positions
+		offset = dst_op_p[0] | dst_op_p[1] << 8;
+		if(dst_op_p[1] & 0x80) {
+			/* negative--do sign extension for offset */
+			offset |= 0xffff0000;
+		}
+		return (unsigned int)(callp + offset);
+	case WORD_DISPL:
+		// bytes are in reverse order, must flip positions
+		offset = dst_op_p[0]       |
+			 dst_op_p[1] <<  8 |
+			 dst_op_p[2] << 16 |
+			 dst_op_p[3] << 24;
+		/* don't need sign extension */
+		return (unsigned int)(callp + offset);
+	case ABSOLUTE:
+		return
+			dst_op_p[0]       |
+			dst_op_p[1] <<  8 |
+			dst_op_p[2] << 16 |
+			dst_op_p[3] << 24;
+	default:
+		object::task_error(E_FUNCS, (object*)0);
+	}
+	// should never get here, but keeps the compilers happy
+	return (unsigned int)0;
+}	/* call_dst_ptr */
+
+#endif	/* m32:  u3b2, u3b5, u3b15 */
+
+FrameLayout::FrameLayout(int* fp)
+{
+	/*
+	 * Given a frame pointer, find the number of regs saved in the frame.
+	 * The idea is that the instruction immediately before the return pc
+	 * is the function call, and contains a pointer to the first
+	 * instruction in the function denoted by the fp, which will be a save
+	 * instruction. We can decode the save instruction to find how many
+	 * registers were saved.
+	 */
+
+	int*   return_pc = (int*)OLD_PC(fp);
+
+	unsigned char* callp = NULL;
+	/* Because this method is nondeterministic, try all combinations
+	   instead of stopping when one fits */
+	for(int i = 0; i < N_CALL_INSTR_SIZES; i++) {
+		unsigned char* poss_callp =
+			(unsigned char *)return_pc - call_size[i];
+		if ((IS_CALL_OPCODE(*poss_callp))
+		     && HAS_LEGAL_OPERANDS(poss_callp)) {
+	    		if(!callp) callp = poss_callp;
+	    		else {	// try some heuristics to disambiguate
+				// (Don't try to dereference dst ptr
+				// until sure, or necessary to disambiguate,
+				// to avoid unnecessary core dumps.)
+				// If first callp dst points to a save,
+				// assume that is the instruction we want.
+				if (!IS_SAVE_OPCODE(
+				     *(unsigned char *)(call_dst_ptr(callp))) ) {
+					if (IS_SAVE_OPCODE(
+					    *(unsigned char *)(call_dst_ptr(poss_callp))) ) {
+						callp = poss_callp;
+					} else {
+						// neither is right, go on
+						callp = 0;
+					}
+					
+				}
+			}
+		}
+	}
+	if (callp == NULL) object::task_error(E_FUNCS, (object*)0);	//No match!
+	unsigned int func_addr = call_dst_ptr(callp);
+	if (!(IS_SAVE_OPCODE( *(unsigned char *)func_addr) ))
+		object::task_error(E_FUNCS, (object*)0);
+	n_saved = N_SAVED_REGS(func_addr);
+}
+
+/*
+ * Fudge frame of function-defined-by-f_fp (called "f" below)
+ * so that that function returns to its grandparent,
+ * in particular, so a parent task returns to the function that
+ * called the derived constructor (de_ctor), skipping de_ctor;
+ * the child will return to the derived constructor, which is its "main."
+ * To do this we will overwrite the old fp, ap, and pc (those saved by
+ * f) with the old-old ones (those saved by f's caller),
+ * and we will overwrite the register save area with registers saved by 
+ * f's caller (referred to as "skip" below).
+ *
+ * There are 2 register-save cases to deal with:
+ *     1. skip_n_saved <= f_n_saved
+ *     2. skip_n_saved >  f_n_saved
+ *
+ * These are handled as follows:
+ *     1. copy the saved skip_regs over the corresponding f_regs,
+ *        leaving any additional saved f_regs intact.
+ *        f's restore instruction will be correct.
+ *     2. f's restore instruction will restore too few regs, must take special
+ *	  care to see that the extras are restored properly.
+ *	  -Copy saved skip_regs over any corresponding f_regs,
+ *	  -If fudge_return saved more regs than f did, then
+ *	   copy saved extra saved skip_regs over any corresponding fudge_regs,
+ *	  -If more extra skip_regs (not saved by either f or fudge_return,
+ *	   and therefore not used by either) remain, restore them explicitly.
+ *	   They will not be disturbed by the return from fudge_return or f,
+ */
+void
+task::fudge_return(int* f_fp)
+{
+	register int*	fp = f_fp;		// fp of frame-to-be-fudged
+	FrameLayout	lo(fp);			// frame to be fudged
+	register int*	skip_fp = (int*)OLD_FP(fp); // fp for f's caller (skip)
+	FrameLayout	skip_lo(skip_fp);	// frame for skip
+
+	OLD_PC(fp) = OLD_PC(skip_fp);
+	OLD_AP(fp) = OLD_AP(skip_fp);
+	OLD_FP(fp) = OLD_FP(skip_fp);
+
+	// finally copy saved regs
+	register int* from = LAST_SAVED_REG_P(skip_fp, skip_lo.n_saved);
+	register int* to   = LAST_SAVED_REG_P(fp, lo.n_saved);
+	register int i;
+	if(lo.n_saved >= skip_lo.n_saved) {
+		// copy the saved skip regs over the corresponding f regs,
+		// leaving any additional saved f regs intact.
+		for(i = skip_lo.n_saved; i > 0; i--) {
+			*to-- = *from--;
+		}
+	} else  {	// lo.n_saved < skip_lo.n_saved--take care!
+		// copy the saved skip regs over any corresponding
+		// f regs.
+		for(i = lo.n_saved; i > 0; i--) {
+			*to-- = *from--;
+		}
+		int extra = skip_lo.n_saved - lo.n_saved;
+		// If fudge_return saved more regs than f, extra skip_regs
+		// should be copied over any corresponding fudge_return regs.
+		int*	fr_fp = FP();		// fp for fudge_return
+		FrameLayout	fr_lo(fr_fp);	// frame for fudge_return
+		if (fr_lo.n_saved >= lo.n_saved) {
+			to = LAST_SAVED_REG_P(fr_fp, fr_lo.n_saved) - lo.n_saved;
+			int n;
+			int d = fr_lo.n_saved - lo.n_saved;
+			if (d >= extra)	{	// room for all extra skip_regs
+				n = extra;
+			} else {
+				n = d;
+			}
+			for(i = n; i > 0; i--) {
+				*to-- = *from--;
+				extra--;
+			}
+		}
+		if (extra) { // Remaining skip regs must be explicitly restored.
+			int r = skip_lo.n_saved - extra + 1;
+			for (i = extra; i > 0; i--) {
+				switch (r++) {
+				case 6:
+					set_r3(from);
+					from--;
+					break;
+				case 5:
+					set_r4(from);
+					from--;
+					break;
+				case 4:
+					set_r5(from);
+					from--;
+					break;
+				case 3:
+					set_r6(from);
+					from--;
+					break;
+				case 2:
+					set_r7(from);
+					from--;
+					break;
+				case 1:
+					set_r8(from);
+					from--;
+					break;
+				}
+			}
+		}
+	}
+}

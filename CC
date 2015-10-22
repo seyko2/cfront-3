@@ -172,7 +172,7 @@ case $G in
 			[ -f $A..o ] && mv $A..o $A.o
 		done
 	else
-		echo "$ccC $P $X $LIBRARY" 1>&2
+		# echo "$ccC $P $X $LIBRARY" 1>&2
 		X=$(echo $X | sed -e 's/-o[ \t]*[^ \t]*//')
 		A=$(echo $X | grep '[^ \t]*\.c')
 		EE=0
@@ -190,18 +190,17 @@ case $G in
 			EE=$?
 			if test $EE != 0 -o -s __err
 			then
+				echo "error: $EE"
 				cat __err
 			elif test  "$DASHR" != 1		# find ctors/dtors
 			then
+				# echo "nm $NMFLAGS $OO | $munch $P >__ctdt.c"
 				nm $NMFLAGS $OO | $munch $P >__ctdt.c
-				case $? in
-				1)	$ccC -c __ctdt.c >/dev/null
-					#echo "ld $Z __ctdt.o $LIBRARY -lc"
-					$ccC $P $Z __ctdt.o $LIBRARY		# re-load
-					rm __ctdt.o
-					EE=$?
-					;;
-				esac
+				$ccC -c __ctdt.c >/dev/null
+				#echo "ld $Z __ctdt.o $LIBRARY -lc"
+				$ccC $P $Z __ctdt.o $LIBRARY		# re-load
+				rm __ctdt.o
+				EE=$?
 				rm __ctdt.c
 			fi
 			;;

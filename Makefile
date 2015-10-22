@@ -24,8 +24,8 @@ libC.a:	always
 	cd lib/mk; $(MAKE) CC=$(CC) CCFLAGS="$(CCFLAGS)" BSD=$(BSD)
 	mv lib/mk/libC.a .
 
-munch:	lib/static/munch.C
-	$(CC) $(CCFLAGS) -o munch lib/static/munch.C
+munch:	_munch/munch.C
+	$(CC) $(CCFLAGS) -o munch _munch/munch.C
 
 cfront: always
 	cd src; $(MAKE) CC=$(CC) CCFLAGS="$(CCFLAGS)"

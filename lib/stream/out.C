@@ -1,260 +1,416 @@
-/* @(#) out.c 1.2 1/27/86 17:48:03 */
-/*ident	"@(#)cfront:lib/stream/out.c	1.2"*/
-/*
-	C++ stream i/o source
+/*ident	"@(#)cls4:lib/stream/out.c	1.5" */
+/*******************************************************************************
+ 
+C++ source for the C++ Language System, Release 3.0.  This product
+is a new release of the original cfront developed in the computer
+science research center of AT&T Bell Laboratories.
 
-	out.c
-*/
-sprintf(char*,char* ...);
-strlen(char*);
-#include "stream.h"
-#include <common.h>
+Copyright (c) 1993  UNIX System Laboratories, Inc.
+Copyright (c) 1991, 1992 AT&T and UNIX System Laboratories, Inc.
+Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
 
+THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+Laboratories, Inc.  The copyright notice above does not evidence
+any actual or intended publication of such source code.
 
-#define MAXOSTREAMS 20
+*******************************************************************************/
 
-char cout_buf[BUFSIZE];
-filebuf cout_file(1,cout_buf,BUFSIZE);	// UNIX output stream 1
-ostream cout(&cout_file);
+#include <iostream.h>
+#include "streamdefs.h"
+#include <string.h>
 
-char cerr_buf[1];
-filebuf cerr_file(2,cerr_buf,0);	// UNIX output stream 2
-					// 0-length to ensure unbuffered output
-ostream cerr(&cerr_file);
+#define OSTREAM ostream
 
-const	cb_size = 512;
-const	fld_size = 128;
+const int basebits = ios::dec|ios::oct|ios::hex ;
 
-/* a circular formating buffer */
-static char	formbuf[cb_size];
-static char*	bfree=formbuf;
-static char*	max = &formbuf[cb_size-1];
+// At the cost of 100 bytes of table we can measurably speed
+// up conversion (at least on a VAX)
 
-char* chr(register i, register int w)	/* note: chr(0) is "" */
+static char digit1[] = {
+	'0','1','2','3','4','5','6','7','8','9',
+	'0','1','2','3','4','5','6','7','8','9',
+	'0','1','2','3','4','5','6','7','8','9',
+	'0','1','2','3','4','5','6','7','8','9',
+	'0','1','2','3','4','5','6','7','8','9',
+	'0','1','2','3','4','5','6','7','8','9',
+	'0','1','2','3','4','5','6','7','8','9',
+	'0','1','2','3','4','5','6','7','8','9',
+	'0','1','2','3','4','5','6','7','8','9',
+	'0','1','2','3','4','5','6','7','8','9',
+	} ;
+
+static char digit2[] = {
+	'0','0','0','0','0','0','0','0','0','0',
+	'1','1','1','1','1','1','1','1','1','1',
+	'2','2','2','2','2','2','2','2','2','2',
+	'3','3','3','3','3','3','3','3','3','3',
+	'4','4','4','4','4','4','4','4','4','4',
+	'5','5','5','5','5','5','5','5','5','5',
+	'6','6','6','6','6','6','6','6','6','6',
+	'7','7','7','7','7','7','7','7','7','7',
+	'8','8','8','8','8','8','8','8','8','8',
+	'9','9','9','9','9','9','9','9','9','9',
+	} ;
+
+static char* conv10(long i, char* bufend) 
+/* p points to right end of a buffer. Function function returns
+ * pointer to left end of converted number.  Number is not 0 terminated.
+ *
+ * Special care with negatives to avoid problems with
+ * biggest negative number on 2's complement machines
+ */
 {
-	register char* buf = bfree;
+	register long j = i ;
+	register char* p = bufend ;
 
-	if (w<=0 || fld_size<w) w = 1;
-	w++;				/* space for trailing 0 */
-	if (max < buf+w) buf = formbuf;
-	bfree = buf+w;
-	char * res = buf;
+	/* Above entered low order digit or 0 if i is zero */
 
-	w -= 2;				/* pad */
-	while (w--) *buf++ = ' ';
-	if (i<0 || 127<i) i = ' ';
-	*buf++ = i;
-	*buf = 0;
-	return res;
-}
-
-char* str(char* s, register int w)
-{
-	register char* buf = bfree;
-	int ll = strlen(s);
-	if (w<=0 || fld_size<w) w = ll;
-	if (w < ll) ll = w;
-	w++;				/* space for traling 0 */
-	if (max < buf+w) buf = formbuf;
-	bfree = buf+w;
-	char* res = buf;
-
-	w -= (ll+1);			/* pad */
-	while (w--) *buf++ = ' ';
-	while (*s) *buf++ = *s++;
-	*buf = 0;
-	return res;
-}
-
-char* form(char* format ...)
-{
-	register* ap = (int*)&format;
-	register char* buf = bfree;
-	if (max < buf+fld_size) buf = formbuf;
-
-	register ll = sprintf(buf,format,ap[1],ap[2],ap[3],ap[4],ap[5],ap[6],ap[7],ap[8]);
-	if (0<ll && ll<1024)				/* length */
-		;
-	else if (buf<(char*)ll && (char*)ll<buf+1024)	/* pointer to trailing 0 */
-		ll = (char*)ll - buf;
-	else
-		ll = strlen(buf);
-	if (fld_size < ll) exit(10);
-	bfree += (ll+1);
-	return buf;
-}
-
-const char a10 = 'a'-10;
-
-char* hex(long i, register w)
-{
-	int m = sizeof(long)*2;		/* maximum hex digits for a long */
-	if (w<0 || fld_size<w) w = 0;
-	int sz = (w?w:m)+1;
-	register char* buf = bfree;
-	if (max < buf+sz) buf = formbuf;
-	register char* p = buf+sz;
-	bfree = p+1;
-	*p-- = 0;			/* trailing 0 */
-
-	if (w) {
+	if ( j >= 0 ) {
+		register int diff ;
 		do {
-			register h = i&0xf;
-			*p-- = (h < 10) ? h+'0' : h+a10;
-		} while (w-- && (i>>=4));
-		while (w--) *p-- = ' ';
-	}
-	else {
+			register long by100 = j/100 ;
+			diff = (int)(j-100*by100) ;
+			*p-- = digit1[diff] ;
+			*p-- = digit2[diff] ;
+			j = by100;
+		} while ( j > 0 ) ;
+		if ( diff<10 ) ++p ; //compensate for extra 0
+	} else { // j < 0
+		register int diff ;
 		do {
-			register h = i&0xf;
-			*p-- = (h < 10) ? h+'0' : h+a10;
-		} while (i>>=4);
+			register long by100 = j/100 ;
+			diff = (int)(100*by100-j) ;
+			*p-- = digit1[diff] ;
+			*p-- = digit2[diff] ;
+			j = by100;
+		} while ( j < 0 ) ;
+		if ( diff<10 ) ++p ; //compensate for extra 0
 	}
-	return p+1;
+	return p+1 ;
+
 }
 
-char* oct(long i, int w)
+static char* uconv10(unsigned long i, char* bufend) 
+/* Same interface as conv10 except unsigned so we don't have
+ * to worry about negatives */
 {
-	int m = sizeof(long)*3;		/* maximum oct digits for a long */
-	if (w<0 || fld_size<w) w = 0;
-	int sz = (w?w:m)+1;
-	register char* buf = bfree;
-	if (max < buf+sz) buf = formbuf;
-	register char* p = buf+sz;
-	bfree = p+1;
-	*p-- = 0;			/* trailing 0 */
+	register unsigned long j = i ;
+	register char* p = bufend ;
+	register int diff ;
 
-	if (w) {
-		do {
-			register h = i&07;
-			*p-- = h+'0';
-		} while (w-- && (i>>=3));
-		while (w--) *p-- = ' ';
-	}
-	else {
-		do {
-			register h = i&07;
-			*p-- = h+'0';
-		} while (i>>=3);
-	}
-
-	return p+1;
-}
-
-char* dec(long i, int w)
-{
-	int m = sizeof(long)*3;		/* maximum dec digits for a long */
-	if (w<0 || fld_size<w) w = 0;
-	int sz = (w?w:m)+1;
-	register char* buf = bfree;
-	if (max < buf+sz) buf = formbuf;
-	register char* p = buf+sz;
-	bfree = p+1;
-	*p-- = 0;			/* trailing 0 */
-
-	if (w) {
-		do {
-			register h = i%10;
-			*p-- = h + '0';
-		} while (w-- && (i/=10));
-		while (w--) *p-- = ' ';
-	}
-	else {
-		do {
-			register h = i%10;
-			*p-- = h + '0';
-		} while (i/=10);
-	}
-
-	return p+1;
-}
-
-
-ostream& ostream.operator<<(char* s)
-{
-	register streambuf* nbp = bp;
-	if (state) return *this;
-	if (*s == 0) return *this;
-	do
-		if (nbp->sputc(*s++) == EOF) {
-			state |= _eof|_fail;
-			break;
-		}
-	while (*s);
-//	if (*(s-1)=='\n') flush(); /* fudge due to lack of  destructors for static*/
-	return *this;
-}
-
-ostream& ostream.operator<<(long i)
-{
-	register streambuf* nbp = bp;
-	register long j;
-	char buf[32];
-	register char *p = buf;
-
-	if (state) return *this;
-
-	if (i < 0) {
-		nbp->sputc('-');
-		j = -i;
-	} else
-		j = i;
 	do {
-		*p++ = '0' + j%10;
-		j = j/10;
-	} while (j > 0);
+		register long by100 = j/100 ;
+		diff = (int)(j-100*by100) ;
+		*p-- = digit1[diff] ;
+		*p-- = digit2[diff] ;
+		j = by100;
+	} while ( j > 0 ) ;
+	if ( diff<10 ) ++p ; //compensate for extra 0
+	
+	return p+1 ;
+
+}
+
+
+static char* conv8(register unsigned long i, register char* p) 
+{
 	do {
-		if (nbp->sputc(*--p) == EOF) {
-			state |= _fail | _eof;
-			break;
-		}
-	} while (p != buf);
-	return *this;
+		*p-- = (char)('0' + i%8) ;
+		} while ( (i >>= 3) > 0 ) ;
+	return p+1 ;
 }
 
-ostream& ostream.put(char c)
+static char* conv16(register unsigned long i, register char* p) 
 {
-	if (state) return *this;
+	do {
+		register int dig = (int)(i%16) ;
+		if ( dig < 10 )	*p-- = (char)('0' + i%16) ;
+		else		*p-- = (char)('a'-10 + dig) ;
 
-	if (bp->sputc(c) == EOF) state |= _eof|_fail;
-
-	return *this;
+		} while ( (i >>= 4) > 0 ) ;
+	return p+1 ;
 }
 
-ostream& ostream.operator<<(double d)
+
+static char* conv16u(register unsigned long i, register char* p) 
 {
-	register streambuf* nbp = bp;
-	char buf[32];
-	register char *p = buf;
+	do {
+		register int dig = (int)(i%16) ;
+		if ( dig < 10 )	*p-- = (char)('0' + i%16) ;
+		else		*p-- = (char)('A'-10 + dig) ;
 
-	if (state) return *this;
+		} while ( (i >>= 4) > 0 ) ;
+	return p+1 ;
+}
+ostream& OSTREAM::operator<<(const char* s)
+{
+	// I play some games so that if BREAKEVEN is <= 0 all
+	// tests get set the right way at compile time 
 
-	sprintf(buf,"%g",d);
-	while (*p != '\0')
-		if (nbp->sputc(*p++) == EOF) {
-			state |= _eof|_fail;
-			break;
+#       if BREAKEVEN > 0
+		static int	avglen = BREAKEVEN ;
+					// running average of the lengths
+					// of strings ;
+#	else
+		static const int avglen = BREAKEVEN ;
+					// fixed constant so all tests
+					// are fixed at compile time
+#	endif
+
+	register int fwidth = width(0) ;
+
+	if (!opfx() ) return *this ;
+	if ( s==0 ) return *this;
+	register streambuf* nbp = bp ;
+	register const char* p ;
+	register int len ;
+	register int pad ;
+
+	register int leftjust = ( (flags()&left) != 0 ) ;
+	if ( BREAKEVEN<0 
+			|| BREAKEVEN>0 && avglen<=BREAKEVEN &&
+			   (fwidth==0 || leftjust)){
+		p = s ;
+		while ( *p ) {
+			if ( nbp->sputc(*p++) == EOF ) {
+				setstate(badbit) ;
+				break ;
+			}
 		}
+		len = p-s ;
+		pad = fwidth-len ;
+	} else {
+		len = strlen(s) ;
+		pad = fwidth-len ;
+		if ( pad>0 && !leftjust ) {
+			while ( pad-- > 0 ) {
+				if ( nbp->sputc(fill()) == EOF ) {
+					setstate(badbit) ;
+				}
+			}
+		}
+		write(s,len) ;
+	}
+
+	if ( pad > 0  ) {
+		while ( pad-- > 0 ) {
+			if ( nbp->sputc(fill()) == EOF ) setstate(badbit) ;
+		}
+	}
+
+ 	if ( BREAKEVEN > 0 ) { // will be eliminated at compile time 
+		avglen = (3*avglen + len) >> 2;
+	}
+	osfx() ;
 	return *this;
 }
 
-ostream& ostream.operator<<(streambuf& b)
+static int dofield(
+	ostream* ios,
+	register char* pfx,
+	int pwidth,
+	register char* sfx,
+	int swidth) 
+{
+	register streambuf* b = ios->rdbuf() ;
+	register int w = ios->width(0)-(pwidth+swidth) ;
+	register int f = (int)ios->flags() ;
+	register int fchar = ios->fill() ; 
+
+	if ( (f&ios::right) || !(f&(ios::left|ios::internal)) ) {
+		while ( w-- > 0 ) {
+			if ( b->sputc(fchar) == EOF ) return ios::badbit ;
+			}
+		}
+
+	while ( *pfx ) {
+		if ( b->sputc(*pfx++) == EOF ) return ios::badbit ;
+		}
+
+	if ( f&ios::internal ) {
+		while ( w-- > 0 ) {
+			if ( b->sputc(fchar) == EOF ) return ios::badbit ;
+			}
+		}
+	while ( *sfx ) {
+		if ( b->sputc(*sfx++) == EOF ) return ios::badbit ;
+		}
+
+	while ( w-- > 0 ) {
+		if ( b->sputc(fchar) == EOF ) return ios::badbit ;
+		}
+
+	return 0 ;
+	}
+
+static const int dbufsize = 32 ;
+
+ostream& OSTREAM::operator<<(long i)
+{
+	if (!opfx()) {
+		width(0) ;
+		return *this;
+		}
+	char buf[dbufsize];
+
+	register char *p ;
+	register char* pfx = "" ;
+	register int pfxsize = 0 ;
+
+	buf[dbufsize-1] = 0 ;
+	switch( flags()&basebits ) {
+		case ios::oct :
+			p = conv8(i,&buf[dbufsize-2]) ;
+			if ( (flags()&showbase) ) {	// && i removed
+				pfx = "0" ; pfxsize = 1 ;
+				}
+			break ;
+		case ios::hex :
+			if ( flags()&uppercase ) {
+				p=conv16u(i,&buf[dbufsize-2]);
+				if ( flags()&showbase ) {
+					pfx = "0X" ; pfxsize = 2 ;
+					}
+				}
+			else {
+				p=conv16(i,&buf[dbufsize-2]); 
+				if ( flags()&showbase ) {
+					pfx = "0x" ; pfxsize = 2 ;
+					}
+				}
+			break ;
+		default:
+			p = conv10(i,&buf[dbufsize-2]) ;
+			if ( i < 0 ) {
+				pfx = "-" ; pfxsize = 1 ;
+				}
+			else if ( flags()&showpos ) {
+				pfx = "+" ; pfxsize = 1 ;
+				}
+			break ;
+		}
+	register int err ;
+	if ( err = dofield(this,pfx,pfxsize,p,&buf[dbufsize-1]-p) ) {
+		setstate(err) ;
+		}
+	osfx() ;
+	return *this ;
+	}
+
+ostream& OSTREAM::operator<<(unsigned long i)
+{
+	if (!opfx()) {
+		width(0) ;
+		return *this;
+		}
+	char buf[dbufsize];
+	register char *p ;
+	register char* pfx = "" ;
+	register int pfxsize = 0 ;
+
+
+	buf[dbufsize-1] = 0 ;
+	switch( flags()&basebits ) {
+		case ios::oct :
+			p = conv8(i,&buf[dbufsize-2]) ;
+			if ( (flags()&showbase) && i ) {
+				pfx = "0" ; pfxsize = 1 ;
+				}
+			break ;
+		case ios::hex :
+			if ( flags()&uppercase ) {
+				p=conv16u(i,&buf[dbufsize-2]);
+				if ( flags()&showbase ) {
+					pfx = "0X" ; pfxsize = 2 ;
+					}
+				}
+			else {
+				p=conv16(i,&buf[dbufsize-2]); 
+				if ( flags()&showbase ) {
+					pfx = "0x" ; pfxsize = 2 ;
+					}
+				}
+			break ;
+		default:
+			p = uconv10(i,&buf[dbufsize-2]) ;
+			break ;
+		}
+	register int err ;
+	if ( err = dofield(this,pfx,pfxsize,p,&buf[dbufsize-1]-p) ) {
+		setstate(err) ;
+		}
+	osfx() ;
+	return *this ;
+	}
+	
+ostream& OSTREAM::operator<<(register streambuf* b)
 {
 	register streambuf* nbp = bp;
 	register int c;
 
-	if (state) return *this;
-
-	c = b.sgetc();
+	if (!opfx()) return *this;
+	if ( !b ) {
+		setstate(failbit) ;
+		return *this ;
+		}
+	c = b->sgetc();
 	while (c != EOF) {
 		if (nbp->sputc(c) == EOF) {
-			state |= _eof|_fail;
+			setstate(badbit) ;
 			break;
+			}
+		c = b->snextc();
 		}
-		c = b.snextc();
-	}
-		
+
+	osfx() ;		
 	return *this;
+	}
+
+ostream& OSTREAM::operator<<( void* p)
+{
+	long f = setf(ios::showbase|PTRBASE,  basebits|ios::showbase) ;
+	*this << (long)p ;
+	setf(f,~0) ;
+	return *this ;
+	}
+
+/*  add this later
+ostream& OSTREAM::operator<<( const void* p)
+{
+	long f = setf(ios::showbase|PTRBASE,  basebits|ios::showbase) ;
+	*this << (long)p ;
+	setf(f,~0) ;
+	return *this ;
+	}
+*/
+
+ostream& OSTREAM::operator<<(int x)
+{
+	*this << (long)x ;
+	return *this ;
+	}
+
+ostream& OSTREAM::operator<<(unsigned int x)
+{
+	*this << (unsigned long)x ;
+	return *this ;
+	}
+
+ostream& OSTREAM::complicated_put(char c)
+{
+	if ( opfx() ) {
+		if (  bp->sputc(c) == EOF )  {
+			setstate(eofbit|failbit) ;
+		}
+		osfx() ;
+	}
+	return *this ;
 }
-
-
+ostream& OSTREAM::ls_complicated(char c)
+{
+	put(c) ; osfx() ; return *this ;
+}
+ostream& OSTREAM::ls_complicated(unsigned char c) 
+{
+	put(c) ; osfx() ; return *this ;
+}

@@ -1,0 +1,217 @@
+/*ident	"@(#)cls4:lib/task/task/fudge.c.68k	1.4" */
+/*******************************************************************************
+ 
+C++ source for the C++ Language System, Release 3.0.  This product
+is a new release of the original cfront developed in the computer
+science research center of AT&T Bell Laboratories.
+
+Copyright (c) 1993  UNIX System Laboratories, Inc.
+Copyright (c) 1991, 1992 AT&T and UNIX System Laboratories, Inc.
+Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+
+THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+Laboratories, Inc.  The copyright notice above does not evidence
+any actual or intended publication of such source code.
+
+*******************************************************************************/
+#include <task.h>
+#include "hw_stack.h"
+
+// Sun MC68000 frame fudger
+
+/* careful -- stack frame not self-describing */
+// STACK GROWS DOWN
+
+/*
+ * On the 68K Suns, the four forms of function call generated
+ * by the compiler are:
+ *	jsr	followed by the function address (int)
+ *	bsrl	followed by the function offset (int) (68020 only)
+ *	bsr	followed by the function offset (short)
+ *	bsrb	low order byte is the offset
+ *		(not actually seen or tested)
+ */
+const int JSR_CALL	= 047271;
+const int BSRL_CALL	= 060777;
+const int BSR_CALL	= 060400;
+const int BSRB_CALL	= 0x61;		// Really 0x61NN, where NN is the offset.
+
+/* On the 68K Suns, the function prologue may include the following
+ * instructions.  See FrameLayout for sequencing.
+ */
+const int LINKW	= 047126;	// linkw a6,xxx
+const int ADDL	= 0157774;	// addl #yyy,sp
+const int MOVLA5	= 027215;	// movl a5,sp@
+const int MOVLD7	= 027207;	// movl d7,sp@
+const int MOVEM	= 044327;	// movem mask,sp@
+				//  (for movem M,a6@(xx) )
+
+int*	Skip_pc_p;	// global to hold fudged return pc.
+			// See comments in hw_stack.c.
+
+FrameLayout::FrameLayout(int* fp)
+{
+	unsigned short*	ret_addr = (unsigned short*)OLD_PC(fp);
+/*
+ * find the starting address of the function.  The idea is that the
+ * instruction immediately before the return address must be the function call.
+ * Only works if the function was called by name.
+ */
+	unsigned short*	func_addr = 	
+		(ret_addr[-3] == JSR_CALL) ?
+			(unsigned short*)*(int*)(ret_addr-2) :
+		(ret_addr[-3] == BSRL_CALL) ? 
+			(unsigned short*) ((char*)(ret_addr-2)
+				+ *(int*)(ret_addr-2)) :
+		(ret_addr[-2] == BSR_CALL) ?
+			(unsigned short*) ((char*)(ret_addr-1)
+				+ *(short*)(ret_addr-1)) :
+		(*(char*)(ret_addr-1) == BSRB_CALL) ?
+			(unsigned short*) ((char*)ret_addr
+				+ *((char*)ret_addr-1)) :
+		(unsigned short*)object::task_error(E_FUNCS, (object*)0);
+/*
+ * the first instruction in the function is linkw a6,xxx
+ * if -O was used, xxx is the frame size in bytes (saved regs + automatics),
+ * otherwise xxx is 0 and the next instruction is addl #yyy, sp
+ * where yyy is the frame size.
+ */
+	if (*func_addr == LINKW) {
+		if ((offset = (short)*++func_addr / 4) == 0)
+			if (*++func_addr == ADDL)  
+				offset = (short)*(func_addr += 2) / 4;
+	} else object::task_error(E_FRAMES, (object*)0);
+/*
+ * The next instruction saves the registers in the frame.  Possibilities are:
+ *	movem	mask,sp@	| save the regs specified by the mask word
+ *	movl	a5,sp@		| just save a5
+ *	movl	d7,sp@		| just save d7
+ * The mask uses the standard 68000 layout
+ */
+	switch (*++func_addr) {
+	case MOVLA5:			// movl a5,sp@
+		mask = 020000;		//  just a5
+		break;
+	case MOVEM:			// movem mask,sp@
+		mask = *++func_addr;	//  mask word
+		break;
+	case MOVLD7:			// movl d7,sp@
+		mask = 0200;		//  just d7
+		break;
+	default:			// no saved registers is also possible
+		mask = 0;
+		break;
+	}
+}
+
+/*
+ * Fudge frame of function-defined-by-f_fp (called "f" below)
+ * so that that function returns to its grandparent,
+ * in particular, so a parent task returns to the function that
+ * called the derived constructor (de_ctor), skipping de_ctor;
+ * the child will return to the derived constructor, which is its "main."
+ * To do this we will overwrite the old fp and pc (those saved by
+ * f) with the old-old ones (those saved by f's caller),
+ * and we will overwrite the register save area with registers saved by 
+ * f's caller (referred to as "skip" below).
+ *
+ * There are 2 register-save cases to deal with:
+ *     1. skip_n_saved <= f_n_saved
+ *     3. skip_n_saved >  f_n_saved
+ *
+ * These are handled as follows:
+ *     1. copy the saved skip_regs over the corresponding f_regs,
+ *        leaving any additional saved f_regs intact.
+ *        f's epilogue instructions will be correct.
+ *     2. f's epilogue instructions will restore too few regs,
+ *	  must take special care to see that the extras are restored properly.
+ *	  -Copy saved skip_regs over any corresponding f_regs,
+ *	  -If fudge_return saved more regs than f did, then
+ *	   copy saved extra saved skip_regs over any corresponding fudge_regs,
+ *	  -If more extra skip_regs (not saved by either f or fudge_return,
+ *	   and therefore not used by either) remain, restore them explicitly.
+ *	   They will not be disturbed by the return from fudge_return or f,
+ */
+void
+task::fudge_return(int* f_fp)
+{
+	register int*	fp = f_fp;		// fp of frame-to-be-fudged
+	FrameLayout	lo(fp);			// frame to be fudged
+	register int*	skip_fp = (int*)OLD_FP(fp); // fp for f's caller (skip)
+	FrameLayout	skip_lo(skip_fp);	// frame for skip
+	register int*	fr_fp = FP();		// fp for fudge_return
+	FrameLayout	fr_lo(fr_fp);		// frame for fudge_return
+
+	OLD_PC(fp) = (int)&fudge_sp;	// task::task will return through
+					// fudge_sp, which will reset the sp
+					// to point at the return-pc in
+					// skip's frame
+	// copy old fp
+	OLD_FP(fp) = OLD_FP(skip_fp);
+
+	// now copy saved registers
+	// copy any saved skip regs over corresponding f regs; if there isn't
+	// a corresponding f reg, copy over corresponding fudge_return reg;
+	// if there isn't a corresponding fr_reg, restore it explicitly.
+	register int*	to = FIRST_SAVED_REG_P(fp, lo.offset);
+	register int*	from = FIRST_SAVED_REG_P(skip_fp, skip_lo.offset);
+	register int*	fr_to = FIRST_SAVED_REG_P(fr_fp, fr_lo.offset);
+	for (register int m = 1; m != 0x10000; m <<=1) {
+		if (m & lo.mask) {
+			if (m & skip_lo.mask) {
+				*to++ = *from++;
+				if (m & fr_lo.mask) fr_to++;
+			} else {  // nothing to copy
+				to++;
+				if (m & fr_lo.mask) fr_to++;
+			}
+		} else if (m & skip_lo.mask) {
+			// No slot for *from in f's frame
+			if (m & fr_lo.mask) {  // copy to fudge_return's frame
+				*fr_to++ = *from++;
+			} else {
+				// Not used in f or fudge_return;
+				// restore explicitly
+				switch(m)	{
+				case 0x0004:
+					set_d2(from++);
+					break;
+				case 0x0008:
+					set_d3(from++);
+					break;
+				case 0x0010:
+					set_d4(from++);
+					break;
+				case 0x0020:
+					set_d5(from++);
+					break;
+				case 0x0040:
+					set_d6(from++);
+					break;
+				case 0x0080:
+					set_d7(from++);
+					break;
+				case 0x0400:
+					set_a2(from++);
+					break;
+				case 0x0800:
+					set_a3(from++);
+					break;
+				case 0x1000:
+					set_a4(from++);
+					break;
+				case 0x2000:
+					set_a5(from++);
+					break;
+				default:
+					// Oops--don't expect other regs
+					// to be saved
+					from++;
+					task_error(E_REGMASK, this);
+					break;
+				}
+			}
+		}
+	}
+}
+

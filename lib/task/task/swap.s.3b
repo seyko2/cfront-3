@@ -1,0 +1,144 @@
+	.file	"swap.s.3b"
+#	ident	"@(#)cls4:lib/task/task/swap.s.3b	1.3"
+###############################################################################
+#
+# C++ source for the C++ Language System, Release 3.0.  This product
+# is a new release of the original cfront developed in the computer
+# science research center of AT&T Bell Laboratories.
+#
+# Copyright (c) 1993  UNIX System Laboratories, Inc.
+# Copyright (c) 1991, 1992   AT&T and UNIX System Laboratories, Inc.
+# Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+#
+# THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+#	
+# Laboratories, Inc.  The copyright notice above does not evidence
+# any actual or intended publication of such source code.
+#
+###############################################################################
+
+#	swap of DEDICATED
+# call swap(*running_task, *to_run_task, is_new_child, running_is_terminated)
+# This routine saves the fp and ap in running's t_framep and t_ap.
+# If running is a SHARED task, we must save its stack size as well,
+# although the stack does not need to be copied out here.
+# It then restores to_run's t_framep and t_ap to be the current fp and ap.
+# If to_run is a new child, it explicitly restores the registers from
+# New_task_regs, and returns with ret &0.
+# If to_run is not a new child, it returns with ret &6.
+# If running_task is TERMINATED, then we don't need to do a save.
+	.text
+	.globl swap
+	.align	4
+swap:
+	save &6			# save all user regs (r3-r8)
+	movw	4(%ap),%r2	# r2 = to_run
+	movw	12(%ap),%r1	# r1 = running_is_terminated
+	cmpw	&1,%r1		# if running is TERMINATED
+	je	.L_RESTORE	# 	skip save
+	movw	0(%ap),%r1	# r1 = running
+
+	# save state of running task, unless it's TERMINATED
+	movw	%fp,20(%r1)	# running->t_framep = fp
+	movw	%ap,28(%r1)	# running->t_ap = ap
+	movw	52(%r1),%r0	# r0 = running->t_mode
+	cmpw	&2,%r0		# if running->t_mode == SHARED
+	jne	.L_RESTORE
+	# the code here to save the t_size is the same as for sswap
+	subw3	32(%r1),%sp,%r0		# r0 = sp - running->t_basep (bytes)
+	arsw3	&2,%r0,36(%r1)		# running->t_size = r0 / 4 (int)
+
+.L_RESTORE:
+	movw	8(%ap), %r1	# r1 = is_new_child
+
+	# restore state of to_run_task
+	movw	20(%r2),%fp	# fp = to_run->t_framep
+	movw	28(%r2),%ap	# ap = to_run->t_ap
+
+	# if is_new_child, restore registers
+	cmpw	&1,%r1
+	je	.L_CHILD
+	ret	&6		# not a new child
+
+.L_CHILD:	# restore registers for new child
+	# new child task effectively returns from task::task, so we need
+	# to set the return value to "this"
+	movw	24(%r2),%r0		# r0 = to_run->th
+	movw	&New_task_regs,%r2
+	movw	0(%r2),%r3
+	movw	4(%r2),%r4
+	movw	8(%r2),%r5
+	movw	12(%r2),%r6
+	movw	16(%r2),%r7
+	movw	20(%r2),%r8
+	ret &0
+
+#	swap of SHARED
+# sswap(*running, *prevOnStack, *to_run, is_new_child, running_is_terminated)
+# This routine saves the fp and ap in running's t_framep and t_ap
+# and the stack size in t_size.  Then it copies out the target stack 
+# to prevOnStack's t_savearea.  If to_run is not a new child, it then
+# copies the saved stack of to_run (from t_savearea) to the target stack,
+# and then restores to_run's t_framep and t_ap to be the current fp and ap.
+# We don't need to restore state of a child  to_run object, because it's
+# already in place.
+# If running_task is TERMINATED, then we don't need to do a save,
+# and if running_task is TERMINATED and equals prevOnStack, then we don't
+# have to do the stack copy.
+	.text
+	.globl sswap
+	.align	4
+sswap:
+	save &6				# save all user regs (r3-r8)
+	movw	0(%ap),%r1		# r1 = running
+	movw	4(%ap),%r4		# r4 = prevOnStack
+	movw	16(%ap),%r0		# r0 = running_is_terminated
+	cmpw	&1,%r0			# if running is TERMINATED
+	je	.L_SKIP			# skip save
+		#save hw state of running
+	movw	%fp,20(%r1)		# running->t_framep = fp
+	movw	%ap,28(%r1)		# running->t_ap = ap
+	subw3	32(%r1),%sp,%r0		# r0 = sp - running->t_basep (bytes)
+	arsw3	&2,%r0,36(%r1)		# running->t_size = r0 / 4 (int)
+	jmp	.L_SAVE
+
+.L_SKIP:	#if running is TERMINATED and running == prevOnStack,
+		#then we can skip the stack copy too
+	cmpw	%r1,%r4			# if running == prevOnStack
+	je	.L_REST			#	skip prevOnStack save
+
+.L_SAVE:	#copy out target stack to prevOnStack->t_savearea
+	movw	36(%r4),%r2		# r2 = prevOnStack->t_size (count)
+	pushw	%r2
+	call	&1,swap_call_new	# get count bytes of storage
+	movw	%r0,40(%r4)		# prevOnStack->t_savearea = r0 (to)
+	movw	%r0, %r1
+	movw	32(%r4),%r0		# r0 = prevOnStack->t_basep (from)
+	movblw
+.L_REST:
+	movw	12(%ap),%r1		# r1 = is_new_child
+	cmpw	&1,%r1			# if is_new_child == 1
+	je	.L6			# 	skip the copy-in loop
+	#copy into target stack from to_run->t_savearea
+	movw	8(%ap),%r4		# r4 = to_run
+	movw	32(%r4),%r1		# r1 = to_run->t_basep (to)
+	movw	36(%r4),%r2		# r2 = to_run->t_size (count)
+	# Kick up the %sp if new stack will be taller than current.
+	alsw3	&2,%r2,%r3		# r3 = new stack height in bytes.
+	addw2	%r1,%r3			# r3 = target sp
+	subw2	%sp,%r3			# r3 = r2 - sp
+	cmpw	%r3,&0			# if r3 > 0, kick up sp
+	jle	.L3
+	addw2	%r3,%sp
+.L3:
+	movw	40(%r4),%r0		# r0 = to_run->t_savearea (from)
+	movblw
+		# restore hw state of to_run
+	movw	20(%r4),%fp		# fp = to_run->t_framep
+	movw	28(%r4),%ap		# to_run->t_ap
+	# finally, delete to_run's t_savearea
+	movw	40(%r4),%r2		# r2 = to_run->t_savearea
+	pushw	%r2
+	call	&1,swap_call_delete
+	movw	&0,40(%r4)		# to_run->t_savearea = 0
+.L6:	ret &6

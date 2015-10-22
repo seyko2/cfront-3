@@ -1,339 +1,140 @@
-/* @(#) in.c 1.3 1/27/86 17:48:02 */
-/*ident	"@(#)cfront:lib/stream/in.c	1.3"*/
-/*
-	C++ stream i/o source
+/*ident	"@(#)cls4:lib/stream/in.c	1.3" */
+/*******************************************************************************
+ 
+C++ source for the C++ Language System, Release 3.0.  This product
+is a new release of the original cfront developed in the computer
+science research center of AT&T Bell Laboratories.
 
-	in.c
-*/
+Copyright (c) 1993  UNIX System Laboratories, Inc.
+Copyright (c) 1991, 1992 AT&T and UNIX System Laboratories, Inc.
+Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+
+THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+Laboratories, Inc.  The copyright notice above does not evidence
+any actual or intended publication of such source code.
+
+*******************************************************************************/
+
 #include <ctype.h>
-#include "stream.h"
-#include <common.h>
+#include <iostream.h>
 
-filebuf cin_file(0);			// UNIX input stream 1
-istream cin(&cin_file,1,&cout);		// cin tied to cout
+#define ISTREAM istream
 
-/* predefined whitespace */
-whitespace WS;
-
-/*inline */void eatwhite (istream& is)
+void ISTREAM::eatwhite ()
 {
-	if (is.tied_to) is.tied_to->flush();
-	register streambuf *nbp = is.bp;
+	register streambuf *nbp = bp;
 	register int c = nbp->sgetc();
 	while (isspace(c)) c = nbp->snextc();
-	if ( c == EOF )
-		is.state |= _eof;
+	if (c == EOF) setstate(eofbit);
 }
 
-istream& istream.operator>>(whitespace&)
+void ISTREAM::xget(char* c) 
 {
-	register streambuf *nbp = bp;
-
-	if (state) return *this;
-	if (tied_to) tied_to->flush();
-	register c = nbp->sgetc();
-	while (isspace(c)) c = nbp->snextc();
-	if (c == EOF) state |= _eof;
-	return *this;
-}
-
-istream& istream.operator>>(register char& s)
-/*
-	reads characters NOT very small integers
- */
-{
-	if (skipws) eatwhite(*this);
-
-	if (state) {
-		state |= _fail;
-		return *this;
+	register streambuf* sbp = bp ;
+	if ( !ipfx(1) ) return ;
+	x_gcount = 0 ; 
+	register int newc = sbp->sbumpc() ;
+	if ( newc == EOF ) {
+		setstate(failbit|eofbit) ;
+		return ;
+		}
+	x_gcount = 1 ;
+	*c = newc ;
 	}
 
-	register c = bp->sgetc();
-	if (c == EOF) {
-		state |= _fail|_eof;
-		return *this;
-	}
-
-	if (bp->snextc() == EOF) state |= _eof;
-	s = c;
-	return *this;
-}
-
-istream& istream.operator>>(register char* s)
+istream& ISTREAM::operator>>(register char* s)
 {
-	register streambuf *nbp = bp;
-
-	if (skipws) eatwhite(*this);
-
-	if (state) {
-		state |= _fail;
-		return *this;
-	}
-
 	/* get string */
-	register c = nbp->sgetc();
-	if (c == EOF) state |= _fail;
-	while (!isspace(c) && c != EOF) {
-		*s++ = c;
-		c = nbp->snextc();
+
+	register int w = width(0) ;
+	if ( flags()&skipws ) {
+		// We don't know a maximum number of required
+		// characters 
+		if ( !ipfx(0) ) return *this ;
+		}
+	else if ( !ipfx(w) ) {
+		return *this ;
+		}
+
+	register streambuf *nbp = bp;
+	register int c = nbp->sgetc();
+
+	if (c == EOF) setstate(failbit|eofbit) ;
+
+	if ( w > 0 ) {
+		while (!isspace(c) && c != EOF && --w > 0 ) {
+			*s++ = c;
+			c = nbp->snextc();
+		}
+	} else {
+		while (!isspace(c) && c != EOF ) {
+			*s++ = c;
+			c = nbp->snextc();
+		}
 	}
+	
 	*s = '\0';
 
-	if (c == EOF) state |= _eof;
+	if (c == EOF) setstate(eofbit) ;
 
 	return *this;
 }
 
-istream&
-istream.operator>>(long& i)
+istream& ISTREAM::operator>>(unsigned char* s)
 {
-	register c;
-	register ii = 0;
-	register streambuf *nbp = bp;
-	int neg = 0;
-
-	if (skipws) eatwhite(*this);
-
-	if (state) {
-		state |= _fail;
-		return *this;
-	}
-
-	switch (c = nbp->sgetc()) {
-	case '-':
-	case '+':
-		neg = c;
-		c = nbp->snextc();
-		break;
-	case EOF:
-		state |= _fail;
-	}
-
-	if (isdigit(c)) {
-		do {
-			ii = ii*10+c-'0';
-		} while (isdigit(c=nbp->snextc()));
-		i = (neg=='-') ? -ii : ii;
-	} else
-		state |= _fail;
-
-	if (c == EOF) state |= _eof;
-	return *this;
+	return *this >> (char*)s ;
 }
 
-istream&
-istream.operator>>(int& i)
+istream& ISTREAM::putback(register char c)
 {
-	long l;
-
-	if (skipws) eatwhite(*this);
-
-	if (state) {
-		state |= _fail;
-		return *this;
-	}
-
-	if ( *this>>l ) {
-		i = l;
-	}
+	if ( !good() ) return *this ;
+	if ( bp->sputbackc(c) == EOF ) setstate(badbit) ;
 	return *this;
 }
-
-istream&
-istream.operator>>(short& i)
+istream& ISTREAM::rs_complicated(unsigned char& c)
+{	if ( ipfx(0) ) {
+		if (  bp->in_avail() ) {
+			c = bp->sbumpc() ;
+		} else  xget((char*)&c) ;
+	}
+	return *this ;
+}
+istream& ISTREAM::rs_complicated(char& c)
+{	if ( ipfx(0) ) {
+		if (  bp->in_avail() ) {
+			c = bp->sbumpc() ;
+		} else  xget((char*)&c) ;
+	}
+	return *this ;
+}
+istream& ISTREAM::get_complicated(unsigned char& c)
 {
-	long l;
-
-	if (skipws) eatwhite(*this);
-
-	if (state) {
-		state |= _fail;
-		return *this;
+	if ( ipfx(1) && bp->in_avail()) {
+		x_gcount = 1 ;
+		c = bp->sbumpc() ;
+	} else {
+		xget((char*)&c) ;
 	}
-
-	if ( *this>>l ) {
-		i = l;
-	}
-	return *this;
+	return *this ;
 }
-
-istream&
-istream.operator>>(double& d)
-/*
-	{+|-} d* {.} d* { e|E {+|-} d+ } 
-	except that
-		- a dot must be pre- or succeded by at least one digit
-		- an exponent must be preseded by at least one digit
+istream& ISTREAM::get_complicated(char& c)
+{
+	if ( ipfx(1) && bp->in_avail()) {
+		x_gcount = 1 ;
+		c = bp->sbumpc() ;
+	} else {
+		xget(&c) ;
+	}
+	return *this ;
+}
+/* int ISTREAM::get_complicated()
+{
+	int c ;
+	if ( !ipfx(1) ) return EOF ;
+	else {
+		c = bp->sbumpc() ;
+		if ( c == EOF ) setstate(eofbit) ;
+		return c ;
+		}
+}
 */
-{
-	register c = 0;
-	char buf[256];
-	register char* p = buf;
-	register streambuf* nbp = bp;
-	extern double atof(char*);
-
-	if (skipws) eatwhite(*this);
-
-	if (state) {
-		state |= _fail;
-		return *this;
-	}
-
-	/* get the sign */
-	switch (c = nbp->sgetc()) {
-	case EOF:
-		state = _eof|_fail;
-		return *this;
-	case '-':
-	case '+':
-		*p++ = c;
-		c = bp->snextc();
-	}
-
-	/* get integral part */
-	while (isdigit(c)) {
-		*p++ = c;
-		c = bp->snextc();
-	}
-
-	/* get fraction */
-	if (c == '.') {
-		do {
-			*p++ = c;
-			c = bp->snextc();
-		} while (isdigit(c));
-	}
-
-	/* get exponent */
-	if (c == 'e' || c == 'E') {
-		*p++ = c;
-		switch (c = nbp->snextc()) {
-		case EOF:
-			state = _eof|_fail;
-			return *this;
-		case '-':
-		case '+':
-			*p++ = c;
-			c = bp->snextc();
-		}
-		while (isdigit(c)) {
-			*p++ = c;
-			c = bp->snextc();
-		}
-	}
-
-	*p = 0;
-	d = atof(buf);
-
-	if (c == EOF) state |= _eof;
-	return *this;
-}
-
-istream&
-istream.operator>>(float& f)
-{
-	double d;
-
-	if (skipws) eatwhite(*this);
-
-	if (state) {
-		state |= _fail;
-		return *this;
-	}
-
-	if ( *this>>d ) {
-		f = d;
-	}
-	return *this;
-}
-
-istream&
-istream.get(
-	register char* s,	/* character array to read into */
-	register int len,	/* size of character array */
-	register char term	/* character that terminates input */
-) {
-	register c;
-	register streambuf *nbp = bp;
-
-	if (state) {
-		state |= _fail;
-		return *this;
-	}
-
-	if ((c = bp->sgetc()) == EOF) {
-		state |= _fail | _eof;
-		return *this;
-	}
-
-	while (c != term && c != EOF && len > 1) {
-		*s++ = c;
-		c = nbp->snextc();
-		len--;
-	}
-	*s = '\0';
-	if (c == EOF) state |= _eof;
-	return *this;
-}
-
-istream& istream.putback(register char c)
-{
-	bp->sputbackc(c);
-	return *this;
-}
-
-
-istream& istream.get(
-	register streambuf &s,	/* streambuf to input to */
-	register char term	/* termination character */
-){
-	register c;
-	register streambuf *nbp = bp;
-
-	if (state) {
-		state |= _fail;
-		return *this;
-	}
-
-	if ((c = bp->sgetc()) == EOF) {
-		state |= _fail | _eof;
-		return *this;
-	}
-
-	while (c != term && c != EOF) {
-		if (s.sputc(c) == EOF) break;
-		c = nbp->snextc();
-	}
-	if (c == EOF) state |= _eof;
-	return *this;
-}
-
-istream&
-istream.operator>>(register streambuf &s) {
-	register c;
-	register streambuf *nbp = bp;
-
-	if (state) {
-		state |= _fail;
-		return *this;
-	}
-
-	if ((c = bp->sgetc()) == EOF) {
-		state |= _fail | _eof;
-		return *this;
-	}
-
-	while (c != EOF) {
-		if (s.sputc(c) == EOF) break;
-		c = nbp->snextc();
-	}
-	if (c == EOF) state |= _eof;
-	return *this;
-}
-
-istream& istream.operator>>(common& p)
-{
-	return p.read(*this);
-}
-

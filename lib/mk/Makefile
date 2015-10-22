@@ -1,115 +1,131 @@
-#ident	"@(#)cfront:lib/mk/makefile	1.6"
-O_COMPLEX	=	abs.o arg.o cos.o error.o exp.o io.o log.o oper.o \
-			polar.o pow.o sin.o sqrt.o
+#ident	"@(#)cls4:lib/mk/makefile	1.3"
+###############################################################################
+#
+# C++ source for the C++ Language System, Release 3.0.  This product
+# is a new release of the original cfront developed in the computer
+# science research center of AT&T Bell Laboratories.
+#
+# Copyright (c) 1993  UNIX System Laboratories, Inc.
+# Copyright (c) 1991, 1992   AT&T and UNIX System Laboratories, Inc.
+# Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+#
+# THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+#	
+# Laboratories, Inc.  The copyright notice above does not evidence
+# any actual or intended publication of such source code.
+#
+###############################################################################
+
 O_GENERIC	=	generic.o
-O_NEW		=	_delete.o _handler.o _new.o _vec.o
-O_STATIC       =       _ctor.o _dtor.o _main.o dtors.o _stdio.o #exit.o
-O_STREAM	=	circbuf.o filebuf.o in.o out.o streambuf.o
-O_TASK		=	obj.o qhead.o qtail.o sched.o sim.o \
-			swap.o task.o timer.o
-OFILES	=	$(O_COMPLEX) $(O_GENERIC) $(O_NEW) \
-                       $(O_STATIC) $(O_STREAM) #$(O_TASK)
+O_NEW		=	_new.o _delete.o _handler.o _vec.o placenew.o _arr_map.o
+O_STATIC	=	_ctor.o _dtor.o _main.o dtors.o pure.o
+O_STREAM	=	in.o out.o stream.o fstream.o manip.o cstreams.o \
+flt.o strstream.o rawin.o intin.o stdiobuf.o streambuf.o \
+filebuf.o  oldformat.o sbuf.dbp.o swstdio.o ios_compat.o _stdio.o 	# exit.o 
+
+OFILES	=	$(O_GENERIC) $(O_NEW) $(O_STATIC) $(O_STREAM) 
 CC	=	CC
-CCFLAGS	= -I../../incl
+CCFLAGS	=-O -I../../incl
 
-libC.a:        $(O_COMPLEX) $(O_GENERIC) $(O_NEW) $(O_STATIC) $(O_STREAM) #Task
+# have everything depend on this makefile to force recompilation
+# when going from patch to munch
+DEPEND	= Makefile
+
+#MPDIR	= _patch
+MPDIR	= _munch
+
+libC.a:	$(OFILES)
 	ar r libC.a $(OFILES)
-	if test "$(BSD)" ; then ranlib libC.a; fi
 
-_stdio.o : _stdio..c
-	# gcc -c $< -o $@
-	$(CC) -c $< -o $@
+_stdio.o: _stdio.c
+	cc -c _stdio.c
 
-Task:
-	if vax; then \
-		$(CC) $(CCFLAGS) -c -I../task ../task/*.c ../task/vax_swap.s; \
-		mv vax_swap.o swap.o ; \
-	elif u3b||u3b5||u3b2 ; then \
-		$(CC) $(CCFLAGS) -c -I../task ../task/*.c ../task/3b_swap.s; \
-		mv 3b_swap.o swap.o ; \
-	else echo "task lib not implemented on this machine"; \
-	fi
+generic.o:	../generic/generic.C $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../generic/generic.C
 
-abs.o:	../complex/abs.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/abs.C
+_delete.o:	../new/_delete.C $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../new/_delete.C
 
-arg.o:	../complex/arg.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/arg.C
+_handler.o:	../new/_handler.C $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../new/_handler.C
 
-cos.o:	../complex/cos.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/cos.C
+_new.o:	../new/_new.C $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../new/_new.C
 
-error.o:	../complex/error.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/error.C
+_vec.o:	../new/_vec.C $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../new/_vec.C
 
-exp.o:	../complex/exp.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/exp.C
+placenew.o: ../new/placenew.C $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../new/placenew.C
 
-io.o:	../complex/io.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/io.C
+_arr_map.o: ../new/_arr_map.C $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../new/_arr_map.C
 
-log.o:	../complex/log.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/log.C
+_ctor.o:	../static/_ctor.C $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../static/_ctor.C
 
-oper.o:	../complex/oper.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/oper.C
+_dtor.o:	../static/_dtor.C $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../static/_dtor.C
 
-polar.o:	../complex/polar.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/polar.C
+_main.o:	../../$(MPDIR)/_main.c $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../../$(MPDIR)/_main.c
 
-pow.o:	../complex/pow.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/pow.C
+dtors.o:	../../$(MPDIR)/dtors.c $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../../$(MPDIR)/dtors.c
 
-sin.o:	../complex/sin.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/sin.C
+exit.o:	../static/exit.C $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../static/exit.C
 
-sqrt.o:	../complex/sqrt.C
-	$(CC) $(CCFLAGS) -I../complex -c ../complex/sqrt.C
+pure.o: ../static/pure.C $(DEPEND)
+	$(CC) $(CCFLAGS)  -c ../static/pure.C
 
-generic.o:	../generic/generic.c
-	$(CC) $(CCFLAGS) -I../generic -c ../generic/generic.c
-_delete.o:	../new/_delete.C
-	$(CC) $(CCFLAGS) -I../new -c ../new/_delete.C
-
-_handler.o:	../new/_handler.C
-	$(CC) $(CCFLAGS) -I../new -c ../new/_handler.C
-
-_new.o:	../new/_new.C
-	$(CC) $(CCFLAGS) -I../new -c ../new/_new.C
-
-_vec.o:	../new/_vec.C
-	$(CC) $(CCFLAGS) -I../new -c ../new/_vec.C
-
-_ctor.o:	../static/_ctor.C
-	$(CC) $(CCFLAGS) -I../static -c ../static/_ctor.C
-
-_dtor.o:	../static/_dtor.C
-	$(CC) $(CCFLAGS) -I../static -c ../static/_dtor.C
-
-_main.o:	../static/_main.C
-	$(CC) $(CCFLAGS) -I../static -c ../static/_main.C
-
-dtors.o:	../static/dtors.C
-	$(CC) $(CCFLAGS) -I../static -c ../static/dtors.C
-
-exit.o:	../static/exit.c
-	$(CC) $(CCFLAGS) -I../static -c ../static/exit.c
-
-munch.o:	../static/munch.C
-	$(CC) $(CCFLAGS) -I../static -c ../static/munch.C
-
-circbuf.o:	../stream/circbuf.C
-	$(CC) $(CCFLAGS) -I../stream -c ../stream/circbuf.C
-
-filebuf.o:	../stream/filebuf.C
-	$(CC) $(CCFLAGS) -I../stream -c ../stream/filebuf.C
-
-in.o:	../stream/in.C
+in.o:	../stream/in.C  $(DEPEND)
 	$(CC) $(CCFLAGS) -I../stream -c ../stream/in.C
 
-out.o:	../stream/out.C
+out.o:	../stream/out.C  ../stream/streamdefs.h $(DEPEND)
 	$(CC) $(CCFLAGS) -I../stream -c ../stream/out.C
 
-streambuf.o:	../stream/streambuf.C
+stream.o:	../stream/stream.C $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/stream.C
+
+fstream.o:	../stream/fstream.C $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/fstream.C
+
+manip.o:	../stream/manip.C $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/manip.C
+
+cstreams.o:	../stream/cstreams.C ../stream/streamdefs.h $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/cstreams.C
+
+flt.o:	../stream/flt.C $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/flt.C
+
+strstream.o:	../stream/strstream.C $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/strstream.C
+
+rawin.o:	../stream/rawin.C $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/rawin.C
+
+intin.o:	../stream/intin.C  $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/intin.C
+
+stdiobuf.o:	../stream/stdiobuf.C $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/stdiobuf.C
+
+streambuf.o:	../stream/streambuf.C ../stream/streamdefs.h $(DEPEND)
 	$(CC) $(CCFLAGS) -I../stream -c ../stream/streambuf.C
 
+filebuf.o:	../stream/filebuf.C ../stream/streamdefs.h $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/filebuf.C
+
+oldformat.o:	../stream/oldformat.C ../stream/streamdefs.h $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/oldformat.C
+
+sbuf.dbp.o:	../stream/sbuf.dbp.C $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/sbuf.dbp.C
+
+swstdio.o:	../stream/swstdio.C $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/swstdio.C
+
+ios_compat.o:	../stream/ios_compat.C $(DEPEND)
+	$(CC) $(CCFLAGS) -I../stream -c ../stream/ios_compat.C

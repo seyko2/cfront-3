@@ -1,0 +1,262 @@
+/ident	"@(#)cls4:lib/task/task/swap.s.uts	1.4"
+/##############################################################################
+/ C++ source for the C++ Language System, Release 3.0.  This product
+/ is a new release of the original cfront developed in the computer
+/ science research center of AT&T Bell Laboratories.
+/
+/ Copyright (c) 1993  UNIX System Laboratories, Inc.
+/ Copyright (c) 1991, 1992   AT&T and UNIX System Laboratories, Inc.
+/ Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+/
+/
+/THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+/
+/ Laboratories, Inc.  The copyright notice above does not evidence
+/ any actual or intended publication of such source code.
+/
+/
+/##############################################################################
+/
+/       swap of DEDICATED
+/ call swap(*running_task, *to_run_task, is_new_child, running_is_terminated)
+/ This routine saves the fp in running's t_framep.
+/ If running is a SHARED task, we must save its stack size as well,
+/ although the stack does not need to be copied out here.
+/ It then restores to_run's t_framep to be the current fp.
+/ If to_run is a new child, it explicitly restores the registers from
+/ New_task_regs, and returns without restoring the regs saved in the stack.
+/ If to_run is not a new child, it restores all the registers saved in
+/ the frame on returning.
+
+ARG1	=	64
+ARG2	=	68
+ARG3	=	72
+ARG4	=	76
+ARG5	=	80
+
+T_FRAMEP=	20
+T_MODE	=	52
+T_BASEP	=	32
+T_SIZE	=	36
+T_TH	=	24
+T_SAV	=	40
+
+r0	=	 0
+r1	=	 1
+r2	=	 2
+r3	=	 3
+r4	=	 4
+r5	=	 5
+r6	=	 6
+r7	=	 7
+r8	=	 8
+r9	=	 9
+r10	=	10
+r11	=	11
+r12	=	12
+r13	=	13
+r14	=	14
+r15	=	15
+
+	.text
+
+	entry	swap
+swap:
+	stm	r2, r14, 8(r13)		/ save r2 through r14
+	lr	r12, r13		/ ap (r12) = old sp (r13)
+	lr	r11, r15		/ r11 = &swap
+	using	swap, r11		/ r11 is base reg for locals
+	s	r13, =a($swap_len)	/ bump sp
+	l	r2, ARG2(r12)		/ r2 = to_run_task
+	l	r1, ARG4(r12)		/ r1 = running_is_terminated
+	c	r1, =f'1'		/ if running is TERMINATED
+	be	$1		/	skip save
+	l	r1, ARG1(r12)		/ r1 = running
+	
+	/ save the state of running task
+
+	st	r12, T_FRAMEP(r1)	/ running->t_framep = fp
+	l	r0, T_MODE(r1)		/ r0 = running->t_mode
+	c	r0, =f'2'		/ if running->tmode == SHARED
+	bne	$1
+
+	/ running is SHARED - save t_size
+
+	l	r0, T_BASEP(r1)		/ r0 = running->t_basep
+	sr	r0, r13			/ r0 = running->t_basep -  sp (sp == ap)
+	sra	r0, 2			/ r0 = r0 / 4 (int)
+	st	r0, T_SIZE(r1)		/ running->t_size = r0
+
+$1:
+	l	r1, ARG3(r12)		/ r1 = is_new_child
+
+
+	/ if is_new_child, restore registers from New_task_args
+
+	c	r1, =f'1'
+	be	$2
+
+	/ restore state of to_run_task
+
+	l	r12, T_FRAMEP(r2)	/ ap = to_run->t_framep
+	b	$3
+	
+$2:
+	l	r0, T_TH(r2)		/ r0 = to_run->th
+	l	r12, =v(New_task_regs)
+$3:
+	lm	r2, r14, 8(r12)
+	b	2(r14)			/ return
+	drop
+
+
+
+/*****************************************************************************
+/	swap of SHARED
+/ sswap(*running, *prevOnStack, *to_run, is_new_child, running_is_terminated)
+/ This routine saves the fp in running's t_framep and the stack size in t_size.
+/ Then it copies out the target stack to prevOnStack's t_savearea. 
+/ If to_run is not a new child, it then copies the saved stack of to_run
+/ (from t_savearea) to the target stack, and then restores to_run's t_framep
+/ to be the current fp.  We don't need to restore state of a child 
+/ to_run object, because it's already in place.
+/ If running_task is TERMINATED, then we don't need to do a save,
+/ and if running_task is TERMINATED and equals prevOnStack, then we don't
+/ have to do the stack copy.
+
+	.text
+	entry	sswap
+sswap:
+	stm	r2, r14, 8(r13)		/ save r2 through r14
+	lr	r12, r13		/ ap = old fp
+	lr	r11, r15		/ r11 = &sswap
+	using	sswap, r11		/ r11 is base reg for locals
+	s	r13, =a($sswap_len)	/ bump sp
+	l	r1, ARG1(r12)		/ r1 = running
+	l	r3, ARG2(r12)		/ r3 = prevOnStack
+	l	r0, ARG5(r12)		/ r0 = running_is_terminated
+	c	r0, =f'1'		/ if running is TERMINATED
+	be	$4			/ 	skip save
+
+		/ save hw state of running
+	st	r12, T_FRAMEP(r1)	/ running->t_framep = fp
+
+	l	r0, T_BASEP(r1)		/ r0 = running->t_basep
+	sr	r0, r13			/ r0 = running->t_basep -  sp
+	sra	r0, 2			/ r0 = r0 / 4 (int)
+	st	r0, T_SIZE(r1)		/ running->t_size = r0
+	b	$5
+
+$4:	/ if running is TERMINATED and running == prevOnStack,
+		/ then we can skip the stack copy too
+	cr	r1, r3		/ if running == prevOnStack
+	be	$6			/	skip save
+
+$5:	/ copy out target stack to prevOnStack->t_savearea
+	l	r10, T_SIZE(r3)		/ r10 = prevOnStack->t_size (count)
+
+	st	r10, ARG1(r13)		/ push r10
+	l	r15, =v(swap_call_new)	/ get count ints of storage
+	balr	r14, r15		
+	dc	h'4'			/ we used 4 bytes of arg on this call
+
+	lr	r4, r0			/ r4 = top of destination stack
+	sla	r10, 2			/ scale r10 to bytes
+	ar	r0, r10			/ r0 = base of new space, minus 1
+	s	r0, =f'4'		/ r0 = base of new stack
+	st	r0, T_SAV(r3)		/ prevOnStack->t_savearea = r0 (to)
+	l	r2, T_BASEP(r3)		/ r2 = prevOnStack->t_basep (from)
+	l	r10, T_SIZE(r3)		/ r10 = prevOnStack->t_size (count)
+
+	sla	r10, 2			/ scale to bytes
+	sr	r2, r10			/ top = basep - size + 1
+	a	r2, =f'4'
+
+
+/	370 gives us fast block copy, don't need to loop
+
+	lr	r5, r10			/ length
+	lr	r6, r2			/ source
+	lr	r7, r10			/ length
+	mvcl	r4, r6			/ copy stack in one operation
+
+$6:
+	l	r1, ARG4(r12)		/ r1 = is_new_child
+	c	r1, =f'1'		/ if is_new_child == 1
+	be	$7			/	skip the copy-in loop
+
+	/ copy into target stack from to_run->t_savearea
+
+	l	r3, ARG3(r12)		/ r3 = to_run
+	l	r0, T_BASEP(r3)		/ r0 = to_run->t_basep (to)
+	l 	r10, T_SIZE(r3)		/ r10 = to_run->t_size (count)
+
+	sla	r10, 2			/ r10 = new stack height in bytes
+	sr	r0, r10			/ top = basep - size + 1
+	a	r0, =f'4'
+
+	lr	r13, r0			/ adjust stack pointer 
+	
+	l	r2, T_SAV(r3)		/ r2 = to_run->t_savearea (from)
+
+	sr	r2, r10			/ top = basep - size + 1
+	a	r2, =f'4'
+
+	/ copy in loop
+
+/	370 gives us fast block copy, don't need to loop
+
+	lr	r4, r0			/ destination
+	lr	r5, r10			/ length
+	lr	r6, r2			/ source
+	lr	r7, r10			/ length
+	mvcl	r4, r6			/ copy stack in one operation
+
+	/ restore state of to_run
+
+	l	r12, T_FRAMEP(r3)	/ fp = to_run->t_framep
+
+	/ finally, delete to_run's t_savearea
+
+	st	r2, ARG1(r13)		/ push parm and call
+	l	r15, =v(swap_call_delete)
+	balr	r14, r15
+	dc	h'4'			/ 4 arg bytes in this call
+
+	slr	r0, r0			/ clear r0
+	st	r0, T_SAV(r3)		/ to_run->t_savearea = 0
+
+$7:
+	lm	r2, r14, 8(r12)
+	b	2(r14)
+	drop
+
+/****************************************************************************
+/ SAVE_REGS (HW_REGS *p)
+/
+/ Save current registers in *p
+/
+/ This function is usually provided through asm escapes within
+/ hw_stack.c . However, UTS permits asm escapes only within C function
+/ definitions, the prologue of which would destroy the registers
+/ we want to save.
+
+	.text
+	entry	SAVE_REGS
+SAVE_REGS:
+	stm	r0, r15, 0(r13)		/ save everything
+	lr	r12, r13		/ ap = old fp
+	lr	r11, r15		/ r11 = &SAVE_REGS
+	using 	SAVE_REGS, r11
+	s	r13, =a($SAVE_REGS_len) / bump sp (largely ceremonial)
+	l	r1, 64(r12)		/ get addr of save buffer
+	mvc	0(64,r1), 0(r12)	/ move regs as block
+	lm	r0, r15, 0(r12)
+	b	2(r14)
+
+	ltorg
+	drop
+$swap_len =  80 
+$sswap_len = 84	
+$SAVE_REGS_len = 80
+	end

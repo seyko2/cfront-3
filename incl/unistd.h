@@ -13,6 +13,7 @@
 #define F_TEST	3	/* Test a region for other processes locks */
 
 
+
 /* Symbolic constants for the "lseek" routine: */
 #define	SEEK_SET	0	/* Set file pointer to "offset" */
 #define	SEEK_CUR	1	/* Set file pointer to current plus "offset" */
@@ -24,4 +25,4 @@
 
 extern int lockf(int, int, long),
            access (const char*, int);
-extern long lseek(int, long, int);
+//extern long lseek(int, long, int);

@@ -19,7 +19,7 @@ typedef void (*PFVV)();
 extern PFVV _new_handler;
 
 extern "C" {
-    extern void* malloc(unsigned);
+    extern char* malloc(unsigned);
 }
 
 #include <new.h>

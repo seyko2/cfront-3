@@ -3,6 +3,8 @@
 #ifndef _POLY9
 //extern int errno, signgam;
 
+extern "C" {
+
 extern int abs (int);
 extern double atof(const char*), frexp(double, int*);
 extern double ldexp(double, int), modf(double, double*);
@@ -19,6 +21,7 @@ extern int matherr(exception *);
 extern double sinh(double), cosh(double), tanh(double);
 extern double sin(double), cos(double), tan(double);
 extern double asin(double), acos(double), atan(double), atan2(double,double);
+}
 
 /* some useful constants */
 #define M_E	2.7182818284590452354

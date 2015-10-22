@@ -17,9 +17,6 @@ any actual or intended publication of such source code.
 #ifndef COMPLEXH
 #define COMPLEXH
  
-#pragma lib "ape/libap.a"
-#pragma lib "c++/libC.a"
-
 #include <iostream.h>
 #include <errno.h>
 #include <math.h>

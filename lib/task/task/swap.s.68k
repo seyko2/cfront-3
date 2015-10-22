@@ -1,0 +1,203 @@
+|	.file "swap.s.68k"
+|	ident	"@(#)cls4:lib/task/task/swap.s.68k	1.3"
+|##############################################################################
+|  
+| C++ source for the C++ Language System, Release 3.0.  This product
+| is a new release of the original cfront developed in the computer
+| science research center of AT&T Bell Laboratories.
+| 
+| Copyright (c) 1993  UNIX System Laboratories, Inc.
+| Copyright (c) 1991, 1992  AT&T and UNIX System Laboratories, Inc.
+| Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+| 
+|
+| THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+|	
+| Laboratories, Inc.  The copyright notice above does not evidence
+| any actual or intended publication of such source code.
+| 
+|
+|##############################################################################
+| 
+|	swap of DEDICATED
+| call swap(*running_task, *to_run_task, is_new_child, running_is_terminated)
+| This routine saves the fp in running's t_framep.
+| If running is a SHARED task, we must save its stack size as well,
+| although the stack does not need to be copied out here.
+| It then restores to_run's t_framep to be the current fp.
+| If to_run is a new child, it explicitly restores the registers from
+| New_task_regs, and returns without movem to restore the regs saved in
+| the stack.
+| If to_run is not a new child, it restores all the registers saved in
+| the frame on returning.
+| If running_task is TERMINATED, then we don't need to do a save.
+| NOTE:  assumes all functions return values in d0.
+
+| The following constants are displacements of elements in class task:
+| t_framep, th, t_basep, t_size, t_savearea, and t_mode.
+TFRAME = 20
+TH = 24
+TBASEP = 32
+TSIZE = 36
+TSAVE = 40
+TMODE = 52
+
+| The following constants are displacements from the fp to function args.
+ARG1 = 8
+ARG2 = 12
+ARG3 = 16
+ARG4 = 20
+ARG5 = 24
+
+	.text
+	.globl	_swap
+_swap:
+	link	a6,#-40
+	moveml	#0x3cfc,sp@		| save all user regs (d2-d7, a2-a5)
+	movl	a6@(ARG2),a1		| a1 = to_run
+	movl	a6@(ARG4),d0		| d0 = running_is_terminated
+	bnes	L_RESTORE		| if running is TERMINATED
+					|	skip the save
+	movl	a6@(ARG1),a0		| a0 = running
+
+	| save state of running task
+	movl	a6,a0@(TFRAME)		| running->t_framep = fp (a6)
+	movl	a0@(TMODE),d0		| d0 = running->t_mode
+	cmpl	#2,d0			| if running->t_mode == SHARED
+	bnes	L_RESTORE
+	| the code here to save the t_size is the same as for sswap
+	movl	a0@(TBASEP),d0		| d0 = running->t_basep
+	subl	sp,d0			| d0 = running->t_basep - sp
+	addql	#4,d0			| (size in bytes)
+	asrl	#2,d0			| d0 /= 4 (size in ints)
+	movl	d0,a0@(TSIZE)		| running->t_size = d0
+
+L_RESTORE:
+	movl	a6@(ARG3),d1		| d1 = is_new_child
+
+	| restore state of to_run task
+	movl	a1@(TFRAME),a6		| a6 (fp) = to_run->t_framep
+
+	| if is_new_child, restore registers
+	tstl	d1
+	beqs	L_RET
+	| new child task effectively returns from task::task, so we need
+	| to set the return value to "this"
+	movl	a1@(TH),d0		| d0 = to_run->th
+	lea	_New_task_regs,a1	| a1 = address of New_task_regs
+	movl	a1@,d2
+	movl	a1@(4),d3
+	movl	a1@(8),d4
+	movl	a1@(12),d5
+	movl	a1@(16),d6
+	movl	a1@(20),d7
+	movl	a1@(32),a2
+	movl	a1@(36),a3
+	movl	a1@(40),a4
+	movl	a1@(44),a5
+	unlk	a6			| NOTE:  movem not needed here.
+	rts
+L_RET:
+	moveml	a6@(-40),#0x3cfc	| restore all user regs (d2-d7, a2-a5)
+	unlk	a6
+	rts
+
+
+|	swap of SHARED
+| sswap(*running, *prevOnStack, *to_run, is_new_child, running_is_terminated)
+| This routine saves the fp in running's t_framep and the stack size in t_size.
+| Then it copies out the target stack to prevOnStack's t_savearea.
+| If to_run is not a new child, it then copies the saved stack of to_run 
+| (from t_savearea) to the target stack, and then restores to_run's t_framep 
+| to be the current fp.  We don't need to restore state of a child 
+| to_run object, because it's already in place.
+| If running_task is TERMINATED, then we don't need to do a save,
+| and if running_task is TERMINATED and equals prevOnStack, then we don't
+| have to do the stack copy.
+| NOTE:  assumes all functions return values in d0.
+	.text
+	.globl	_sswap
+_sswap:
+	link	a6,#-40
+	moveml	#0x3cfc,sp@		| save all user regs (d2-d7, a2-a5)
+
+	movl	a6@(ARG1),a1		| a1 = running
+	movl	a6@(ARG2),a2		| a2 = prevOnStack
+	movl	a6@(ARG5),d0		| d0 = running_is_terminated
+	bnes	L_SKIP			| if running is TERMINATED
+					|	skip the save
+	|save hw state of running
+	movl	a6,a1@(TFRAME)		| running->t_framep = fp (a6)
+	movl	a1@(TBASEP),d0		| d0 = running->t_basep
+	subl	sp,d0			| d0 = running->t_basep - sp
+	addql	#4,d0			| (size in bytes)
+	asrl	#2,d0			| d0 /= 4 (size in ints)
+	movl	d0,a1@(TSIZE)		| running->t_size = d0
+	bra	L_SAVE
+L_SKIP:
+	cmpl	a1,a2			| if running == prevOnStack
+	beq	L_REST			|	skip prevOnStack save
+
+L_SAVE:	|copy out target stack to prevOnStack->t_savearea
+	movl	a2@(TSIZE),d2		| d2 = prevOnStack->t_size (count)
+	movl	d2,sp@-			| push count arg on stack
+	jsr	_swap_call_new		| get count bytes of storage
+	addql	#4,sp			| pop arg off stack
+	asll	#2,d2			| scale d2 to bytes
+	addl	d2,d0			| d0 = base of new stack, plus 1 long
+	subql	#4,d0			| d0 = base of new stack
+	movl	d0,a0			| a0 = base of new stack (to)
+	movl	a0,a2@(TSAVE)		| prevOnStack->t_savearea = a0 (to)
+	movl	a2@(TBASEP),a1		| a1 = prevOnStack->t_basep (from)
+	addql	#4,a0			| prepare for predecrement
+	addql	#4,a1			| ditto
+	movl	a2@(TSIZE),d0		| d0 = prevOnStack->t_size (count)
+	tstl	d0
+	beqs	L2			| if size == 0, goto L2
+	subql	#1,d0			| for dbra
+L1:	| copy out loop
+	movl	a1@-,a0@-		| *--to = *--from
+	dbra	d0,L1			| if --d0 != 0, goto L1
+L2:
+L_REST:
+	movl	a6@(ARG4),d0		| d0 = is_new_child
+	bnes	L6			| if is_new_child != 0
+					|	skip the copy-in loop
+	|copy into target stack from to_run->t_savearea
+	movl	a6@(ARG3),a2		| a2 = to_run
+	movl	a2@(TBASEP),a0		| a0 = to_run->t_basep (to)
+	movl	a2@(TSIZE),d0		| d0 = to_run->t_size (count)
+	| Kick up the sp if new stack will be taller than current.
+	asll	#2,d0			| d0 = new stack height in bytes
+	subl	d0,a0			| a0 = target sp
+	subl	sp,a0			| a0 = a0 - sp
+	tstl	a0
+	bges	L3			| if a0 < 0
+	addl	a0,sp			|	kick up sp
+L3:	movl	a2@(TBASEP),a0		| a0 = to_run->t_basep (to)
+	movl	a2@(TSAVE),a1		| a1 = to_run->t_savearea (from)
+	addql	#4,a1			| prepare for predecrement
+	addql	#4,a0			| ditto
+	movl	a2@(TSIZE),d0		| d0 = to_run->t_size (count)
+	tstl	d0
+	beqs	L5			| if size == 0, goto L5
+	subql	#1,d0			| for dbra
+L4:	| copy in loop
+	movl	a1@-,a0@-		| *--to = *--from
+	dbra	d0,L4			| if --d0 != 0, goto L4
+L5:
+	| restore state of to_run
+	movl	a2@(TFRAME),a6		| fp (a6) = to_run->t_framep
+	| finally, delete to_run's t_savearea
+	movl	a2@(TSIZE),d1		| d1 = to_run->t_size
+	asll	#2,d1			| scale size to bytes
+	movl	a2@(TSAVE),a0		| a0 = to_run->t_savearea
+	subl	d1,a0			| get low address of savearea
+	addql	#4,a0
+	movl	a0,sp@-			| push pointer to savearea on stack
+	jsr	_swap_call_delete	| delete to_run->t_savearea
+	addql	#4,sp			| pop arg off stack
+	movl	#0,a2@(TSAVE)		| to_run->t_savearea = 0
+L6:	moveml	a6@(-40),#0x3cfc	| restore all user regs (d2-d7, a2-a5)
+	unlk	a6
+	rts
