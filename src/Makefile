@@ -1,4 +1,4 @@
-CC	=	g++
+CXX	?=	g++
 CCFLAGS	=	-I../incl
 
 #MPMACRO = PATCH
@@ -20,7 +20,8 @@ COMDEP0	= 	szal.result Makefile \
 COMDEP	=	$(COMDEP0) yystype.h
 
 cfront:	$(OFILES)
-	$(CC)	-o cfront $(OFILES)
+	$(CXX)	-o cfront $(OFILES)
+	-@ test -x ../cfront && mv ../cfront ../cfront.old
 	cp cfront ..
 
 szal.result: szal/szal.c
@@ -34,106 +35,106 @@ y.tab.C yystype.h: gram.y $(COMDEP0)
 	sed -i -e 's/^#ifdef __cplusplus/#if 0/' y.tab.C
 
 alloc.o: alloc.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c alloc.C 
+	$(CXX) $(CCFLAGS) -c alloc.C 
 
 Bits.o:	Bits.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c Bits.C 
+	$(CXX) $(CCFLAGS) -c Bits.C 
 
 block.o: block.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c block.C 
+	$(CXX) $(CCFLAGS) -c block.C 
 
 dcl.o:	dcl.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c dcl.C 
+	$(CXX) $(CCFLAGS) -c dcl.C 
 
 dcl2.o:	dcl2.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c dcl2.C 
+	$(CXX) $(CCFLAGS) -c dcl2.C 
 
 dcl3.o:	dcl3.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c dcl3.C 
+	$(CXX) $(CCFLAGS) -c dcl3.C 
 
 dcl4.o:	dcl4.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c dcl4.C 
+	$(CXX) $(CCFLAGS) -c dcl4.C 
 
 del.o:	del.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c del.C 
+	$(CXX) $(CCFLAGS) -c del.C 
 
 discrim.o: discrim.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c discrim.C
+	$(CXX) $(CCFLAGS) -c discrim.C
 
 error.o: error.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c error.C 
+	$(CXX) $(CCFLAGS) -c error.C 
 
 expand.o: expand.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c expand.C 
+	$(CXX) $(CCFLAGS) -c expand.C 
 
 expr.o:	expr.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c expr.C 
+	$(CXX) $(CCFLAGS) -c expr.C 
 
 expr2.o: expr2.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c expr2.C 
+	$(CXX) $(CCFLAGS) -c expr2.C 
 
 expr3.o: expr3.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c expr3.C 
+	$(CXX) $(CCFLAGS) -c expr3.C 
 
 find.o:	find.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c find.C 
+	$(CXX) $(CCFLAGS) -c find.C 
 
 hash.o: hash.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c hash.C 
+	$(CXX) $(CCFLAGS) -c hash.C 
 
 lalex.o:lalex.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c lalex.C
+	$(CXX) $(CCFLAGS) -c lalex.C
 
 lex.o:	lex.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c lex.C 
+	$(CXX) $(CCFLAGS) -c lex.C 
 
 main.o:	main.C $(COMDEP)
-	$(CC) -D$(MPMACRO) $(DENSE) $(CCFLAGS) -c main.C 
+	$(CXX) -D$(MPMACRO) $(DENSE) $(CCFLAGS) -c main.C 
 
 norm.o:	norm.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c norm.C 
+	$(CXX) $(CCFLAGS) -c norm.C 
 
 norm2.o: norm2.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c norm2.C 
+	$(CXX) $(CCFLAGS) -c norm2.C 
 
 print.o: print.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c print.C 
+	$(CXX) $(CCFLAGS) -c print.C 
 
 print2.o: print2.C $(COMDEP)
-	$(CC) $(DENSE) $(CCFLAGS) -c print2.C 
+	$(CXX) $(DENSE) $(CCFLAGS) -c print2.C 
 
 repr.o:	repr.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c repr.C 
+	$(CXX) $(CCFLAGS) -c repr.C 
 
 simpl.o: simpl.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c simpl.C 
+	$(CXX) $(CCFLAGS) -c simpl.C 
 
 simpl2.o: simpl2.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c simpl2.C 
+	$(CXX) $(CCFLAGS) -c simpl2.C 
 
 size.o:	size.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c size.C 
+	$(CXX) $(CCFLAGS) -c size.C 
 
 table.o: table.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c table.C 
+	$(CXX) $(CCFLAGS) -c table.C 
 
 template.o: template.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c template.C 
+	$(CXX) $(CCFLAGS) -c template.C 
 
 tree_copy.o: tree_copy.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c tree_copy.C 
+	$(CXX) $(CCFLAGS) -c tree_copy.C 
 
 tree_walk.o: tree_walk.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c tree_walk.C 
+	$(CXX) $(CCFLAGS) -c tree_walk.C 
 
 typ.o: typ.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c typ.C 
+	$(CXX) $(CCFLAGS) -c typ.C 
 
 typ2.o:	typ2.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c typ2.C 
+	$(CXX) $(CCFLAGS) -c typ2.C 
 
 y.tab.o: y.tab.C $(COMDEP)
-	$(CC) $(CCFLAGS) -c y.tab.C 
+	$(CXX) $(CCFLAGS) -c y.tab.C 
 
 _stdio.o: _stdio.c
 	cc -c _stdio.c

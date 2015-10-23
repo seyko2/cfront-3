@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm LOG.01 LOG.02 LOG.03 cfront cfront-pre libC.a munch 2> /dev/null
+rm LOG.01 LOG.02 LOG.03 cfront cfront.old libC.a munch 2> /dev/null
 make -C src clean 2> /dev/null
 
 rm scratch/lib/*..c 2> /dev/null
