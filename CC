@@ -6,7 +6,7 @@
 	# CF=~/projects/cfront-1b
 	CF=$(dirname $0)
 	
-	cfrontC=$CF/cfront
+	cfrontC="$CF/cfront +a1"
 	munch=$CF/munch
 
 	I=$CF/incl
