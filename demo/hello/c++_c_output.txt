@@ -1,0 +1,596 @@
+http://www.cpptips.com/c++_c_output
+
+TITLE: Sample cfront output in C++ and C
+
+RESPONSE: Tim Harvey (timh@mentorg.com)
+
+
+The person I talked to thought it might be helpful to relatively new C++ users
+who might have a hard time "seeing" what vtbls, class objects and so on really
+look like.  For cfront users, it's fairly easy to get a concrete understanding
+. . . just build examples and look at the emitted C code. . . perhaps do a 
+little name "unmangling" to gain clarity.
+
+The following is fairly self-explanatory:  make a simple C++ program, look at
+the (formatted) cfront output, build a hand-unmangled equivalent C program, and
+finally, a mapping of objects.
+
+When this process is followed in situations where small efficiency practices
+are at question, it is fairly easy to see what's going on and arrive at good
+conclusions.
+
+I could make a sort of "tour" -- point out stuff -- but I think the code does
+it well enough on its own.  I hope this helps someone have a good "ah ha, now
+I see how it's done" kind of experience.
+
+Flames, etc. to /dev/null please.  This is an unsupported post.  :)
+
+-Tim
+
+
+----------------------------------------------------------------------------------------------------
+Contents - A quick summary
+----------------------------------------------------------------------------------------------------
+
+I1  C++ Source Code        Base and derived classes with virtuals
+I2  cfront C output        Produced by running following script contents:
+                           /sys5/usr/local/bin/CC -F -Wc,+d   ^1  |  /sys5/usr/local/bin/cparse -p1
+I3  C Equivalent Program   Handcoded from cfront output into "normal" C constructs/names
+I4  Program Runs           All three programs ran.  The cfront C program failed because extra
+                           services need to be linked in.  This step was omitted.
+I5  Object Equivalents     How names compare across the 3 programs.
+
+
+
+----------------------------------------------------------------------------------------------------
+I1   C++ Source Code
+----------------------------------------------------------------------------------------------------
+
+extern "C" { extern int printf( char *, ... )  ; }
+
+enum { ZERO, ONE, TEN = 10, HUNDRED = 100, THOUSAND = 1000 } ;
+
+
+//-------------------------------------------------------//
+
+class Base {
+private:
+  int Base__privateData ;
+
+protected:
+  int Base__protectedData ;
+
+public:
+  int Base__publicData ;
+
+  Base( int arg = ONE ) : Base__privateData   ( arg + THOUSAND ),
+                          Base__protectedData ( arg + HUNDRED  ),
+                          Base__publicData    ( arg            )  {}
+  ~Base() {}
+
+  int Base__getPrivateData() { return Base__privateData ; }
+
+  virtual int F1() = 0 ;
+  virtual int F2() { return Base__privateData ; }
+
+} ;
+
+//-------------------------------------------------------//
+
+class Derived : public Base {
+private:
+  int Derived__privateData ;
+
+public:
+  int Derived__publicData ;
+
+  Derived( int arg = ZERO ) : Derived__privateData ( arg ),
+                              Derived__publicData  ( arg ),
+                              Base                 ( arg )  {}
+  ~Derived() {}
+
+  int Derived__getPrivateData() { return Derived__privateData ; }
+
+  int F1()   { return Base__protectedData             ; }
+  int F2()   { return Base__protectedData + TEN + ONE ; }
+} ;
+
+
+//-------------------------------------------------------//
+
+int main() {
+  int     i ;
+  Derived d1 ;
+  Derived d2( 2 ) ;
+
+  printf( "%d\n", d1.Derived__publicData  ) ;
+  d1.Derived__publicData = TEN ;
+  printf( "%d\n", d1.Derived__publicData ) ;
+
+  i = d1.Base__getPrivateData() ;
+  printf( "%d\n", i ) ;
+
+  i = d1.Derived__getPrivateData() ;
+  printf( "%d\n", i ) ;
+
+  i = d1.F1() ;
+  printf( "%d\n", i ) ;
+
+  i = d1.F2() ;
+  printf( "%d\n", i ) ;
+}
+
+----------------------------------------------------------------------------------------------------
+I2   cfront C output (formatted)
+----------------------------------------------------------------------------------------------------
+
+char *__vec_new() ;
+
+char __vec_delete() ;
+
+typedef int ( *__vptp )() ;
+
+struct __mptr {
+   short  d ;
+   short  i ;
+   __vptp f ;
+} ;
+
+enum __E1 { ZERO, ONE, TEN, HUNDRED, THOUSAND } ;
+
+struct Base {
+          int     Base__privateData__4Base ;
+          int     Base__protectedData__4Base ;
+          int     Base__publicData__4Base ;
+   struct __mptr *__vptr__4Base ;
+} ;
+
+extern        char   *__nw__FUi() ;
+extern struct __mptr *__ptbl_vec__x_c_[] ;
+
+static struct Base 
+*__ct__4BaseFi( __0this, __1arg )
+struct Base *__0this ;
+int __1arg ;
+{
+   if ( __0this || ( __0this = (struct Base *) __nw__FUi( sizeof ( struct Base ) ) ) )
+
+      ( ( ( ( __0this->__vptr__4Base = (struct __mptr *) __ptbl_vec__x_c_[0] ) ,
+            ( __0this->Base__privateData__4Base = ( __1arg + 1000 ) ) ),
+          ( __0this->Base__protectedData__4Base = ( __1arg + 100 ) ) ),
+        ( __0this->Base__publicData__4Base = __1arg ) ) ;
+
+   return __0this ;
+}
+
+static struct Base *__ct__4BaseFRC4Base() ;
+
+extern char __dl__FPv() ;
+
+static char 
+__dt__4BaseFv( __0this, __0__free )
+struct Base *__0this ;
+int __0__free ;
+{
+   if ( __0this ) {
+      __0this->__vptr__4Base = (struct __mptr *) __ptbl_vec__t_c_[0] ;
+      if ( __0this )
+         if ( __0__free & 1 )
+            __dl__FPv( (char *) __0this ) ;
+    }
+}
+
+static int 
+Base__getPrivateData__4BaseFv( __0this )
+struct Base *__0this ;
+{
+   return __0this->Base__privateData__4Base ;
+}
+
+static int 
+F2__4BaseFv( __0this )
+struct Base *__0this ;
+{
+   return __0this->Base__privateData__4Base ;
+}
+
+struct Derived {
+          int     Base__privateData__4Base ;
+          int     Base__protectedData__4Base ;
+          int     Base__publicData__4Base ;
+   struct __mptr *__vptr__4Base ;
+          int     Derived__privateData__7Derived ;
+          int     Derived__publicData__7Derived ;
+} ;
+
+static struct Derived 
+*__ct__7DerivedFi( __0this, __1arg )
+struct Derived *__0this ;
+       int      __1arg ;
+{
+   if ( __0this || ( __0this = (struct Derived *) __nw__FUi( sizeof( struct Derived ) ) ) )
+
+      ( ( ( ( __0this = (struct Derived *) __ct__4BaseFi( ( (struct Base *) __0this), __1arg ) ),
+            ( __0this->__vptr__4Base = (struct __mptr *) __ptbl_vec__x_c_[1] ) ),
+          ( __0this->Derived__privateData__7Derived = __1arg ) ),
+        ( __0this->Derived__publicData__7Derived = __1arg ) ) ;
+
+   return __0this ;
+}
+
+static struct Derived *__ct__7DerivedFRC7Derived() ;
+
+static char 
+__dt__7DerivedFv( __0this, __0__free )
+struct Derived *__0this ;
+       int      __0__free ;
+{
+   if (__0this) {
+      __0this->__vptr__4Base = (struct __mptr *) __ptbl_vec__t_c_[1] ;
+      if ( __0this ) {
+         __dt__4BaseFv( ( (struct Base *) __0this), (int )0 ) ;
+         if ( __0__free & 1 )
+            __dl__FPv( (char *)__0this ) ;
+      }
+   }
+}
+
+static int 
+Derived__getPrivateData__7DerivedFv( __0this )
+struct Derived *__0this ;
+{
+   return __0this->Derived__privateData__7Derived ;
+}
+
+static int 
+F1__7DerivedFv( __0this )
+struct Derived *__0this ;
+{
+   return __0this->Base__protectedData__4Base ;
+}
+
+static int 
+F2__7DerivedFv( __0this )
+struct Derived *__0this ;
+{
+   return ( ( __0this->Base__protectedData__4Base + 10 ) + 1 ) ;
+}
+
+extern int printf() ;
+
+int 
+main()
+{
+   _main() ;
+   {
+             int     __1i ;
+      struct Derived __1d1 ;
+      struct Derived __1d2 ;
+      
+      __ct__7DerivedFi( &__1d1, (int )0 ) ;
+      __ct__7DerivedFi( &__1d2,       2 ) ;
+
+      printf( (char *)"%d\n", __1d1.Derived__publicData__7Derived ) ;
+      __1d1.Derived__publicData__7Derived = 10 ;
+      printf( (char *)"%d\n", __1d1.Derived__publicData__7Derived ) ;
+
+      __1i = Base__getPrivateData__4BaseFv( (struct Base *)(&__1d1) ) ;
+      printf( (char *)"%d\n", __1i ) ;
+
+      __1i = Derived__getPrivateData__7DerivedFv( &__1d1 ) ;
+      printf( (char *)"%d\n", __1i ) ;
+
+      __1i = F1__7DerivedFv( &__1d1 ) ;
+      printf( (char *)"%d\n", __1i ) ;
+
+      __1i = F2__7DerivedFv( &__1d1 ) ;
+      printf( (char *)"%d\n", __1i ) ;
+
+      __dt__7DerivedFv( &__1d2, 2 ) ;
+      __dt__7DerivedFv( &__1d1, 2 ) ;
+
+   }
+   exit( 0 ) ;
+}
+
+struct __mptr __vtbl__7Derived__x_c[] = {
+   0,
+   0,
+   0,
+   0,
+   0,
+   (__vptp ) F1__7DerivedFv,
+   0,
+   0,
+   (__vptp ) F2__7DerivedFv,
+   0,
+   0,
+   0
+} ;
+
+char __pure_virtual_called() ;
+
+struct __mptr __vtbl__4Base__x_c[] = {
+   0,
+   0,
+   0,
+   0,
+   0,
+   (__vptp ) __pure_virtual_called,
+   0,
+   0,
+   (__vptp ) F2__4BaseFv,
+   0,
+   0,
+   0
+} ;
+
+struct __mptr *__ptbl_vec__x_c_[] = {
+   __vtbl__4Base__x_c,
+   __vtbl__7Derived__x_c,
+} ;
+
+
+
+----------------------------------------------------------------------------------------------------
+I3   C Equivalent Program
+----------------------------------------------------------------------------------------------------
+
+typedef int (*Vtbl_ptr)() ;
+
+struct Vtbl {
+    short    d ;
+    short    i ;
+    Vtbl_ptr f ;
+};
+
+
+enum Enum1 { ZERO, ONE, TEN, HUNDRED, THOUSAND } ;
+
+
+/*-------------------------------------------------------*/
+
+struct Base {
+          int   Base__privateData ;
+          int   Base__protectedData ;
+          int   Base__publicData ;
+   struct Vtbl *Base__Vtbl ;
+} ;
+
+
+extern        char *malloc() ;
+extern struct Vtbl *Ptbl[] ;
+
+
+static struct
+Base* Base__constructor( struct Base* this, int arg ) {
+
+    if ( this || ( this = ( struct Base * ) malloc( sizeof ( struct Base ) ) ) )
+
+      ( ( ( ( this->Base__Vtbl = (struct Vtbl *) Ptbl[0] ),
+            ( this->Base__privateData = ( arg + 1000 ) ) ),
+          ( this->Base__protectedData = ( arg + 100 ) ) ),
+        ( this->Base__publicData = arg ) ) ;
+
+    return this ;
+}
+
+
+static char
+Base__destructor( struct Base *this, int freeFlag ) {
+   if ( this ) {
+      this->Base__Vtbl = (struct Vtbl *) Ptbl[0] ;
+      if ( this )
+         if ( freeFlag & 1 )
+            free( (char *) this ) ;
+    }
+}
+
+
+static int
+Base__getPrivateData( struct Base *this ) {
+    return ( this->Base__privateData ) ;
+}
+
+
+static int
+Base__F2( struct Base *this ) {
+    return ( this->Base__privateData ) ;
+}
+
+
+/*-------------------------------------------------------*/
+struct Derived {
+          int   Base__privateData ;
+          int   Base__protectedData ;
+          int   Base__publicData ;
+
+   struct Vtbl *Base__Vtbl ;
+          int   Derived__privateData ;
+          int   Derived__publicData ;
+} ;
+
+
+static struct
+Derived* Derived__constructor( struct Derived* this, int arg ) {
+
+   if ( this || ( this = (struct Derived *) malloc( sizeof ( struct Derived ) ) ) )
+
+      ( ( ( ( this = (struct Derived *) Base__constructor( ( (struct Base *) this ), arg ) ),
+            ( this->Base__Vtbl = (struct Vtbl *) Ptbl[1] ) ),
+          ( this->Derived__privateData = arg ) ),
+        ( this->Derived__publicData = arg ) ) ;
+
+    return this ;
+}
+
+
+static char
+Derived__destructor( struct Derived* this, int freeFlag ) {
+   if ( this ) {
+      this->Base__Vtbl = (struct Vtbl *) Ptbl[1] ;
+      if ( this ) {
+         Base__destructor( ( (struct Base *) this ), (int )0 ) ;
+         if ( freeFlag & 1 )
+            free( (char * ) this ) ;
+      }
+   }
+}
+
+
+static int
+Derived__getPrivateData( struct Derived* this ) {
+    return this->Derived__privateData ;
+}
+
+
+static int
+Derived__F1( struct Derived* this ) {
+    return ( this->Base__protectedData ) ;
+}
+
+
+static int
+Derived__F2( struct Derived* this ) {
+    return ( ( this->Base__protectedData + 10 ) + 1 );
+}
+
+
+extern int printf() ;
+
+/*-------------------------------------------------------*/
+int main() {
+
+          int     i ;
+
+   struct Derived d1 ;
+   struct Derived d2 ;
+
+   Derived__constructor( &d1, (int)0 ) ;
+   Derived__constructor( &d2, 2 ) ;
+
+   printf( (char *)"%d\n", d1.Derived__publicData ) ;
+   d1.Derived__publicData = 10 ;
+   printf( (char *)"%d\n", d1.Derived__publicData ) ;
+
+   i = Base__getPrivateData( (struct Base *) ( &d1 ) ) ;
+   printf( (char *)"%d\n", i ) ;
+
+   i = Derived__getPrivateData( &d1 ) ;
+   printf( (char *)"%d\n", i ) ;
+
+   i = Derived__F1( &d1 ) ;
+   printf( (char *)"%d\n", i ) ;
+
+   i = Derived__F2( &d1 ) ;
+   printf( (char *)"%d\n", i ) ;
+
+   Derived__destructor( &d2, 2 ) ;
+   Derived__destructor( &d1, 2 ) ;
+
+   exit( 0 ) ;
+}
+
+
+/*-------------------------------------------------------*/
+struct Vtbl Derived__Vtbl[] = {
+    0,
+    0,
+    0,
+    0,
+    0,
+    ( Vtbl_ptr ) Derived__F1,
+    0,
+    0,
+    ( Vtbl_ptr ) Derived__F2,
+    0,
+    0,
+    0
+};
+
+char pure_virtual_called() ;
+
+struct Vtbl Base__Vtbl[] = {
+    0,
+    0,
+    0,
+    0,
+    0,
+    ( Vtbl_ptr ) pure_virtual_called,
+    0,
+    0,
+    ( Vtbl_ptr ) Base__F2,
+    0,
+    0,
+    0
+};
+
+struct Vtbl *Ptbl[] = {
+    Base__Vtbl,
+    Derived__Vtbl,
+} ;
+
+
+----------------------------------------------------------------------------------------------------
+I4   Program Runs
+----------------------------------------------------------------------------------------------------
+C++       cfront C                          Equivalent C
+
+$ a.out   t.bin                             t.bin
+0         "reference to undefined global"   0
+10                                          10
+1000                                        1000
+0                                           0
+100                                         100
+111                                         111
+
+
+----------------------------------------------------------------------------------------------------
+I5   Object Equivalents
+----------------------------------------------------------------------------------------------------
+
+C++ Source                           cfront C                                Equivalent C
+
+                                     __vec_new()
+                                     __vec_delete()
+                                     __E1                                    Enum1
+Base                                 Base                                    Base
+Base::Base__privateData              Base__privateData__4Base                Base__privateData
+Base::Base__protectedData            Base__protectedData__4Base              Base__protectedData
+Base::Base__publicData               Base__publicData__4Base                 Base__publicData
+                                     __vptr__4Base                           Base__Vtbl
+                                     __nw__FUi()                             malloc() 
+                                     __dl__FPv()                             free()
+                                     __0__free                               freeFlag
+                                     __ptbl_vec__x_c_[]                      Ptbl[]
+Base::Base()                         __ct__4BaseFi()                         Base__constructor()
+Base::~Base()                        __dt__4BaseFv()                         Base__destructor()
+                                     __0this                                 this
+                                     __1arg                                  arg
+                                     __ct__4BaseFRC4Base()
+Base::Base__getPrivateData()         Base__getPrivateData__4BaseFv()         Base__getPrivateData()
+Base::F1()                           __pure_virtual_called()                 pure_virtual_called()
+Base::F2()                           F2__4BaseFv()                           Base__F2()
+
+Derived                              Derived                                 Derived
+Derived::Derived__privateData        Derived__privateData__7Derived          Derived__privateData
+Derived::Derived__publicData         Derived__publicData__7Derived           Derived__publicData
+                                     __ct__7DerivedFRC7Derived()
+Derived::Derived()                   Derived *__ct__7DerivedFi               Derived__constructor()
+Derived::~Derived()                  __dt__7DerivedFv()                      Derived__destructor()
+Derived__Derived::getPrivateData()   Derived__getPrivateData__7DerivedFv()   Derived__getPrivateData()
+Derived::F1()                        F1__7DerivedFv()                        Derived__F1()
+Derived::F2()                        F2__7DerivedFv()                        Derived__F2()
+
+main()                               main()                                  main()
+                                     _main()
+i                                    __1i                                    i
+d1                                   __1d1                                   d1
+d2                                   __1d2                                   d2
+printf()                             printf()                                printf()
+                                     __mptr                                  Vtbl
+                                     __vptp                                  Vtbl_ptr
+                                     __vtbl__7Derived__x_c[]                 Derived__Vtbl[]
+                                     F1__7DerivedFv                          Derived__F1
+                                     F2__7DerivedFv                          Derived__F2
+                                     __vtbl__4Base__x_c[]                    Base__Vtbl[]

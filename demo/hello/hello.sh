@@ -5,19 +5,22 @@
 #
 # The CC script now work.
 # Anyway, here is how to compile a C++ file manually
-		
-if [ ! -x ../cfront ]; then
+
+
+D=../..
+
+if [ ! -x ${D}/cfront ]; then
     echo "error: cfront compiler not found"
     exit
 fi
 
-cpp -I../incl hello.C > hello.i			# run preprocessor
-../cfront +L +fhello.C < hello.i > hello..c	# run cfront
-cc hello..c ../libC.a -o hello.tmp		# compile and link plain C
+cpp -I${D}/incl hello.C > hello.i			# run preprocessor
+${D}/cfront +a1 +L +fhello.C < hello.i > hello..c	# run cfront
+cc hello..c ${D}/libC.a -o hello.tmp			# compile and link plain C
 
 # For static con/destructors, the nm/munch thingy is needed
 
-nm hello.tmp | ../munch > hello.cdts..c		# run mn against linked binary and filter
-cc hello..c hello.cdts..c ../libC.a -o hello	# compile and link again
+nm hello.tmp | ${D}/munch > hello.cdts..c	# run mn against linked binary and filter
+cc hello..c hello.cdts..c ${D}/libC.a -o hello	# compile and link again
 
 ./hello

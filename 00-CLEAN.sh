@@ -15,3 +15,4 @@ rm $D/hello.i $D/hello..c $D/hello.o $D/hello..o 2> /dev/null
 rm $D/hello.tmp 2> /dev/null
 rm $D/hello.cdts..c $D/hello.cdts.o $D/a.out 2> /dev/null
 rm $D/hello 2> /dev/null
+rm $D/c++_c_output..c $D/c++_c_output_C $D/c++_c_output_c 2> /dev/null

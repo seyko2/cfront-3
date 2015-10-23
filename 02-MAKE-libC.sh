@@ -1,4 +1,5 @@
 #!/bin/bash
+# make libC and munch
 
 [ ! -x cfront ] && {
     echo "Error: run 02-MAKE.sh first"
