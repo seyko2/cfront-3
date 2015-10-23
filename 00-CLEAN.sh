@@ -10,7 +10,8 @@ rm scratch/*..o scratch/libC.a  2> /dev/null
 rm lib/mk/*.o 2> /dev/null
 rm lib/complex/mk/*.o lib/complex/mk/*.a 2> /dev/null
 
-rm test/hello.i test/hello..c test/hello.o test/hello..o 2> /dev/null
-rm test/hello.tmp 2> /dev/null
-rm test/hello.cdts..c test/hello.cdts.o test/a.out 2> /dev/null
-rm test/hello 2> /dev/null
+D=demo/hello
+rm $D/hello.i $D/hello..c $D/hello.o $D/hello..o 2> /dev/null
+rm $D/hello.tmp 2> /dev/null
+rm $D/hello.cdts..c $D/hello.cdts.o $D/a.out 2> /dev/null
+rm $D/hello 2> /dev/null

@@ -7,13 +7,13 @@
 }
 
 make -C src clean 2> /dev/null
-make CXX=`pwd`/CC -C src
+make CXX=`pwd`/CC -C src	2>&1 | tee LOG.03
 
 make -C src clean 2> /dev/null
-make CXX=`pwd`/CC -C src
+make CXX=`pwd`/CC -C src	2>&1 | tee -a LOG.03
 
 make -C src clean 2> /dev/null
-make CXX=`pwd`/CC -C src
+make CXX=`pwd`/CC -C src	2>&1 | tee -a LOG.03
 
 diff cfront cfront.old
 [ $? != 0 ] && {

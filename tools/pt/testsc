@@ -1,0 +1,4827 @@
+#!/bin/ksh
+###############################################################################
+#
+# C++ source for the C++ Language System, Release 3.0.  This product
+# is a new release of the original cfront developed in the computer
+# science research center of AT&T Bell Laboratories.
+#
+# Copyright (c) 1993  UNIX System Laboratories, Inc.
+# Copyright (c) 1991, 1992   AT&T and UNIX System Laboratories, Inc.
+# Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+#
+# THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+#	
+# Laboratories, Inc.  The copyright notice above does not evidence
+# any actual or intended publication of such source code.
+#
+###############################################################################
+
+PATH=/bin:/usr/bin:/usr/ucb
+
+pn="ts"
+
+test_CC=${test_CC-"`pwd`/../../CC"}
+if [ ! -x "$test_CC" ]
+then
+	print 'test_CC not executable'
+	exit 1
+fi
+NMFLAGS="-p"		# use empty string for UTS systems, -B for mips
+
+nmap=defmap
+rep=ptrepository
+repm=$rep/$nmap
+sep='==============='
+
+TMPDIR=${TMPDIR-/usr/tmp}
+rm -rf $TMPDIR/$pn.td*.*
+td=$TMPDIR/$pn.td.$$
+td2=$TMPDIR/$pn.td2.$$
+mkdir $td
+chmod g-s $td
+mkdir $td2
+chmod g-s $td2
+cd $td
+
+t1=$td/t1.$$.c
+t1o=t1o.$$.o
+t2=$td/t2.$$
+t2x=$td/t2x.$$
+t3=$td/t3.$$.c
+t4=$td/t4.$$.c
+t5=$td/t5.c
+t5x=$td/t5.x
+t6=$td/t6.$$.c
+t7=$td/t7.$$.c
+t8=t8.$$.c
+t8h=t8.h
+t8c=t8.c
+t8o=t8.$$.o
+t9=$td/t9.$$.c
+t9h=$td/t9.h
+t9c=$td/t9.c
+t10=$td/t10.$$.c
+t10h=$td/t10.h
+t10c=$td/t10.c
+t10h2=$td/t10_2.h
+t10h3=$td/t10_3.h
+t11=$td/t11.$$.c
+t11h=$td/t11.h
+t11c=$td/t11.c
+t11_2=$td/t11_2.c
+mkdir $td/xxx
+mkdir $td/xxx/xxx
+mkdir $td/yyy
+t12=$td/xxx/t12.$$.c
+t12h=$td/xxx/t12.h
+t12c=$td/xxx/t12.c
+t12_2=$td/xxx/t12_2.c
+t12_3=$td/yyy/t12_3.h
+t13=$td/t13.$$.c
+t13h=$td/t13.h
+t13c=$td/t13.c
+t13o=$td/t13.$$.o
+t14=$td/t14.c
+t14h1=$td/t14_1.h
+t14h2=$td/t14_2.h
+t14c1=$td/t14_1.c
+t14c2=$td/t14_2.c
+t15=$td/t15.c
+t15h=$td/t15.h
+t16=$td/t16.c
+t16h=$td/t16.h
+t17=$td/t17.c
+t17h=$td/t17x.h
+t17c=$td/t17xx.c
+t18=$td/t18.c
+t18h=$td/t18_1.h
+t18c=$td/t18_1.c
+t18h2=$td/t18_2.h
+t18c2=$td/t18_2.c
+t19=$td/t19app..c
+t19a=$td/t19.a
+t19h=$td/t19.h
+t19c=$td/t19.c
+t19a1=$td/t19a1.c
+t19a2=$td/t19a2.c
+t19o1=$td/t19a1.o
+t19o2=$td/t19a2.o
+t20c=$td/t20.c
+t20o=$td/t20.o
+t21=$td/t21.c
+t21h=$td/t21_1.h
+t21c=$td/t21_1.c
+t22=$td/t22.c
+t22h=$td/t22_1.h
+t22c=$td/t22_1.c
+t23=$td/t23.c
+t23h=$td/19t23_1.h
+t23c=$td/19t23_1.c
+t24=$td/t24.c
+t25s1=$td/t25s1.c
+t25s2=$td/t25s2.c
+t25s3=$td/t25s3.c
+t25s4=$td/t25s4.c
+t25s1o=$td/t25s1.o
+t25s2o=$td/t25s2.o
+t25s3o=$td/t25s3.o
+t25s4o=$td/t25s4.o
+t26=$td/t26.$$.c
+t26h=$td/t26.h
+t27=$td/t27.$$.c
+t27h=$td/t27.h
+t27c=$td/t27.c
+t28=$td/t28.$$.c
+t28h=$td/t28.h
+t28c=$td/t28.c
+t29=$td/t29.c
+t30=$td/t30.c
+t31=$td/t31.c
+t32=$td/t32.c
+t33=$td/t33.c
+t34=$td/t34.c
+t35=$td/t35.c
+t35h=$td/t35_1.h
+t35c=$td/t35_1.c
+t36=$td/t36.c
+t37=$td/t37.c
+t37o=$td/t37.o
+t38=$td/t38.c
+t39=$td/t39.c
+t40=$td/t40.c
+t40h=$td/t40_1.h
+t40c=$td/t40_1.c
+t41=$td/t41.c
+t42_1=$td/t42_1.c
+t42_2=$td/t42_2.c
+t42_3=$td/t42_3.c
+t42_4=$td/t42_4.c
+t42_5=$td/t42_5.c
+t42_6=$td/t42_6.c
+t43=$td/t43.c
+t44=$td/t44.c
+t45=$td/t45.c
+t451=$td/t45_1.h
+t452=$td/t45_1.c
+t453=$td/t45_2.c
+t453o=$td/t45_2.o
+t46a=$td/t46a.c
+t46b=$td/t46b.c
+t461=$td/t46_1.h
+t462=$td/t46_1.c
+t47=$td/t47.c
+t48=$td/t48.c
+t491=$td/t491.c
+t492=$td/t492.c
+t491o=$td/t491.o
+t492o=$td/t492.o
+t50=$td/t50.c
+t51=$td/t51.c
+t51h=$td/51.h
+t51hx=$td/xxx/51.h
+
+function cleanup
+{
+	/bin/rm -rf $rep $t1o
+}
+
+function printmap
+{
+	sed '/@tab/,/@etab/d' $1 |
+	awk '
+		$1 == "@dec" {
+			tn = $2
+		}
+		$1 != "@dec" {
+			printf "%s %s\n", tn, $1
+		}
+	' | sort
+}
+
+function printmap2
+{
+	awk '
+		BEGIN {
+			intab = 0
+		}
+		$1 == "@tab" {
+			intab = 1
+			tn = 0;
+			next
+		}
+		$1 == "@etab" {
+			intab = 0
+			next
+		}
+		intab == 1 {
+			tab[tn++] = $0
+			next
+		}
+		{
+			if ($1 == "@dec") {
+				printf "\n"
+				flag = 1 
+				flag2 = 0
+			}
+			else {
+				flag = 0
+			}
+			for (i = 1; i <= NF; i++) {
+				if ($i == "\\") {
+					flag2 = 1
+					continue
+				}
+				if (i > 1 && substr($i, 1, 1) == "@")
+					s = tab[substr($i, 2) + 0]
+				else
+					s = $i
+				if (i > 1)
+					printf " %s", s
+				else
+					printf "%s", s
+#				if (i > 2 && !flag || i > 1 && flag)
+#					printf " \\\n"
+			}
+			printf "\n"
+		}
+	' $repm
+}
+
+cat <<EOF >$t1
+template <class T> struct A {};
+A<int> a;
+struct B {};
+EOF
+
+cat <<EOF >$t3
+struct A {};
+enum E {};
+int x;
+EOF
+
+cat <<EOF >$t4
+template <class T> struct A {
+	T x;
+};
+struct B;
+A<B> a;
+EOF
+	
+cat <<EOF >$t5
+struct A {};
+union B {};
+class C {};
+enum D {};
+typedef int E;
+typedef C F;
+struct {} a;
+union {} b;
+typedef struct {} I;
+void J() {}
+struct K {void f();};
+void K::f() {}
+template <class T> void operator!(T);
+template <class T> void operator&&(T, int) {}
+template <class T> struct L {
+	void f();
+	static int x;
+};
+template <class T> void L<T>::f() {}
+template <class T> int L<T>::x = 37;
+struct M {} c;
+template <class T> class N;
+template <class T> class N;
+template <class T> class N {
+	int x;
+};
+struct O;
+template <class T> void P(T);
+template <class T> struct G {};
+struct G<int> {};
+struct Q {
+	struct R {};
+	typedef int T;
+	enum U {};
+};
+
+void f()
+{
+struct A2 {};
+union B2 {};
+class C2 {};
+enum D2 {};
+typedef int E2;
+typedef C F2;
+struct {} a2;
+union {} b2;
+typedef struct {} I2;
+struct K2 {void f() {}};
+struct M2 {} c;
+struct O2;
+struct Q2 {
+	struct R2 {};
+	typedef int T2;
+	enum U2 {};
+};
+}
+EOF
+cat <<EOF >$t5x
+A "t5.c"
+B "t5.c"
+C "t5.c"
+D "t5.c"
+G "t5.c"
+G__pt__2_i "t5.c"
+I "t5.c"
+K "t5.c"
+L "t5.c"
+M "t5.c"
+N "t5.c"
+P "t5.c"
+Q "t5.c"
+__nt "t5.c"
+EOF
+
+cat <<EOF >$t6
+template <class T> void f(T);
+template <class T> void f(T);
+template <class T> void f(T);
+template <class T> void operator!(T);
+template <class T> void operator!(T);
+template <class T> void operator!(T);
+template <class T> void f(T);
+template <class T> void f(T);
+template <class T> void f(T);
+template <class T> void operator!(T);
+template <class T> void operator!(T);
+template <class T> void operator!(T);
+EOF
+
+cat <<EOF >$t7
+main() {}
+EOF
+
+cat <<EOF >$t8
+#include "t8.h"
+union Lurch {};
+main()
+{
+	A<int> a;
+	A<Lurch> b;
+	a.f();
+	b.f();
+	a.g();
+	b.g();
+	f(37, 12.34);
+	f("xxx", 'x');
+	return 0;
+}
+EOF
+cat <<EOF >$t8h
+#ifndef T8_INCL
+#define T8_INCL
+template <class T> struct A {
+	void f();
+	void g();
+};
+template <class T, class U> void f(T, U);
+#endif
+EOF
+cat <<EOF >$t8c
+template <class T> void A<T>::f()
+{
+	static int x = 0;
+	if (x++ < 5)
+		g();
+}
+template <class T> void A<T>::g()
+{
+	static int x = 0;
+	if (x++ < 5)
+		f();
+}
+template <class T, class U> void f(T t, U u)
+{
+	static int x = 0;
+	if (x++ < 5)
+		f(t, u);
+}
+EOF
+
+cat <<EOF >$t9h
+template <class T> struct A {
+	void f();
+	void g();
+};
+EOF
+cat <<EOF >$t9c
+template <class T> void A<T>::f() {}
+EOF
+cat <<EOF >$t9
+#include "t9.h"
+main()
+{
+	A<int> a;
+	a.f();
+	a.g();
+}
+EOF
+
+cat <<EOF >$t10h
+template <class T, class U, class V, class W, class X> struct A {
+	void f();
+};
+template <class T, class U, class V, class W, class X> void ff(T, U, V, W, X);
+struct AA {};
+EOF
+cat <<EOF >$t10c
+template <class T, class U, class V, class W, class X> void A<T,U,V,W,X>::f() {}
+template <class T, class U, class V, class W, class X> void ff(T,U,V,W,X) {}
+EOF
+cat <<EOF >$t10h2
+enum BB {bb = 47};
+EOF
+cat <<EOF >$t10h3
+union C {};
+EOF
+cat <<EOF >$t10
+#include "t10.h"
+#include "t10_2.h"
+#include "t10_3.h"
+A<AA,BB*,AA&,BB**,C> a;
+main()
+{
+	AA a;
+	BB b;
+	AA* ap;
+	BB& br = b;
+	C c;
+	ff(a, b, ap, br, c);
+}
+EOF
+
+cat <<EOF >$t11h
+template <class T> struct A {
+	void f();
+};
+EOF
+cat <<EOF >$t11c
+template <class T> void A<T>::f() {}
+EOF
+cat <<EOF >$t11
+#include "t11.h"
+struct B {};
+main()
+{
+	extern void g();
+	A<B> a;
+	a.f();
+	g();
+}
+EOF
+cat <<EOF >$t11_2
+#include "t11.h"
+struct B {};
+void g()
+{
+	A<B> a;
+}
+EOF
+
+cat <<EOF >$t12
+#include "t12.h"
+main()
+{
+	AA<int> a;
+	AA<double> b;
+	a.f();
+	b.f();
+	ff(37, 12.34L);
+	ff("xxx", (short)'x');
+}
+EOF
+cat <<EOF >$t12h
+template <class T> struct AA {
+	void f();
+	int zzz[N];
+};
+template <class T, class U> void ff(T, U);
+#ifdef XXX
+#include "t12_3.h"
+#endif
+#ifdef ZZZ
+const int NN = 83;
+#endif
+EOF
+cat <<EOF >$t12_3
+const int NN = 97;
+EOF
+cat <<EOF >$t12c
+template <class T> void AA<T>::f() {int x[NN];}
+template <class T, class U> void ff(T, U) {}
+EOF
+
+cat <<EOF >$t13
+#include "t13.h"
+main()
+{
+	A<int> a;
+	A<double> b;
+	a.f();
+	b.f();
+	f(37, 12.34);
+	f("xxx", 'x');
+}
+EOF
+cat <<EOF >$t13h
+template <class T> struct A {
+	void f();
+};
+template <class T, class U> void f(T, U);
+EOF
+cat <<EOF >$t13c
+template <class T> void A<T>::f() {}
+template <class T, class U> void f(T, U) {}
+EOF
+
+cat <<EOF >$t14h1
+template <class T> void f(char*, T);
+EOF
+cat <<EOF >$t14h2
+template <class T> void f(T);
+EOF
+cat <<EOF >$t14c1
+template <class T> void f(char*, T) {}
+EOF
+cat <<EOF >$t14c2
+template <class T> void f(T) {}
+EOF
+cat <<EOF >$t14
+#include "t14_1.h"
+#include "t14_2.h"
+main()
+{
+	f("foo", 37);
+}
+EOF
+
+cat <<EOF >$t15
+#include "t15.h"
+main() {}
+EOF
+
+cat <<EOF >$t16
+#include "t16.h"
+main() {}
+EOF
+
+cat <<EOF >$t17
+#include "t17x.h"
+main()
+{
+	A<int> a;
+	a.f();
+}
+EOF
+cat <<EOF >$t17h
+template <class T> struct A {
+	void f();
+};
+EOF
+cat <<EOF >$t17c
+template <class T> void A<T>::f() {}
+EOF
+
+cat <<EOF >$t18
+#include "t18_1.h"
+main()
+{
+	A<long double> a;
+	a.f();
+}
+EOF
+cat <<EOF >$t18h
+template <class T> struct A {
+	void f();
+};
+EOF
+cat <<EOF >$t18c
+#include "t18_2.h"
+template <class T> void A<T>::f() {
+	B<T> b;
+	b.f();
+}
+EOF
+cat <<EOF >$t18h2
+template <class T> struct B {
+	void f();
+};
+EOF
+cat <<EOF >$t18c2
+template <class T> void B<T>::f() {}
+EOF
+
+cat <<EOF >$t19
+main()
+{
+	extern void f();
+	f();
+}
+EOF
+cat <<EOF >$t19a1
+#include "t19.h"
+void g()
+{
+	A<char**> a;
+	a.f();
+}
+EOF
+cat <<EOF >$t19a2
+void f()
+{
+	extern void g();
+	g();
+};
+EOF
+cat <<EOF >$t19h
+template <class T> struct A {
+	void f();
+};
+EOF
+cat <<EOF >$t19c
+template <class T> void A<T>::f()
+{
+}
+EOF
+
+cat <<EOF >$t20c
+static int x111 = 35;
+static void f222() {}
+EOF
+
+cat <<EOF >$t21
+#include "t21_1.h"
+char c;
+A<&c> a1;
+void f(int) {}
+B<&f> a2;
+C<Z::f> a3;
+ZZ z;
+E<&z, D<-27> > a4;
+main()
+{
+	a1.f();
+	a2.f();
+	a3.f();
+	a4.f();
+}
+void Z::f() {}
+EOF
+cat <<EOF >$t21h
+template <char* p> struct A {void f();};
+typedef void (*fp)(int);
+template <fp p> struct B {void f();};
+struct Z {
+	void f();
+};
+typedef void (Z::*pmf)();
+template <pmf p> struct C {void f();};
+template <int n> struct D {void f();};
+struct ZZ {};
+template <ZZ* p, class T> struct E {void f();};
+EOF
+cat <<EOF >$t21c
+template <char* p> void A<p>::f() {}
+template <fp p> void B<p>::f() {}
+template <pmf p> void C<p>::f() {}
+template <int n> void D<n>::f() {}
+template <ZZ* p, class T> void E<p,T>::f() {}
+EOF
+
+cat <<EOF >$t22
+#include "t22_1.h"
+struct B;
+A<B*,B&> x;
+main()
+{
+	x.f();
+}
+EOF
+cat <<EOF >$t22h
+template <class T, class U> struct A {
+	void f();
+};
+EOF
+cat <<EOF >$t22c
+template <class T, class U> void A<T,U>::f() {}
+EOF
+
+cat <<EOF >$t23
+#include <stream.h>
+#include "19t23_1.h"
+A<int> a;
+main()
+{
+	cout << a << "\n";
+	return 0;
+}
+EOF
+cat <<EOF >$t23h
+template <class T> struct A {
+	operator int();
+};
+EOF
+cat <<EOF >$t23c
+#include <stream.h>
+template <class T> A<T>::operator int()
+{
+	cout << "foo" << "\n";
+	return 97;
+}
+EOF
+
+cat <<EOF >$t24
+template <class T> struct A {
+	void f();
+};
+template <class T> void A<T>::f()
+{
+}
+struct B {};
+main()
+{
+	A<B> a;
+	a.f();
+}
+EOF
+
+cat <<EOF >$t25s1
+#include "t1.h"
+int A<int>::f()
+{
+	return 47;
+}
+EOF
+cat <<EOF >$t25s2
+#include "t2.h"
+int B<int>::g()
+{
+	return 47;
+}
+EOF
+cat <<EOF >$t25s3
+#include "t1.h"
+#include "t2.h"
+#include "t3.h"
+extern "C" void exit(int);
+main()
+{
+	A<int> a;
+	B<int> b;
+	if (a.f() != 47)
+		exit(1);
+	b.f();
+	if (b.g() != 47)
+		exit(2);
+	f(1234L);
+	if (f(83) != 57)
+		exit(3);
+	exit(0);
+}
+EOF
+cat <<EOF >$t25s4
+#include "t3.h"
+int f(int t)
+{
+	return 57;
+}
+EOF
+cat <<EOF >$td/t1.h
+template <class T> struct A {
+	int f();
+};
+EOF
+cat <<EOF >$td/t1.c
+template <class T> int A<T>::f() {return 37;}
+EOF
+cat <<EOF >$td/t2.h
+template <class T> struct B {
+	int f();
+	int g();
+};
+EOF
+cat <<EOF >$td/t2.c
+template <class T> int B<T>::f()
+{
+	return 37;
+}
+template <class T> int B<T>::g()
+{
+	return 37;
+}
+EOF
+cat <<EOF >$td/t3.h
+template <class T> int f(T);
+EOF
+cat <<EOF >$td/t3.c
+template <class T> int f(T t)
+{
+	return 83;
+}
+EOF
+
+cat <<EOF >$t26
+#include "t26.h"
+main()
+{
+	A<int> a;
+	A<double> b;
+	a.f();
+	b.f();
+	a.g();
+	b.g();
+	f(37, 12.34);
+	f("xxx", 'x');
+	return 0;
+}
+EOF
+cat <<EOF >$t26h
+template <class T> struct A {
+	void f();
+	void g();
+};
+template <class T, class U> void f(T, U);
+template <class T> void A<T>::f() {}
+template <class T> void A<T>::g() {}
+template <class T, class U> void f(T, U) {}
+EOF
+
+cat <<EOF >$t27
+#include "t27.h"
+#ifdef OVER
+int A<int>::x = 47;
+#endif
+main()
+{
+	A<int> a;
+	if (a.f() != VAL)
+		return 1;
+	return 0;
+}
+EOF
+cat <<EOF >$t27h
+template <class T> struct A {
+	int f();
+	static int x;
+};
+EOF
+cat <<EOF >$t27c
+template <class T> int A<T>::x = 37;
+template <class T> int A<T>::f()
+{
+	return x;
+}
+EOF
+
+cat <<EOF >$t28
+#include "t28.h"
+main()
+{
+	A<int> a;
+
+	int i = a.x;
+	if (i != VAL)
+		return 1;
+	return 0;
+}
+EOF
+cat <<EOF >$t28h
+template <class T> struct A {
+	static int x;
+};
+EOF
+cat <<EOF >$t28c
+#ifdef INIT
+template <class T> int A<T>::x = 37;
+#endif
+EOF
+
+cat <<EOF >$t29
+template <short s> struct A {
+	void f();
+};
+template <short s> void A<s>::f()
+{
+}
+template <long x> struct B {
+	void f();
+};
+template <long x> void B<x>::f()
+{
+}
+template <char c> struct C {
+	void f();
+};
+template <char c> void C<c>::f()
+{
+}
+main()
+{
+	A<short(-23)> a;
+	B<59L> b;
+	C<'x'> c;
+
+	a.f();
+	b.f();
+	c.f();
+}
+EOF
+
+cat <<EOF >$t30
+struct A {
+	struct B {
+		virtual void f();
+	};
+	virtual void f();
+};
+main()
+{
+	A a;
+	A* ap = &a;
+	A::B ab;
+	A::B* abp = &ab;
+
+	ap->f();
+	abp->f();
+}
+EOF
+
+cat <<EOF >$t31
+extern "C" void strcpy(char*, char*);
+extern f(int);
+main()
+{
+	char buf[10];
+	strcpy(buf, "");
+	f(37);
+}
+EOF
+cat <<EOF >$t32
+template <class T> struct A {
+#ifdef INLINE
+	inline void f();
+#else
+	void f();
+#endif
+};
+#ifdef INLINE
+template <class T> inline void A<T>::f()
+#else
+template <class T> void A<T>::f()
+#endif
+{
+}
+main()
+{
+	A<int> a;
+	a.f();
+}
+EOF
+
+cat <<EOF >$t33
+template <class T> struct A {
+	void f();
+};
+template <class T> void A<T>::f() {}
+#include <complex.h>
+main()
+{
+	complex c;
+	A<complex> a;
+
+	c = 12.34;
+	c = c * c;
+	a.f();
+}
+EOF
+
+cat <<EOF >$t34
+template <class T> struct A {
+	static int x;
+	void f();
+};
+template <class T> void A<T>::f() {}
+template <class T> int A<T>::x;
+main()
+{
+	A<int> a;
+	a.f();
+}
+EOF
+
+cat <<EOF >$t35h
+template <class T> struct A {
+	void f();
+	void g();
+};
+EOF
+cat <<EOF >$t35c
+template <class T> void A<T>::f()
+{
+#ifdef BAD
+	zzz();
+#endif
+}
+template <class T> void A<T>::g()
+{
+#ifndef BAD
+	zzz();
+#endif
+}
+EOF
+cat <<EOF >$t35
+#include "t35_1.h"
+main()
+{
+	A<int> a;
+	a.f();
+}
+EOF
+
+cat <<EOF >$t36
+template <class T> struct A {
+	virtual void f();
+	void g();
+};
+template <class T> void A<T>::f()
+{
+	g();
+}
+template <class T> void A<T>::g()
+{
+}
+main()
+{
+	A<short>* p;
+	A<short> a;
+	p = &a;
+	p->f();
+}
+EOF
+
+cat <<EOF >$t37
+template <class T> struct A {
+	virtual void f1();
+	void f2();
+};
+template <class T> void A<T>::f1()
+{
+}
+template <class T> void A<T>::f2()
+{
+}
+main()
+{
+	A<int> a;
+	A<int>* p = &a;
+
+	p->f1();
+	p->f2();
+}
+void A<int>::f1()
+{
+}
+EOF
+
+cat <<EOF >$t38
+template <class T> struct A {
+	void f();
+};
+template <class T> void A<T>::f()
+EOF
+
+cat <<EOF >$t39
+template <class T> void f(T);
+template <class T> void f(T)
+{
+}
+main()
+{
+	f(37);
+	f(37L);
+}
+EOF
+
+cat <<EOF >$t40
+#include "t40_1.h"
+main()
+{
+	f(37);
+	f(37L);
+}
+EOF
+cat <<EOF >$t40h
+template <class T> void f(T);
+EOF
+cat <<EOF >$t40c
+extern int x;
+template <class T> void f(T)
+{
+	x++;
+}
+EOF
+
+cat <<EOF >$t41
+template <class T> struct A {
+	void f1();
+	void f2();
+	void g();
+};
+template <class T> void A<T>::f1()
+{
+	g();
+}
+template <class T> void A<T>::g()
+{
+}
+main()
+{
+	A<int> a;
+	a.f1();
+	a.f2();
+}
+EOF
+
+cat <<EOF >$t42_1
+template <int* ip> struct A {
+	void g();
+};
+template <int* ip> void A<ip>::g() {}
+int i;
+main()
+{
+	A<&i> a;
+	a.g();
+}
+EOF
+cat <<EOF >$t42_2
+template <int* ip> struct A {
+	void g();
+};
+template <int* ip> void A<ip>::g() {}
+struct B {
+	static int i;
+};
+int B::i = 37;
+main()
+{
+	A<&B::i> a;
+	a.g();
+}
+EOF
+cat <<EOF >$t42_3
+typedef void (*fp)(int);
+template <fp p> struct A {
+	void g();
+};
+template <fp p> void A<p>::g() {}
+void f(int) {}
+main()
+{
+	A<&f> a;
+	a.g();
+}
+EOF
+cat <<EOF >$t42_4
+typedef void (*fp)(int);
+template <fp p> struct A {
+	void g();
+};
+template <fp p> void A<p>::g() {}
+
+struct B {
+	static void f(int);
+};
+void B::f(int) {}
+main()
+{
+	A<&B::f> a;
+	a.g();
+}
+EOF
+cat <<EOF >$t42_5
+struct B {
+	void f(int);
+};
+void B::f(int) {}
+typedef void (B::*pmf)(int);
+
+template <pmf ip> struct A {
+	void g();
+};
+template <pmf ip> void A<ip>::g() {}
+B b;
+main()
+{
+	A<&B::f> a;
+	a.g();
+}
+EOF
+cat <<EOF >$t42_6
+struct B {
+	int i;
+};
+typedef int B::*pmf;
+template <pmf ip> struct A {
+	void g();
+};
+template <pmf ip> void A<ip>::g() {}
+B b;
+main()
+{
+	A<&B::i> a;
+	a.g();
+}
+EOF
+
+cat <<EOF >$t43
+template <class T, class U> void f(T, U);
+template <class T, class U> void f(T, U) {}
+struct A {};
+struct B {
+	void f();
+};
+void B::f() {}
+main()
+{
+	A a;
+	f(a, B::f);
+}
+EOF
+
+cat <<EOF >$t44
+#include "t8.H"
+union Lurch {};
+main()
+{
+	A<int> a;
+	A<Lurch> b;
+	a.f();
+	b.f();
+	a.g();
+	b.g();
+	f(37, 12.34);
+	f("xxx", 'x');
+	return 0;
+}
+EOF
+
+cat <<EOF >$t45
+#include "t45_1.h"
+main()
+{
+	A<int> a;
+	A<int>* p = &a;
+	p->f1();
+	p->f2();
+}
+EOF
+cat <<EOF >$t451
+template <class T> struct A {
+	virtual void f1();
+	virtual void f2();
+};
+EOF
+cat <<EOF >$t452
+template <class T> void A<T>::f2()
+{
+}
+EOF
+cat <<EOF >$t453
+#include "t45_1.h"
+void A<int>::f1()
+{
+}
+EOF
+
+cat <<EOF >$t46a
+#include "t46_1.h"
+main()
+{
+	A<int> a;
+	a.f();
+}
+EOF
+cat <<EOF >$t46b
+#include <t46_1.h>
+main()
+{
+	A<int> a;
+	a.f();
+}
+EOF
+cat <<EOF >$t461
+template <class T> struct A {
+	void f();
+};
+EOF
+cat <<EOF >$t462
+template <class T> void A<T>::f()
+{
+}
+EOF
+
+cat <<EOF >$t47
+struct Base {
+			Base();
+	virtual		~Base();
+};
+inline Base::
+Base()
+{
+}
+inline Base::
+~Base()
+{
+}
+template <class T>
+struct Der : public Base {
+		Der();
+	T*	tp;
+};
+template <class T>
+Der<T>::
+Der()
+{
+}
+main()
+{
+	Der<int>	der;
+}
+EOF
+
+cat <<EOF >$t48
+template <class T, class U> struct Map {
+	void f();
+};
+
+template <class T, class U> void Map<T,U>::f() {}
+
+struct Junk;
+
+typedef Map<void (*)(Junk*,void*), int (*)(Junk&,void*)> T;
+
+main()
+{
+	T t;
+
+	t.f();
+}
+EOF
+
+cat <<EOF >$t491
+template <class T> struct B {
+	void f();
+};
+template <class T> void B<T>::f() {}
+void f2()
+{
+	B<long> b;
+	b.f();
+}
+EOF
+cat <<EOF >$t492
+template <class T> struct A {
+	void f();
+};
+template <class T> void A<T>::f() {extern void f2(); f2();}
+main()
+{
+	A<int> a;
+	a.f();
+}
+EOF
+
+cat <<EOF >$t50
+template <class T> struct A {
+	void f();
+	T t;
+};
+template <class T> void A<T>::f()
+{
+	t.g();
+}
+struct B {
+	void g();
+};
+struct C {
+	void g();
+};
+void B::g()
+{
+}
+void C::g()
+{
+}
+main()
+{
+	A<B> b;
+	A<C> c;
+	A<int> d;
+
+	b.f();
+	c.f();
+	d.f();
+}
+EOF
+
+cat <<EOF >$t51
+#include <51.h>
+main()
+{
+	B<int> b;
+	b.f();
+}
+EOF
+cat <<EOF >$t51h
+template <class T> struct B {
+	void f();
+};
+template <class T> void B<T>::f()
+{
+}
+EOF
+cat <<EOF >$t51hx
+#include "t8.h"
+template <class T> struct B {
+	void f();
+};
+template <class T> void B<T>::f()
+{
+}
+EOF
+
+############################## PTLINK TESTS ##############################
+
+print "$sep dynamic extensions $sep"
+cleanup
+PTHDR= $test_CC -ptn $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+egrep 'assuming INC_EXT' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+PTSRC= $test_CC -ptn $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+egrep 'assuming SRC_EXT' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+PTSRC="." $test_CC -ptn $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+egrep 'illegal extension' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+cleanup
+PTHDR="xxx" $test_CC -ptn $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+egrep 'illegal extension' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+cleanup
+PTSRC=".xxxx" $test_CC -ptn $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #9 ***'
+fi
+egrep 'illegal extension' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #10 ***'
+fi
+cleanup
+PTHDR=".xxx,.yyy,   ,,,,   .h  " PTSRC=".zzz,,,	.c" $test_CC -ptn $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #11 ***'
+fi
+egrep 'illegal extension' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #12 ***'
+fi
+
+print "$sep pass through cfront options $sep"
+cleanup
+$test_CC -ptn -ptv -gdump $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+fgrep 'gdump' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+$test_CC -ptn -ptv -gdem $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+fgrep 'gdem' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+$test_CC -ptn -ptv -ispeed $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+fgrep 'ispeed' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+cleanup
+$test_CC -ptn -ptv -ispace $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+fgrep 'ispace' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+cleanup
+$test_CC -ptn -ptv +d $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #9 ***'
+fi
+fgrep '+d' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #10 ***'
+fi
+
+print "$sep -pth $sep"
+cleanup
+$test_CC -ptn -pth $t37 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+x=`ls $rep/pt[0-9]* | wc -l`
+if [ $x -lt 5 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep -I optimization $sep"
+cleanup
+$test_CC -ptn -ptv $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+fgrep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+$test_CC -Ixxxx -ptn -ptv $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+fgrep 'compiled' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+$test_CC -I. -ptn -ptv $t51 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+fgrep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+$test_CC -Ixxx -I. -ptn -ptv $t51 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+fgrep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+$test_CC -Ixxx -I. -ptn -ptv $t51 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #9 ***'
+fi
+fgrep 'compiled' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #10 ***'
+fi
+$test_CC -I. -ptn -ptv $t51 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #11 ***'
+fi
+fgrep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #12 ***'
+fi
+
+print "$sep -ptm $sep"
+cleanup
+$test_CC -ptn -ptm./xmap $t37 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+egrep 'unconditional' xmap >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+egrep 'symbol.*needed' xmap >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+
+print "$sep -ptk $sep"
+cleanup
+$test_CC -ptn -ptk $t50 >/dev/null 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+fgrep 'fatal error' $t2 >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+fgrep 'instantiation errors' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+
+print "$sep countdown list $sep"
+cleanup
+$test_CC -ptn -ptv $t37 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+fgrep 'left to do' $t2 1>/dev/null 2>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep @tab in middle $sep"
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@dec X fff
+ggg.h
+@tab
+zzz
+@etab
+EOF
+$test_CC -ptn $t37 >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep spacing in map file $sep"
+cleanup
+$test_CC -ptn -c $t37 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+sed 's/\(@de[cf]\) /\1     /g' $repm >x
+cp x $repm
+$test_CC -ptn $t37o >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep link order $sep"
+cleanup
+$test_CC -c -ptn $t491 $t492 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+rm -f xlib.a
+ar cr xlib.a $t491o
+if [ -x /bin/ranlib -o -x /usr/bin/ranlib ]
+then
+	ranlib xlib.a
+fi
+$test_CC $t492o xlib.a >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep -ptt with header cache $sep"
+cleanup
+$test_CC -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+$test_CC -Ixxx -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+$test_CC -Dxxx -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+rm -f $rep/*.he
+$test_CC -Dxxx -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+for i in $rep/*.he
+do
+	> $i
+done
+$test_CC -Dxxx -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #9 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #10 ***'
+fi
+touch $rep/*.c
+$test_CC -Dxxx -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #11 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #12 ***'
+fi
+fgrep '.c' $rep/*.he | fgrep -v 't37'
+cleanup
+$test_CC -ptt -ptv $t23 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #13 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #14 ***'
+fi
+$test_CC -ptt -ptv $t23 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #15 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #16 ***'
+fi
+$test_CC -ptt -ptv $t23 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #17 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #18 ***'
+fi
+touch $t23c
+$test_CC -ptt -ptv $t23 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #19 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #20 ***'
+fi
+fgrep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #21 ***'
+fi
+touch $rep/*.c
+$test_CC -ptt -ptv $t23 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #22 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #23 ***'
+fi
+fgrep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #24 ***'
+fi
+$test_CC -DZZZ -ptt -ptv $t23 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #25 ***'
+fi
+fgrep 'rebuilt header file cache' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #26 ***'
+fi
+fgrep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #27 ***'
+fi
+sort $rep/*.he | uniq -c | awk '$1 > 1{print}'
+awk 'NR > 1 && NF == 1 && $1 + 0 == 0{print}' $rep/*.he >$t2
+sort $t2 | cmp - $t2
+
+print "$sep pointer to function as actual $sep"
+cleanup
+$test_CC -ptn $t48 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep -I prefixes $sep"
+cleanup
+mv $t8h $td/xxx/xxx
+$test_CC -c -I$td/xxx -I$td/xxx/xxx $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+mv $td/xxx/xxx/t8.h .
+grep 'xxx' $repm >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep -pta and @alltc $sep"
+cleanup
+$test_CC -ptn -pta $t36 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC -ptn -ptv $t36 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+print 'int zzz = 57;' >> $t36
+$test_CC -ptn -ptv $t36 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+
+print "$sep check defmap in multiple repositories $sep"
+cleanup
+$test_CC -c $t37 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+mkdir zzz
+$test_CC -ptrzzz -ptr$rep -ptn $t37o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+rm -rf zzz
+
+print "$sep -ptt and local files $sep"
+cleanup
+cp $t8h $t8c $td2
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+touch $t8h
+$test_CC -ptt -ptv $t8 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+touch $td2/t8.h
+$test_CC -ptt -ptv $t8 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #5 ***'
+fi
+cleanup
+rm -f t8.h
+$test_CC -ptt -ptv -I$td2 $t8 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+cp $td2/t8.c .
+$test_CC -ptt -ptv -I$td2 $t8 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #9 ***'
+fi
+cp $td2/t8.h .
+
+print "$sep -pts and dependency analysis $sep"
+cleanup
+$test_CC -pts $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC -pts -ptv $t8 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+$test_CC -pts -ptt -ptv $t8 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #5 ***'
+fi
+
+print "$sep definitions found down -I path $sep"
+cleanup
+mv $t8c $td2
+$test_CC -I$td2 -ptv $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+mv $td2/t8.c .
+
+print "$sep basenames and archives $sep"
+cleanup
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+rm -f xlib.a
+ar cr xlib.a $t8o
+if [ -x /bin/ranlib -o -x /usr/bin/ranlib ]
+then
+	ranlib xlib.a
+fi
+print 'void f() {main();}' >x.c
+cc -c x.c
+$test_CC x.o xlib.a 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+rm -f xlib.a
+
+print "$sep CC path $sep"
+cleanup
+PATH="`dirname $test_CC`":$PATH CC -ptn $t37 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep inlines and vtbls $sep"
+cleanup
+$test_CC -ptn $t47 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep preserving quotes or brackets $sep"
+cleanup
+$test_CC -c -I. $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+cat <<EOF >$rep/nmap001
+@dec A
+<t8.h>
+@dec f
+<t8.h>
+@dec Lurch
+"t8.$$.c"
+EOF
+cat <<EOF >$repm
+@dec ZZZ
+zzz.h
+EOF
+$test_CC -I. $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+grep '"t8\.[hc]"' $rep/*.c >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+grep "<t8\.$$\..c>" $rep/*.c
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+cat <<EOF >$rep/nmap001
+@dec A
+"t8.h"
+@dec f
+"t8.h"
+@dec Lurch
+<t8.$$.c>
+EOF
+$test_CC -I. $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+grep '<t8\.[hc]>' $rep/*.c >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #6 ***'
+fi
+grep "\"t8\.$$\.c\"" $rep/*.c
+if [ $? -eq 0 ]
+then
+	print '*** error #7 ***'
+fi
+
+print "$sep numeric literals $sep"
+cleanup
+$test_CC -ptn $t29 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep literals and pointers $sep"
+cleanup
+$test_CC -ptn $t42_1 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+cleanup
+$test_CC -ptn $t42_2 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+$test_CC -ptn $t42_3 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+cleanup
+$test_CC -ptn $t42_4 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+$test_CC -ptn $t42_5 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+cleanup
+$test_CC -ptn $t42_6 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+
+print "$sep type checking of unused $sep"
+cleanup
+$test_CC -ptn $t35 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC -ptn -DBAD $t35 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep deleting old entries $sep"
+cleanup
+cat <<EOF >$t15h
+template <class T> struct A {};
+enum E {};
+EOF
+$test_CC -c $t15 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+printmap2 | grep "@dec E t15" >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+cat <<EOF >$t15h
+template <class T> struct A {};
+EOF
+$test_CC -c $t15 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+printmap2 | grep "@dec E .*t15" >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+cat <<EOF >$t15h
+template <class T> struct A {};
+enum E {};
+EOF
+$test_CC -c $t15 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+printmap2 | grep "@dec E t15" >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+cat <<EOF >$t16h
+template <class T> struct A {};
+enum E {};
+EOF
+$test_CC -c $t16 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+printmap2 | grep "@dec E t15" >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+cat <<EOF >$t16h
+template <class T> struct A {};
+EOF
+$test_CC -c $t16 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #9 ***'
+fi
+printmap2 | grep "@dec E t15" >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #10 ***'
+fi
+cleanup
+cat <<EOF >$t15h
+template <class T> struct A {};
+enum E {};
+EOF
+$test_CC -c $t15 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #11 ***'
+fi
+printmap2 | grep "@dec E t15" >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #12 ***'
+fi
+cat <<EOF >$repm
+@dec A t15
+t15.h
+@dec E t15
+t15.h
+xxx.h
+EOF
+cat <<EOF >$t15h
+template <class T> struct A {};
+EOF
+$test_CC -c $t15 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #13 ***'
+fi
+printmap2 | grep "@dec E t15" >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #14 ***'
+fi
+cat <<EOF >$repm
+@dec A t15
+t15.h
+@dec E t15
+xxx.h
+EOF
+cat <<EOF >$t15h
+template <class T> struct A {};
+EOF
+$test_CC -c $t15 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #15 ***'
+fi
+printmap2 | grep "@dec E t15" >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #16 ***'
+fi
+
+print "$sep basenames carried along $sep"
+cleanup
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+printmap2 | grep " t8.$$" >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+printmap2 | grep "t8.$$ t8.$$" >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+$test_CC $t10 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+printmap2 | grep "@dec A .*t8.$$" >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+printmap2 | grep "@dec A t10.$$" >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+
+print "$sep override quotes with brackets $sep"
+cleanup
+print 'template <class T> struct A {};' >xxx5.h
+print '#include "xxx5.h"' >xxx5.c
+$test_CC -c xxx5.c 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+print 'template <class T> struct A {};' >$td2/xxx5.h
+print '#include <xxx5.h>' >xxx5.c
+$test_CC -c -I$td2 xxx5.c 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+x=`grep 'xxx5.h' $repm | wc -l`
+if [ $x -ne 1 ]
+then
+	print '*** error #3 ***'
+fi
+
+print "$sep quotes vs brackets $sep"
+cleanup
+print 'foobar' >$td2/t46_1.h
+$test_CC -I$td2 $t46a 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+cleanup
+cp t46_1.h t46_1.bak
+cp t46_1.h t46_1.c $td2
+print 'foobar' >$td/t46_1.h
+$test_CC -I$td2 $t46b 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+cp t46_1.bak t46_1.h
+
+print "$sep cross device repositories $sep"
+cleanup
+cp $t37 $HOME
+cp $t37 t37.bak
+cd
+rm -f $TMPDIR/*.cs 2>/dev/null
+$test_CC -ptn -ptr$TMPDIR t37.c 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+rm -f t37.c
+cd $td
+cp t37.bak t37.c
+
+print "$sep +a0 $sep"
+cleanup
+$test_CC +a0 -ptn -ptv $t37 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep '\+a0' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep vtbl and specializations $sep"
+cleanup
+$test_CC -c $t453 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC $t45 $t453o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep -pto $sep"
+cleanup
+$test_CC -ptn $t37 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC -ptn -ptv $t37 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+cd $rep
+ls *.o | sed -n '1,1p' > ../x
+cd ..
+print '@delete' >>x
+$test_CC -ptn -ptv -ptox $t37 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+if [ -f x ]
+then
+	print '*** error #6 ***'
+fi
+print '@delete' >x
+$test_CC -ptn -ptv -ptox $t37 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if  [ $? -eq 0 ]
+then
+	print '*** error #8 ***'
+fi
+if [ -f x ]
+then
+	print '*** error #9 ***'
+fi
+
+print "$sep .c not overwritten $sep"
+cleanup
+$test_CC -ptn $t37 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+if [ -f $rep/_instfile ]
+then
+	print '*** error #2 ***'
+fi
+$test_CC -ptn $t37 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+if [ ! -f $rep/_instfile ]
+then
+	print '*** error #4 ***'
+fi
+
+print "$sep .H/.C $sep"
+cleanup
+cp $t8h t8.H
+cp $t8c t8.C
+$test_CC $t44 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep long lists of basenames $sep"
+cleanup
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
+do
+	cp $t8 xx${i}.c
+	$test_CC -c -ptn xx${i}.c 2>/dev/null 1>&2
+	if [ $? -ne 0 ]
+	then
+		print '*** error #1 ***'
+	fi
+done
+$test_CC xx25.o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+rm -f xx[0-9]*
+
+print "$sep hard path with -ptt $sep"
+cleanup
+mkdir $rep
+rm -rf xdir
+mkdir xdir
+cp $t37 xdir
+cat <<EOF >$rep/nmap001
+@dec A t37
+xdir/$t37
+EOF
+$test_CC -ptt -Ixdir $t37 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+rm -rf xdir
+
+print "$sep function templates and pointers to members $sep"
+cleanup
+$test_CC -ptn $t43 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep U then C when fakelinking $sep"
+cleanup
+print 'extern int x; void f() {x++;}' > x1.c
+print 'int x;' > x2.c
+print 'int x = 59;' > x3.c
+cc -c x1.c x2.c x3.c >/dev/null 2>&1
+ar cr xlib.a x2.o >/dev/null 2>&1
+if [ -x /bin/ranlib -o -x /usr/bin/ranlib ]
+then
+	ranlib xlib.a
+fi
+$test_CC -ptn x1.o xlib.a x3.o $t37 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+rm -f xlib.a
+
+print "$sep use of forwards $sep"
+cleanup
+$test_CC $t22 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC -ptt $t22 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep PTOPTS $sep"
+cleanup
+PTOPTS="-ptv -ptz" $test_CC -C -ptn $t37 2>$t2 1>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'ptlink' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep basenames for x/y $sep"
+cleanup
+mkdir x
+mv $t37 x
+$test_CC -ptn x/t37.c 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+mv x/t37.c .
+rm -rf x
+
+print "$sep demangle works on ld output $sep"
+cleanup
+$test_CC $t30 1>$t2 2>/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep "class 'A':" $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+grep "class 'A::B':" $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+
+print "$sep use of literals $sep"
+cleanup
+$test_CC $t21 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep -pts after -pta $sep"
+cleanup
+$test_CC -pta $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+$test_CC -pta $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+$test_CC -pts $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+$test_CC -pta $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+cleanup
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+$test_CC -pts $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+cleanup
+$test_CC -pts $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #9 ***'
+fi
+$test_CC -pta $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #10 ***'
+fi
+cleanup
+$test_CC -pts $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #11 ***'
+fi
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #12 ***'
+fi
+
+print "$sep archive searched repeatedly $sep"
+cleanup
+$test_CC -c $t19a1 $t19a2 1>/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+rm -f $t19a
+ar cr $t19a $t19o1 $t19o2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+if [ -x /bin/ranlib -o -x /usr/bin/ranlib ]
+then
+	ranlib $t19a
+	if [ $? -ne 0 ]
+	then
+		print '*** error #3 ***'
+	fi
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap999
+@dec A
+t19.h
+EOF
+cat <<EOF >$repm
+@dec ZZZ
+zzz.h
+@def ZZZ
+zzz.c
+EOF
+$test_CC $t19 $t19a 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+
+print "$sep cppC options $sep"
+cleanup
+#export cppC="/lib/cpp -Ifoo"
+cppC="${cppC-/lib/cpp} -Ifoo" $test_CC -ptn $t37 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+#unset cppC
+
+print "$sep map file formatting $sep"
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@tab
+@etab
+@dec A
+zzz.h
+EOF
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@tab
+xxx
+@etab
+@dec A @1
+zzz.h
+EOF
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@dex ZZZ
+zzz.h
+EOF
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@dec ZZZ
+@def ZZZZ
+zzz.h
+EOF
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@tab
+@etab
+@dec A
+zzz.h
+EOF
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #5 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@tab
+xxx
+@etab
+@dec A @1
+zzz.h
+EOF
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #6 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@dex ZZZ
+zzz.h
+EOF
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #7 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@dec ZZZ
+@def ZZZZ
+zzz.h
+EOF
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #8 ***'
+fi
+
+print "$sep -ptr. $sep"
+cleanup
+$test_CC -ptr. $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep two +T $sep"
+cleanup
+$test_CC +Tx +Ty zzz.c 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'warning: second' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep -ptt $sep"
+cleanup
+$test_CC -ptn $t37 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC -ptn -ptt -ptv $t37 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+touch $t37
+$test_CC -ptn -ptt -ptv $t37 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+rm -rf x1
+mkdir x1
+cp $rep/* x1
+touch $rep/*.o
+touch $t37
+sleep 1
+touch x1/*.o
+$test_CC -ptn -ptt -ptv -ptr$rep -ptrx1 $t37 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #7 ***'
+fi
+rm -rf x1
+cleanup
+mkdir x1
+mkdir $rep
+cat <<EOF >x1/nmap001
+@dec A
+$td/t8.h
+EOF
+$test_CC -ptr$rep -ptrx1 $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+touch $td/t8.h
+$test_CC -ptr$rep -ptrx1 -ptt -ptv $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #9 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #10 ***'
+fi
+rm -rf x1
+
+print "$sep -lX $sep"
+cleanup
+$test_CC -ptn $t33 -lcomplex 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep +T and -ptn $sep"
+print 'void foo() {}' >x.c
+cleanup
+$test_CC -c $t37 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+nm $NMFLAGS $t37o | egrep ' T [ ]*.*f2.*A__pt|.*f2.*A__pt.*text' >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+$test_CC $t37 x.c 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+nm $NMFLAGS $t37o | egrep ' T [ ]*.*f2.*A__pt|.*f2.*A__pt.*text' >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+$test_CC -ptn $t37 x.c 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+nm $NMFLAGS $t37o | egrep ' T [ ]*.*f2.*A__pt|.*f2.*A__pt.*text' >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #6 ***'
+fi
+cleanup
+print '@none' >x
+$test_CC +Tx $t37 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+nm $NMFLAGS $t37o | egrep ' T [ ]*.*f2.*A__pt|.*f2.*A__pt.*text' >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #8 ***'
+fi
+
+print "$sep excessive iteration when unresolved $sep"
+cleanup
+$test_CC -ptv $t41 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+x=`grep 'compiled' $t2 | wc -l`
+if [ $x -ne 1 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep demangler on filenames $sep"
+cleanup
+$test_CC -ptn $t40 >$t2 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+egrep 'f\(int|long\)' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep ft laydown $sep"
+cleanup
+$test_CC -ptn $t39 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep nmapNNN wins $sep"
+cleanup
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+cat <<EOF >$rep/nmap001
+@dec A t8.$$
+t8.h
+@dec f t8.$$
+t8.h
+EOF
+cat <<EOF >$repm
+@dec A t8.$$
+t8xxx.h
+@dec f t8.$$
+t8xxx.h
+EOF
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+cat <<EOF >$rep/nmap001
+@dec f t8.$$
+t8.h
+EOF
+cat <<EOF >$repm
+@dec A t8.$$
+t8.h
+@dec f t8.$$
+t8xxx.h
+EOF
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+
+print "$sep use of -I / -D / hard paths $sep"
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@dec AA t12.$$
+xxx/t12.h
+@dec ff t12.$$
+xxx/t12.h
+EOF
+$test_CC -DN=23 $t12 -DZZZ 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+cleanup
+$test_CC -Ixxx -DN=23 -Iyyy -DXXX $t12 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep AFAIL $sep"
+cleanup
+$test_CC $t38 $t8 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'ptlink' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep inlines $sep"
+cleanup
+$test_CC -ptn -I. $t32 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+nm $NMFLAGS $rep/*.o | egrep ' T [ ]*.*f__10A|.*f__10A.*text' >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+$test_CC -ptn -DINLINE $t32 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+nm $NMFLAGS $rep/*.o 2>/dev/null | egrep ' T [ ]*.*f__10A|.*f__10A.*text' >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+
+print "$sep +T $sep"
+cleanup
+cat <<EOF >xx.c
+#include "t8.h"
+#include "t8.c"
+typedef A<double> _dummy;
+EOF
+print '@alltc' >instfile
+$test_CC +Tinstfile -c xx.c 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+nm $NMFLAGS xx.o | egrep ' T [ ]*[_]*f__10A__pt__2_dFv|f__10A__pt__2_dFv.*text' >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+print 'f' >instfile
+$test_CC +Tinstfile -c xx.c 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+nm $NMFLAGS xx.o | egrep ' T [ ]*[_]*f__10A__pt__2_dFv|f__10A__pt__2_dFv.*text' >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+nm $NMFLAGS xx.o | egrep ' T [ ]*[_]*g__10A__pt__2_dFv|g__10A__pt__2_dFv.*text' >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+
+print "$sep objects in archive $sep"
+cleanup
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+rm -f xlib.a
+cp $t8o x.o
+ar cr xlib.a $t8o x.o
+if [ -x /bin/ranlib -o -x /usr/bin/ranlib ]
+then
+	ranlib xlib.a >/dev/null 2>&1
+fi
+$test_CC -ptv $t7 xlib.a 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+print 'static void f() {main();}' > xx.c
+cc -c xx.c
+$test_CC -ptv xx.o xlib.a 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+grep 'compiled' $t2 >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+
+print "$sep repository permissions $sep"
+cleanup
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+ls -l $repm | egrep -v 'rw-r--r--'
+set `ls -ld .`
+x=$1
+set `ls -ld $rep`
+y=$1
+if [ "$x" != "$y" ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+chmod 777 .
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+ls -l $repm | egrep -v 'rw-rw-rw-'
+set `ls -ld .`
+x=$1
+set `ls -ld $rep`
+y=$1
+if [ "$x" != "$y" ]
+then
+	print '*** error #4 ***'
+fi
+chmod 755 .
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+ls -l $repm | egrep -v 'rw-rw-rw-'
+set `ls -ld .`
+x=$1
+set `ls -ld $rep`
+y=$1
+if [ "$x" = "$y" ]
+then
+	print '*** error #6 ***'
+fi
+chmod 755 .
+cleanup
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+ls -l $rep/* | egrep -v 'rw-r--r--'
+chmod 777 .
+cleanup
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+ls -l $rep/* | egrep -v 'rw-rw-rw-'
+chmod 755 .
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #9 ***'
+fi
+ls -l $rep/* | egrep -v 'rw-rw-rw-'
+
+print "$sep order of inclusion of arguments $sep"
+cleanup
+$test_CC $t10 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+ln1=`grep -n t10.h < $rep/*.c | awk -F: '{print $1}'`
+ln2=`grep -n t10_2.h < $rep/*.c | awk -F: '{print $1}'`
+ln3=`grep -n t10_3.h < $rep/*.c | awk -F: '{print $1}'`
+if [ $ln1 -ge $ln2 ]
+then
+	print '*** error #2 ***'
+fi
+if [ $ln2 -ge $ln3 ]
+then
+	print '*** error #3 ***'
+fi
+
+print "$sep order of archives and objects $sep"
+cleanup
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+rm -f xlib.a
+ar cr xlib.a $rep/*.o >/dev/null 2>&1
+if [ -x /bin/ranlib -o -x /usr/bin/ranlib ]
+then
+	ranlib xlib.a
+fi
+$test_CC -ptv $t8o xlib.a 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+grep 'dependency' $t2 >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@dec ZZZ
+zzz.h
+EOF
+$test_CC xlib.a $t8o 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #5 ***'
+fi
+
+print "$sep defined then undefined in objects $sep"
+cleanup
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+$test_CC -ptv $rep/*.o $t8o 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+grep 'dependency check' $t2 >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+
+print "$sep ptcomp fails $sep"
+cleanup
+mkdir $rep
+print '@dec' > $repm
+$test_CC $t7 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep missing template.c $sep"
+cleanup
+$test_CC -ptn $t26 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'warning: ##### template definition file' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep specialization of virtuals $sep"
+cleanup
+$test_CC -ptn $t37 1>/dev/null 2>/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep race condition on vtbls $sep"
+cleanup
+$test_CC -ptn $t36 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC -ptn -ptv $t36 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+grep 'compiled' $t2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+
+print "$sep static data initializers $sep"
+cleanup
+$test_CC -ptn $t34 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep duplicate -Is $sep"
+cleanup
+$test_CC -Ixxyyzz $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'xxyyzz.*xxyyzz' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep type lookup $sep"
+cleanup
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+cleanup
+mkdir $rep
+print '@dec ZZZ\nZZZ.H' >$repm
+cat <<EOF >$rep/nmap001
+@dec A t8.$$
+t8.h
+@dec f t8.$$
+t8.h
+EOF
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+mkdir $rep
+print '@dec ZZZ\nZZZ.H' >$repm
+cat <<EOF >$rep/nmap001
+@dec A
+t8.h
+@dec f
+t8.h
+EOF
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@dec A t8.$$
+t8.h
+@dec f t8.$$
+t8.h
+EOF
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+mkdir $rep
+print '@dec ZZZ\nZZZ.H' >$repm
+cat <<EOF >$rep/nmap001
+@dec A
+t8.h
+@dec f
+t8.h
+EOF
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+cleanup
+rm -rf xxxx
+mkdir $rep xxxx
+print '@dec ZZZ\nZZZ.H' >$repm
+cat <<EOF >xxxx/nmap001
+@def A t8.$$
+t8.c
+@def f t8.$$
+t8.c
+EOF
+$test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+cleanup
+rm -rf xxxx
+mkdir $rep xxxx
+print '@dec ZZZ\nZZZ.H' >$repm
+cat <<EOF >xxxx/nmap001
+@dec A
+t8.h
+@dec f
+t8.h
+EOF
+$test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+cleanup
+rm -rf xxxx
+mkdir $rep xxxx
+print '@dec ZZZ\nZZZ.H' >$repm
+cat <<EOF >xxxx/nmap001
+@dec A t8.$$
+t8.h
+@dec f t8.$$
+t8.h
+EOF
+$test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+cleanup
+rm -rf xxxx
+mkdir $rep xxxx
+print '@dec ZZZ\nZZZ.H' >$repm
+cat <<EOF >xxxx/nmap001
+@dec A
+t8.h
+@dec f
+t8.h
+EOF
+$test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #9 ***'
+fi
+cleanup
+mkdir $rep
+print '@dec ZZZ\nZZZ.H' >$repm
+cat <<EOF >$rep/nmap001
+@def A t8.$$
+t8.c
+@def f t8.$$
+t8.c
+EOF
+cat <<EOF >$rep/nmap2
+@def A t8.$$
+zzz.h
+@def f t8.$$
+zzz.h
+EOF
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #10 ***'
+fi
+cleanup
+mkdir $rep
+print '@dec ZZZ\nZZZ.H' >$repm
+cat <<EOF >$rep/nmap001
+@dec A
+zzz.h
+@dec f
+zzz.h
+EOF
+cat <<EOF >$rep/nmap2
+@dec A t8.$$
+t8.h
+@dec f t8.$$
+t8.h
+EOF
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #11 ***'
+fi
+cleanup
+mkdir $rep
+print '@dec ZZZ\nZZZ.H' >$repm
+cat <<EOF >$rep/nmap002
+@dec A t8.$$
+t8.h
+@dec f t8.$$
+t8.h
+EOF
+cat <<EOF >$rep/nmap001
+@dec A
+zzz.h
+@dec f
+zzz.h
+EOF
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #12 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@dec A t8.$$
+zzz.h
+@dec f t8.$$
+zzz.h
+EOF
+cat <<EOF >$rep/nmap001
+@dec A
+t8.h
+@dec f
+t8.h
+EOF
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #13 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@def A
+zzz.h
+@def f
+zzz.h
+@def A t8.$$
+t8.c
+@def f t8.$$
+t8.c
+EOF
+$test_CC $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #14 ***'
+fi
+cleanup
+rm -rf xxxx
+mkdir $rep xxxx
+cat <<EOF >$repm
+@dec A t8.$$
+t8.h
+@dec f t8.$$
+t8.h
+EOF
+cat <<EOF >xxxx/nmap001
+@dec A
+zzz.h
+@dec f
+zzz.h
+EOF
+$test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #15 ***'
+fi
+cleanup
+rm -rf xxxx
+mkdir $rep xxxx
+cat <<EOF >$repm
+@dec A
+t8.h
+@dec f
+t8.h
+EOF
+cat <<EOF >xxxx/nmap001
+@dec A t8.$$
+zzz.h
+@dec f t8.$$
+zzz.h
+EOF
+$test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #16 ***'
+fi
+cleanup
+rm -rf xxxx
+mkdir $rep xxxx
+print '@dec ZZZ\nZZZ.H' >$repm
+cat <<EOF >$rep/nmap002
+@dec A
+t8.h
+@dec f
+t8.h
+EOF
+cat <<EOF >xxxx/nmap001
+@dec A t8.$$
+zzz.h
+@dec f t8.$$
+zzz.h
+EOF
+$test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #17 ***'
+fi
+
+print "$sep defmap.old written $sep"
+cleanup
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+if [ ! -f ${repm}.old ]
+then
+	print '*** error #3 ***'
+fi
+
+print "$sep flookup() fails $sep"
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@dec A sfdjasdlkj
+zzz.h
+EOF
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep map files wrongly formatted $sep"
+cleanup
+mkdir $rep
+print 'xxx' >$rep/nmap001
+$test_CC $t8 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+mkdir $rep
+print '@xxx' >$rep/nmap001
+$test_CC $t8 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+mkdir $rep
+print '@ xxx' >$rep/nmap001
+$test_CC $t8 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #5 ***'
+fi
+grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+cleanup
+mkdir $rep
+print '@' >$rep/nmap001
+$test_CC $t8 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #7 ***'
+fi
+grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+cleanup
+mkdir $rep
+print '@dec' >$rep/nmap001
+$test_CC $t8 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #9 ***'
+fi
+grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #10 ***'
+fi
+cleanup
+mkdir $rep
+print '@decxxx' >$rep/nmap001
+$test_CC $t8 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #11 ***'
+fi
+grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #12 ***'
+fi
+cleanup
+mkdir $rep
+print 'xxx.h' >$rep/nmap001
+$test_CC $t8 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #13 ***'
+fi
+grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #14 ***'
+fi
+
+print "$sep same file twice in a row $sep"
+cleanup
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+awk '{for (i = 1; i <= NF; i++) printf "%s\n", $i}' $repm | sort > $td/x99
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+awk '{for (i = 1; i <= NF; i++) printf "%s\n", $i}' $repm | sort | diff - $td/x99
+
+print "$sep ft expansion $sep"
+cleanup
+$test_CC -ptv $t31 1>/dev/null 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'wrote instantiation file' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep map file formatting $sep"
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@dec     T1  
+       t.h
+
+@def   T2   a1 a2	a3 a4
+t2.h
+EOF
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@dec
+EOF
+$test_CC $t8 2>/dev/null 1>/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@decx     T1
+t.h
+EOF
+$test_CC $t8 2>/dev/null 1>/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@decx T1
+t.h
+EOF
+$test_CC $t8 2>/dev/null 1>/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@dec 37
+t.h
+EOF
+$test_CC $t8 2>/dev/null 1>/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #5 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+@dec T1
+EOF
+$test_CC $t8 2>/dev/null 1>/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #6 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$repm
+t.h
+EOF
+$test_CC $t8 2>/dev/null 1>/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #7 ***'
+fi
+cleanup
+mkdir $rep
+print '@dec T1' >$repm
+print -n 't1.h' >> $repm
+$test_CC $t8 2>/dev/null 1>/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #8 ***'
+fi
+
+print "$sep only data needed $sep"
+cleanup
+$test_CC -DINIT -DVAL=37 $t28 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+./a.out
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep global common $sep"
+cleanup
+$test_CC -DVAL=0 $t28 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep support for +i $sep"
+cleanup
+$test_CC +i $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+ls $rep/*..[ci] >$t2
+if [ ! -s $t2 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep static data $sep"
+cleanup
+$test_CC -DVAL=37 $t27 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+./a.out
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+$test_CC -DVAL=47 -DOVER $t27 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+./a.out
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+
+print "$sep specializations $sep"
+cleanup
+$test_CC -c $t25s1 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC -c $t25s2 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+$test_CC -c $t25s3 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+$test_CC -c $t25s4 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+$test_CC $t25s1o $t25s2o $t25s3o $t25s4o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+./a.out
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+
+print "$sep type defined twice in @def $sep"
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@dec A t17
+t17x.h
+@def A t17
+t17xx.c
+@def A t17
+t17xx.c
+EOF
+$test_CC $t17 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep bad map file formatting $sep"
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@dec 2A t17
+t17x.h
+@def A t17
+t17xx.c
+EOF
+$test_CC $t17 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@dec A t17
+@def A t17
+t17xx.c
+EOF
+$test_CC $t17 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@dec A t17
+t17x.h
+@def A t17
+EOF
+print -n 't17xx.c' >>$rep/nmap001
+$test_CC $t17 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+
+print "$sep handling whitespace $sep"
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+
+@dec A      t17
+
+	t17x.h
+
+ @def A		t17
+
+	 t17xx.c
+
+EOF
+$test_CC $t17 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep -E / -F $sep"
+cleanup
+$test_CC -ptv -E t8 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+egrep 'ptcomp|ptlink' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+$test_CC -ptv -F t8 >/dev/null 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+egrep 'ptcomp|ptlink' $t2 >/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+if [ -d $rep ]
+then
+	print '*** error #5 ***'
+fi
+
+print "$sep multiple repositories $sep"
+cleanup
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+mv $rep x1
+$test_CC -Ixxx -Iyyy -DXXX -DN=23 $t12 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+mv $rep x2
+$test_CC -ptrx2 -ptrx1 $t8o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+if [ -d $rep ]
+then
+	print '*** error #4 ***'
+fi
+rm -rf x1 x2
+
+print "$sep replaying .c files $sep"
+cleanup
+$test_CC $t24 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+x=`ls $rep/*.o 2>/dev/null | wc -l`
+if [ $x -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep -ptn $sep"
+cleanup
+$test_CC -ptn $t24 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+x=`ls $rep/*.o 2>/dev/null | wc -l`
+if [ $x -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep multiple -I $sep"
+cleanup
+$test_CC -Ixxx -DN=23 -Iyyy -DXXX $t12 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep -pts $sep"
+cleanup
+$test_CC -pts $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep -pts with -pta $sep"
+cleanup
+$test_CC -pta -pts $t8 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'pta and -pts cannot both be specified' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep use of I/O library $sep"
+cleanup
+$test_CC $t23 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+./a.out >/dev/null
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep use of -o $sep"
+cleanup
+$test_CC $t8 -o xxxt8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+./xxxt8
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep use of -pta $sep"
+cleanup
+$test_CC -pta $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+./a.out
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep passing options to instantiation $sep"
+cleanup
+$test_CC -ptv -g $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep ' -c *-g' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep bad/missing object files $sep"
+cleanup
+print 'asdflkjasdlfjkad' >$t20o
+$test_CC $t8 $t20o 1>/dev/null 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'fatal' $t2 >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+$test_CC $t8 dflkadsjfasd.o 1>/dev/null 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+grep 'fatal' $t2 >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+
+print "$sep long lists of object files $sep"
+cleanup
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+for j in 1 2 3 4 5 6 7 8 9 10
+do
+	print $t20o
+done
+done >$t2
+rm -f $t20o
+cc -c $t20c
+$test_CC -ptv $t8 `<$t2` 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep support for locking $sep"
+cleanup
+($test_CC $t8 2>/dev/null 1>&2; print $? >$t2) &
+($test_CC $t8 2>/dev/null 1>&2; print $? >$t2x) &
+wait
+read x <$t2
+if [ "$x" -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+read x <$t2x
+if [ "$x" -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep no symbols needed from archive $sep"
+cleanup
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+rm -f x.a
+ar cr x.a $t8o >/dev/null 2>&1
+if [ -x /bin/ranlib -o -x /usr/bin/ranlib ]
+then
+	ranlib x.a
+	if [ $? -ne 0 ]
+	then
+		print '*** error #2 ***'
+	fi
+fi
+cleanup
+$test_CC $t7 x.a 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+
+print "$sep another iteration required $sep"
+cleanup
+$test_CC  $t18 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep empty object for nm $sep"
+cleanup
+print 'struct A {int x;};' > x.c
+cc -c x.c 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+$test_CC $t8 x.o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep handling @def $sep"
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@dec A t17
+t17x.h
+@def A t17
+t17xx.c
+EOF
+$test_CC $t17 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep print list of unresolved $sep"
+cleanup
+$test_CC $t9 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep "^	A<int>::g(void)$" $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep type defined twice $sep"
+cleanup
+$test_CC $t11 $t11_2 2>$t2 1>/dev/null
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'error.*type.*defined twice' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep merging fts $sep"
+cleanup
+$test_CC $t14 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep mapping .c to .h $sep"
+cleanup
+mkdir $rep
+cat <<EOF >$rep/nmap001
+@def f t13.$$
+t13.c
+@def A t13.$$
+t13.c
+EOF
+$test_CC -c $t13 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+print '@dec ZZZ' >$repm
+print 'lurch.h' >>$repm
+$test_CC $t13o 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep multiple types used as template args $sep"
+cleanup
+$test_CC $t10 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+
+print "$sep type not found in map files $sep"
+cleanup
+$test_CC -c $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+print '@dec ZZZ' > $repm
+print 'ZZZ.h' >> $repm
+$test_CC $t8o 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #2 ***'
+fi
+#grep 'warning: ##### assuming template type' $t2 >/dev/null 2>&1
+#if [ $? -ne 0 ]
+#then
+#	print '*** error #3 ***'
+#fi
+
+print "$sep named repositories at link time $sep"
+cleanup
+rm -rf xxxx
+$test_CC -ptrxxxx $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+x=`ls xxxx/*.c xxxx/*.o xxxx/*.cs | wc -l`
+if [ $x -ne 12 ]
+then
+	print '*** error #2 ***'
+fi
+rm -rf xxxx
+
+print "$sep loop detected in ptlink $sep"
+cleanup
+$test_CC $t9 2>$t2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'error.*resolved' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep non-PT case works optimally $sep"
+cleanup
+$test_CC -ptv $t7 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+if [ -d $rep ]
+then
+	print '*** error #2 ***'
+fi
+grep 'CC\[pt' $t2 >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #3 ***'
+fi
+cleanup
+mkdir $rep
+$test_CC -ptv $t7 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #4 ***'
+fi
+grep 'CC\[ptlink' $t2 >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #5 ***'
+fi
+
+print "$sep partitioning into files $sep"
+cleanup
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+x=`ls $rep/*.c $rep/*.o $rep/*.cs | wc -l`
+if [ $x -ne 12 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep dependency management and checksums $sep"
+cleanup
+$test_CC -ptv $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'compiled' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+$test_CC -ptv $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+grep 'compiled' $t2 >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+rm -f $rep/*.o
+$test_CC -ptv $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #5 ***'
+fi
+grep 'compiled' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #6 ***'
+fi
+rm -f $rep/*.cs
+$test_CC -ptv $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #7 ***'
+fi
+grep 'compiled' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #8 ***'
+fi
+$test_CC -ptv $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #9 ***'
+fi
+grep 'compiled' $t2 >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #10 ***'
+fi
+print ' ' >> $t8h
+$test_CC -ptv $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #11 ***'
+fi
+grep 'compiled' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #12 ***'
+fi
+print ' ' >> $t8c
+$test_CC -ptv $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #13 ***'
+fi
+grep 'compiled' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #14 ***'
+fi
+$test_CC -ptv $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #15 ***'
+fi
+grep 'compiled' $t2 >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	print '*** error #16 ***'
+fi
+print 'int zzz = 89;' >> $t8c
+$test_CC -ptv $t8 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #17 ***'
+fi
+grep 'compiled' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #18 ***'
+fi
+
+print "$sep duplicate information elided $sep"
+cleanup
+$test_CC -c $t6 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+printmap $repm | uniq -c | awk '$1 != 1{print}'
+
+print "$sep right information extracted $sep"
+cleanup
+$test_CC -c -I$td $t5 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+printmap $repm | diff - $t5x
+
+print "$sep named repositories work $sep"
+cleanup
+rm -rf x999
+$test_CC -c -ptr./x999 $t1 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+if [ ! -s x999/$nmap ]
+then
+	print '*** error #2 ***'
+fi
+rm -rf x999
+
+print "$sep -ptr followed by nothing $sep"
+cleanup
+$test_CC -c -ptr $t1 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'warning.*no repository' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep repository is a file $sep"
+cleanup
+> $rep
+$test_CC -c $t1 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'warning: could not create' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep cannot create repository $sep"
+cleanup
+cd /
+$test_CC -c $t1 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+cd $OLDPWD
+grep 'warning: could not create' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep repository not writeable $sep"
+cleanup
+mkdir $rep
+chmod 555 $rep
+$test_CC -c $t1 2>$t2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+grep 'warning: repository.*is not writable' $t2 >/dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep rep not created if not needed $sep"
+cleanup
+$test_CC -c $t3 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #1 ***'
+fi
+if [ -d $rep ]
+then
+	print '*** error #2 ***'
+fi
+
+print "$sep no update if compile fails $sep"
+cleanup
+$test_CC -c $t4 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #1 ***'
+fi
+if [ -d $rep ]
+then
+	print '*** error #2 ***'
+fi
+cleanup
+$test_CC -c $t1 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	print '*** error #3 ***'
+fi
+rm -f $repm
+$test_CC -c $t4 2>/dev/null 1>&2
+if [ $? -eq 0 ]
+then
+	print '*** error #4 ***'
+fi
+if [ -d $repm ]
+then
+	print '*** error #5 ***'
+fi
+
+
+cleanup

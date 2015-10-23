@@ -6,10 +6,14 @@
 }
 
 rm munch 2> /dev/null
-make 2>&1 | tee LOG.03
+make 2>&1 | tee LOG.02
 
 # compile a test program
-cd test
-../CC hello.C -o hello +i 
+
+D=demo/hello
+U=../..
+
+cd $D
+$U/CC hello.C -o hello +i 
 ./hello
-cd ..
+cd $U
