@@ -1,0 +1,229 @@
+#ident	"@(#)cfront:CC	1.7"
+#!/bin/sh
+#
+# CC from the cfront-1. Can't handle templates.
+# Much smaller and faster by 1/3 then
+# CC from cfront-3.0.3
+# -----------------------------------------
+
+	# CF=~/projects/cfront-1b
+	CF=$(dirname $0)
+	
+	cfrontC="$CF/cfront +a1"
+	munch=$CF/munch
+
+	I=$CF/incl
+	Y="-Du3b"
+	LIBRARY=$CF/libC.a
+	
+	ccC="gcc -w"
+	cppC="cpp -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0"
+
+# -----------------------------------------
+
+LIB_ID=${LIB_ID-C}
+LIBRARY=${LIBRARY--l${LIB_ID}}
+NMFLAGS=${NMFLAGS-}
+C= EE=0 FON=
+O=
+PON= R= SUF= X= Y=${Y-} DASHR= PLUSI=
+Z=
+E=0
+CF=
+P=
+OO="a.out"
+I=${I-"/usr/include/CC"}
+ISUF="..c"
+MVLIST=
+ccC=${ccC-cc}
+cfrontC=${cfrontC-cfront}
+cppC=${cppC-/lib/cpp}
+G=0
+for A do
+	case $A in
+	+V)	I="/usr/include"
+		O="$O $A"
+		;;
+	+i)	PLUSI=1
+		;;
+	+*)	O="$O $A"
+		;;
+	-E)	PON=1
+		;;
+	-F)	FON=1
+		;;
+	-Fc)	FON=1
+		O="$O +L"
+		;;
+	-C)	Y="$Y $A"
+		O="$O +C"
+		;;
+	-I*)	Y="$Y $A"
+		;;
+	-D*)	Y="$Y $A"
+		;;
+	-U*)	Y="$Y $A"
+		;;
+	-p)	P="-p"
+		;;
+	-r)	DASHR=1
+		Z="$Z $A"
+		;;
+	-c)	CF=1
+		;;
+	-o)	X="$X $A"
+		Z="$Z $A"
+		OX=1
+		;;
+	-.c)	echo "bad suffix option: -.c" 1>&2
+		;;
+	-.*)	SUF=`expr "$A" : '-\(.*\)'`
+		;;
+	*.C)	if	test -f $A
+		then
+			B=`basename $A .C`
+			if	test $PON
+			then
+				if test $SUF
+				then
+					echo "$cppC $O  $A > $B$SUF:" 1>&2
+					$cppC $Y -I$I  $A >$B$SUF
+					E=$?
+				else
+					$cppC $Y -I$I  $A
+					E=$?
+					case $E in
+					0)	;;
+					*)	break
+						;;
+					esac
+				fi
+			elif	test $FON
+			then
+				if test $SUF
+				then
+					echo "$cfrontC $O  $A > $B$SUF:" 1>&2
+					$cppC    $Y -I$I  $A | $cfrontC +L +f$A $O > $B$SUF
+					E=$?
+				else	
+					$cppC    $Y -I$I  $A | $cfrontC +L +f$A $O
+					E=$?
+					case $E in
+					0)	;;
+					*)	break
+						;;
+					esac
+				fi
+			else
+				echo "CC $O $A:" 1>&2
+				$cppC    $Y -I$I  $A | $cfrontC +L +f$A $O > $B$ISUF
+				E=$?
+				R=1
+				C="$C $B$ISUF"
+				case $E in
+				0)	X="$X $B$ISUF"
+					Z="$Z $B.o"
+					MVLIST="$MVLIST $B"
+					G=1
+					;;
+				1)	echo "1 error" 1>&2
+					;;
+				*)	echo "$E errors" 1>&2
+					;;
+				esac
+			fi
+		else
+			echo "$A not found" 1>&2
+		fi
+		;;
+	*.i)	X="$X $A"
+		B=`basename $A .i`
+		Z="$Z $B.o"
+		;;
+	*)	X="$X $A"
+		Z="$Z $A"
+		if test $OX
+		then
+			OO=$A
+			OX=""
+		else
+			G=1
+		fi
+		;;
+	esac
+done
+
+case $G in
+0)	;;
+*)							# generate code
+	if test "$PLUSI"	#leave ..c's lying around
+	then
+					#remove #line's from the ..c's for sdb
+		for f in $C
+		do
+			sed "/^#/d" $f >temp$$
+			mv temp$$ $f
+		done
+	fi
+	if test $CF					# -c: skip link edit
+	then
+		echo "$ccC $P -c $X"  1>&2
+		$ccC $P -c $X
+		EE=$?
+		for A in $MVLIST
+		do
+			[ -f $A..o ] && mv $A..o $A.o
+		done
+	else
+		# echo "$ccC $P $X $LIBRARY" 1>&2
+		X=$(echo $X | sed -e 's/-o[ \t]*[^ \t]*//')
+		A=$(echo $X | grep '[^ \t]*\.c')
+		EE=0
+		[ -n "$A" ] && {
+		    $ccC $P -c $X >__err			# compile, no load
+		    EE=$?
+		    for A in $MVLIST
+		    do
+			[ -f $A..o ] &&  mv $A..o $A.o
+		    done
+		}
+		case $EE in
+		0)	#echo "ld $Z $LIBRARY -lc"
+			$ccC $P $Z $LIBRARY > __err		# load
+			EE=$?
+			if test $EE != 0 -o -s __err
+			then
+				echo "error: $EE"
+				cat __err
+			elif test  "$DASHR" != 1		# find ctors/dtors
+			then
+				# echo "nm $NMFLAGS $OO | $munch $P >__ctdt.c"
+				nm $NMFLAGS $OO | $munch $P >__ctdt.c
+				$ccC -c __ctdt.c >/dev/null
+				#echo "ld $Z __ctdt.o $LIBRARY -lc"
+				$ccC $P $Z __ctdt.o $LIBRARY		# re-load
+				rm __ctdt.o
+				EE=$?
+				rm __ctdt.c
+			fi
+			;;
+		esac
+		for A in $MVLIST
+		do
+		    [ -f $A.o ] && rm $A.o
+		done
+		rm __err
+	fi
+esac
+
+if	test "$R" -a ! "$PLUSI"
+then
+	rm $C
+fi
+
+case $E in
+0)	exit $EE
+	;;
+*)	exit $E
+esac
+
