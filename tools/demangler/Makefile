@@ -1,4 +1,4 @@
-# /*ident	"@(#)cls4:tools/pt/makefile	1.3" */
+# /*ident	"@(#)cls4:tools/demangler/makefile	1.3" */
 
 ###############################################################################
 #
@@ -18,34 +18,23 @@
 ###############################################################################
 
 #
-#  C++ PT Instantation Source Code
+#  C++ Demangler Source Code
 #
 #BSD=1
 CC = cc
 CFLAGS = -O
-TARGETS = ptcomp ptlink
+TARGETS = c++filt
 
 all: $(TARGETS)
 
-ptcomp: ptcomp.o ptutil.o
-	$(CC) $(CFLAGS) -o ptcomp ptcomp.o ptutil.o
+OFILES= dem.o 
+
+dem.o:	dem.c dem.h 
+	$(CC) $(CFLAGS) -I. -c dem.c 
+
+c++filt: dem.c dem.h
+	$(CC) -DDEM_MAIN $(CFLAGS) -I. -o c++filt dem.c
 	cp $@ ../../
-
-ptlink: ptlink.o ptutil.o dem.o
-	$(CC) $(CFLAGS) -o ptlink ptlink.o ptutil.o dem.o
-	cp $@ ../../
-
-ptutil.o:	ptutil.c pt.h
-	$(CC) $(CFLAGS) -c ptutil.c
-
-ptcomp.o:	ptcomp.c pt.h
-	$(CC) $(CFLAGS) -c ptcomp.c
-
-ptlink.o:	ptlink.c pt.h ../demangler/dem.h
-	$(CC) $(CFLAGS) -I../demangler -c ptlink.c
-
-dem.o: ../demangler/dem.o
-	$(CC) $(CFLAGS) -c ../demangler/dem.c -o dem.o
 
 clean:
 	rm -f *.o 
