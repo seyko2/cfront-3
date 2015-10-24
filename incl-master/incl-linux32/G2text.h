@@ -1,0 +1,1 @@
+SC/G2text.h

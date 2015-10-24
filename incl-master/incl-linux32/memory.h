@@ -1,1 +1,4 @@
-CC/memory.h
+/*
+ * cheapo header
+ */
+#include <string.h>
