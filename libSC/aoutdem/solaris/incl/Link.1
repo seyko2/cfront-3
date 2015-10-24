@@ -1,0 +1,101 @@
+.ds C \f(CWChain\fP
+.ds L \f(CWLink\fP
+.TH "Link" ALPHA
+.SH "NAME"
+Link and Chain -- simple data structures for maintaining linked lists
+.SH "SYNOPSIS"
+#include "idebug.h"
+// object with single link
+struct Link {
+	Link *next;
+	Link();
+	virtual ~Link();
+	virtual void display();
+};
+
+// singly linked list
+class Chain : public Link {
+public:
+
+	// constructor
+	Chain();
+
+	// appending and prepending links
+	void operator >>= ( Link * );
+	void operator <<= ( Link * );
+
+	// inserting and deleting elements
+	void addnext( Link *, Link * );
+	void delnext( Link* l );
+
+	// miscellaneous
+	void display();
+	int   length() { return len; }
+	Link* head();
+	Link* tail();
+};
+
+// output control
+extern void newline();
+extern void indent( int = 1 );
+extern void undent( int = 1 );
+.SH "DESCRIPTION"
+\*L and \*C are classes that implement a simple one-way linked list.
+\*L is a base class with a single link.
+A \*L can appear on only one \*C.
+Note that a \*C is also a \*L.
+.SS "Detailed Description"
+.TP
+\f(CWLink *Link::next;\fP
+.TP
+\f(CWLink::Link();\fP
+.TP
+\f(CWvirtual Link::~Link();\fP
+Generic constructor and destructor.
+.TP
+\f(CWvirtual void display();\fP
+Display this object on \f(CWdbfile\fP.
+.TP
+\f(CWChain::Chain();\fP
+Construct an empty \*C.
+.TP
+\f(CWvoid Chain::operator >>= ( Link * );\fP
+Append a \*L to the end of this \*C.
+.TP
+\f(CWvoid Chain::operator <<= ( Link * );\fP
+Prepend a \*L to the beginning of this \*C.
+.TP
+\f(CWvoid Chain::addnext( Link *l, Link *m );\fP
+Add \*L m after \*L l in this \*C.  If l is null,
+insert m at the beginning of the \*C.
+No check is made to ensure that l is in the \*C.
+.TP
+\f(CWvoid Chain::delnext( Link* l );\fP
+Delete the \*L immediately after l in this \*C.
+No check is made to ensure that l is in the \*C.
+.TP
+\f(CWvoid Chain::display();\fP
+.TP
+\f(CWint Chain::length();\fP
+Return the number of \*Ls in this \*C.
+.TP
+\f(CWLink* Chain::head();\fP
+Return the first \*L in this \*C.
+.TP
+\f(CWLink* Chain::tail();\fP
+Return the last \*L in this \*C.
+.TP
+extern void newline();
+Print a newline and indent to the current indentation.
+This is useful in implementing display functions for classes
+derived from class \*L.
+Output is sent to \f(CWdbfile\fP.
+.TP
+extern void indent( int k = 1 );
+Increment current output indentation by k units.
+.TP
+extern void undent( int k = 1 );
+Decrement current output indentation by k units.
+
+.SH "SEE ALSO"
+idebug(1)

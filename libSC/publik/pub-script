@@ -1,0 +1,35 @@
+#!/bin/sh
+# reads stdin, or list of files and writes to stdout
+# the public section of any class declarations found
+# Assumes the declarations look like
+#
+# class name ... {
+#  ...
+# };
+#
+awk '
+BEGIN   {FS = " "; RS = "\n";
+#	if(tb == "")tb = "\t";	# bad tab hack.  (e.g. Our project uses tabstop=2)
+	in_code = 0;            # in the header file code flag
+	in_public = 0;          # in the public section flag;
+}
+
+# hack tabs
+#/\t/			{gsub(/\t/, tb, $0)}
+
+# get the class name, assume begins with "class foo {"
+/^class.*{/ 		{print; in_code = 1; in_public = 0; next;}
+
+# assume class declaration ends in "};"
+in_code == 1 && /^};/   {print; in_code = 0;}
+
+in_code == 1 && /public:/	{in_public = 1;}
+in_code == 1 && /protected:/	{in_public = 0;}
+in_code == 1 && /private:/	{in_public = 0;}
+
+
+in_public == 1 && in_code == 1	{print;}
+
+END     {
+}' $*
+

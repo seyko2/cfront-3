@@ -1,0 +1,53 @@
+SPECIALIZATION OF STANDARD COMPONENTS TEMPLATES
+
+This file contains the code for instantiating frequently
+used templates.  The following files contain code that
+is derived from the ``.c'' files in the include directory:
+
+	List.dummy1 - normal List operations from incl/List.c
+	List.dummy2 - ostream output functions from incl/List.c
+	List.dummy3 - List_of_p functions from incl/List.c
+	Map.dummy - all functions from incl/Map.c
+	set.dummy1 - normal functions from incl/set.c
+	set.dummy2 - set containment functions from incl/set.c
+	set.dummy3 - ostream output function from incl/set.c
+	Block.dummy1 - normal Block operations from incl/Block.c
+	Block.dummy2 - ostream output functions from incl/Block.c
+	setofp.dummy1 - select() function from incl/set_of_p.c
+	setofp.dummy2 - operator<<() function from incl/set_of_p.c
+
+These functions are literal translations of the functions from
+the appropriate incl/*.c files.  The only differences are:
+
+	- extra header files are included (for example, Map.dummy
+		contains #include <Map.h>)
+	- all "template <class T>" statements are removed
+	- the parameter has been changed to the string TYPE (or
+		TYPE1 and TYPE2 for Map)
+	- List.c, set.c, and Block.c have been split into several
+		smaller files
+	- the line "#include <TYPE.h>" has been added at the
+		beginning of the file (both TYPE1.h and TYPE2.h
+		are included for Map)
+
+This setup makes it possible to create "specializations" of the
+template classes List, Map, and Set for frequently used classes.
+It is useful to add such specializations to the library in order
+to reduce the amount of time needed to link an application program.
+
+Other classes can be easily added to this scheme.  To do this,
+just make one or more "dummy" files that contain the code from
+the ``.c'' file that is in the incl directory.  It is necessary
+to make some changes to the original ``.c'' file:
+
+	- remove all "template <class T>" lines
+	- make the parameter something that is easy to
+		substitute, such as TYPE
+	- add the appropriate #includes at the beginning
+		of each dummy file, making sure there is
+		an #include <TYPE.h>
+	- optionally, split the ``.c'' file into several
+		dummy files if it makes sense 
+
+Then add whatever lines are needed to the makefile in this directory
+to build the ``.o'' files and to add them to the archive.

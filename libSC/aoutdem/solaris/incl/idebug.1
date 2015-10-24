@@ -1,0 +1,116 @@
+.ds i \f(CWidebug\fP
+.TH "idebug" ALPHA
+.SH "NAME"
+idebug -- utilities for internal debugging
+.SH "SYNOPSIS"
+.nf
+.ft CW
+#include <stdio.h>
+#include <osfcn.h>
+
+#ifdef IDEBUG
+extern int idebug;
+extern char* dbfilename;
+extern FILE* dbfile;
+#define DB(a) {a;fflush(dbfile);}
+#define DBdeclare()
+#else
+#define DBdeclare() /**/
+#define DB(a) /**/
+#endif
+
+// manditory i/o
+#define MUSTREAD(fd,b,n)
+#define MUSTFREAD(b,n,fd)
+#define MUSTWRITE(fd,b,n)
+#define MUSTFWRITE(b,n,fd)
+#define MUSTLSEEK(fd,o,f)
+#define MUSTFSEEK(fd,o,f)
+
+// manditory memory allocation
+#define MUSTMALLOC(p,sz,ptype)
+#define MUSTCALLOC(p,n,s,ptype)
+#define MUSTREALLOC(p,sz,ptype)
+.ft R
+.fi
+.SH "DESCRIPTION"
+\*i provides a set of conditionally defined macros for internal debugging
+as well as other low-level utilities.
+Internal debugging macros and variables are defined as null
+strings, unless compiled with -DIDEBUG.
+This allow them to be deleted without modifying the source.
+.LP
+The "MUST" macros provide a convenient shorthand for checking for
+failure of common i/o and memory allocation operations.
+If a failure occurs, a MUST macro will print
+an error message identifying the source file and line number
+of the call, arguments, and reason for failure, and will then
+call exit(1).
+.br
+[XXX Note: Perhaps there should be a way to specify a termination procedure.]
+.SS "Detailed Description"
+TP
+\f(CWextern int idebug;\fP
+This holds the debugging level.  Its use is determined by the user.
+.TP
+\f(CWextern char* dbfilename;\fP
+The name of the debugging file.
+.TP
+\f(CWextern FILE* dbfile;\fP
+The debugging file descriptor.
+.TP
+\f(CW#define DB(a) {a;}\fP
+Since this macro is conditionally defined, calls may be deleted
+by recompiling without -DIDEBUG.
+Examples of use:
+.br
+.ft CW
+.nf
+	DB( if(idebug >= 3) fprintf(dbfile,"whatever\n"); )
+.fi
+.ft R
+.TP
+\f(CW#define DBdeclare()\fP
+This defines and initializes \f(CWdbfilename\fP and other
+internal debugging variables.
+It should be expanded somewhere in the program.
+.TP
+\f(CW#define MUSTREAD(fd,b,n)\fP
+Calls read(fd,b,n) and checks for successful completion.
+If an error occurs, an error message is printed containing
+the source file and line number of the read, arguments, and reason for failure
+(see \f(CWperror()\fP).  (See also above.)
+.TP
+\f(CW#define MUSTFREAD(b,n,fd)\fP
+Similar to MUSTREAD, but calls fread(b,n,1,fd).
+.TP
+\f(CW#define MUSTWRITE(fd,b,n)\fP
+Calls the write system call and checks the return value, printing
+an appropriate message on failure.  (See the description for MUSTREAD.)
+.TP
+\f(CW#define MUSTFWRITE(b,n,fd)\fP
+Similar to MUSTWRITE, but calls fwrite(b,n,1,fd).
+.TP
+\f(CW#define MUSTLSEEK(fd,o,f)\fP
+Calls the lseek system call and checks the return value.
+If an error occurs, an appropriate message is printed.
+(See the description for MUSTREAD.)
+.TP
+\f(CW#define MUSTFSEEK(fd,o,f)\fP
+Similar to MUSTLSEEK, but calls fseek(fd,o,f).
+.TP
+\f(CW#define MUSTMALLOC(p,sz,ptype)\fP
+Calls \f(CWp = (ptype*)malloc(sz)\fP and checks for failure.
+If a failure occurred, an error message is printed containing the
+source file and line number of hte call and sz.
+.TP
+\f(CW#define MUSTCALLOC(p,n,s,ptype)\fP
+Similar to MUSTMALLOC, but calls \f(CWcalloc()\fP.
+.TP
+\f(CW#define MUSTREALLOC(p,sz,ptype)\fP
+Similar to MUSTMALLOC, but calls \f(CWrealloc()\fP.
+.SH "SEE ALSO"
+perror(3C),
+malloc(3V), calloc(3V), realloc(3V),
+read(2), write(1), lseek(2),
+stdio(3V) fread(3S), fwrite(3S), fseek(3S)

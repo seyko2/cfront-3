@@ -1,0 +1,291 @@
+
+	Upgrading from Standard Component Release L4 to L5
+
+Introduction:
+
+The C++ Standard Component library release L5 has been developed using
+the USL C++ Language System Release 3.0.1.  Syntactically, the major 
+difference between this release and the previous releases is the 
+replacement of simulated parameterized types by using template classes.
+Most container components such as Block, List, Map, and Set have been 
+templatized.  Porting applications from previous releases to this release
+will require a major syntactical change if the applications used these 
+container components.
+
+Semantically, this release contains the same set of components as
+the previous release, and keeps the same functionality for most of 
+the components, except List and Set.  Due to templatization, the way to
+provide user-defined hash function for the Set and Bag classes has been 
+changed.  The List component has been refined to have behavior 
+consistent with other similar container components such as Set. 
+
+The following section contains guidelines for porting C++ Standard
+Components applications from previous releases to the current release.
+The final section lists some miscellaneous notes on using the Graph 
+and Graph_alg components and the old List component (i.e., the List 
+component of Release 2.0).
+
+Porting Guidelines:
+
+Applications based on the previous C++ standard components releases
+require source level modification with respect to the following three
+categories for porting to this release.
+
+1. Parameterized Types
+The container components such as Block, List, Map, and Set have been 
+templatized in Release 3.0.  If an application relies on these 
+components, the following steps will help change the simulated 
+parameterized type styles to template versions.  For the purpose of 
+illustration, Map is used, but the steps should apply to others as well.
+
+    Remove Mapdeclare(S,T) statements from the source code.
+
+    Remove Mapimplement(S,T) statements from the source code.
+    If a file just contains such implementation macros, the file
+    can be removed from the application.
+
+    Remove Mapout(S,T) statements from the source code.
+
+    Change all declarations of Map(S,T) and Mapiter(S,T) in the source
+    code to Map<S,T> and Mapiter<S,T>, respectively.
+    Be aware to have a space separating consecutive trailing >'s if 
+    they are created as a result of conversion.
+
+    Follow the guidelines described in the Template Instantiation User 
+    Guide found in the C++ Release 3.0 Selected Readings to organize 
+    header files if user-defined classes are used as template parameters.
+
+For example, the following implementation is used in the previous
+release:
+
+#include	<Map.h>
+#include	<string.h>
+#include	<stream.h>
+
+typedef	char*	charP;
+
+Mapdeclare(charP,int);
+Mapimplement(charP,int);
+Mapout(charP,int);
+
+main()
+{
+	Map(charP,int)		map;
+	char			buf[4];
+
+	strcpy(buf, "abc");
+
+	map[&buf[0]] = 0;
+	map[&buf[1]] = 1;
+	map[&buf[2]] = 2;
+
+	cout << map << endl;
+	cout << "remove 2" << endl;
+	map.remove(&buf[2]);
+	cout << map << endl;
+}
+
+With the current release, the program will look like:
+
+#include	<Map.h>
+#include	<string.h>
+#include	<stream.h>
+
+typedef	char*	charP;
+
+main()
+{
+	Map<charP,int>		map;
+	char			buf[4];
+
+	strcpy(buf, "abc");
+
+	map[&buf[0]] = 0;
+	map[&buf[1]] = 1;
+	map[&buf[2]] = 2;
+
+	cout << map << endl;
+	cout << "remove 2" << endl;
+	map.remove(&buf[2]);
+	cout << map << endl;
+}
+
+2. The List Component
+The List component has been revised in the following ways:
+
+    there is no more built-in iterator within List.
+
+    a pointer is returned from next() and its companions.
+
+    With these changes, there should be less confusion between List and Set
+    in terms of behavior consistency.
+
+    To convert from the old List to the current implementation, keep the
+    following in mind:
+
+	If an application relies on the built-in iterator of the old
+	List to keep track of the current position and perform
+	linked-list operations, a Listiter or Const_listiter iterator 
+	object should be created and the iterator instead of the List 
+	itself should be used for the linked-list operations.
+
+	The returned value from next(), prev(), peek_next(), peek_prev(),
+	head(), and tail() has been changed to T* instead of T as in 
+	the old List.  The functions next(), prev(), peek_next(), and 
+	peek_prev(), are only available from the iterators.
+
+For example, the following is implemented using the old List:
+For explanation of the function, see "A List Class Library for C++,"
+in The C++ Standard Components Release 2 Programmer's Guide.
+
+    // silly program to find palindromic Lists
+    #include <List.h>
+    #include <stream.h>
+
+    ...
+
+    List<T> L1;
+    List<T> L2 = L1;
+
+    L1.reset();
+    L2.end_reset();
+
+    while(!L1.at_end()) {
+        if(L1.next() != L2.prev()) break;
+    }
+    if(L1.at_end()) cout << "palindromic List\\\\n";
+    ...
+
+It can be modified into the following for the current release:
+
+    // silly program to find palindromic Lists
+    #include <List.h>
+    #include <stream.h>
+
+    ...
+
+    List<T> L;
+
+    Listiter<T> x(L);
+    Listiter<T> y(L);
+
+    x.reset();
+    y.end_reset();
+
+    while(!x.at_end()) {
+        if(x.next() != y.prev()) break;
+    }
+    if(x.at_end()) cout << "palindromic List\\\\n";
+    ...
+
+3. The Set Component
+In the previous release, a user-defined hash function for the Set and
+Bag classes could be specified as a parameterized type argument in 
+Setimplement and Bagimplement statements.  In the current template 
+version, a hash function will be provided as an instantiated hash() 
+member function.  If there is no user-provided hash() instance, a
+default hash function which always returns zero will be instantiated.
+
+The guideline for converting the hash function specification is:
+
+    Assume that Setimplement(T,MyHash) was used to specify the 
+    user-defined hash function MyHash. Change the hash function 
+    header for MyHash from
+
+    	Set_or_Bag_hashval MyHash(const T&) { ... }
+    to
+    	Set_or_Bag_hashval Set<T>::hash(const T&) { ... }
+
+For example, the following implementation was used in the previous
+release:
+
+#include <Set.h>
+#include <stream.h>
+
+Set_or_Bag_hashval hash(const int& t)
+{
+	if (t % 2 == 0)
+		return 1;
+	else
+		return t;
+}
+
+Bagdeclare(int)
+Bagimplement(int,hash)
+Bagout(int)
+typedef Map(Set_or_Bag_hashval,unsigned) Histogram;
+Mapout(Set_or_Bag_hashval,unsigned)
+
+main()
+{
+	Bag(int)* s = new Bag(int);
+	for (int i = -20; i<1000; i++)
+		s->insert(i);
+	s->check();
+
+	Histogram h;
+	s->histogram(h);
+	cout << "histogram: " << h << endl;
+
+	delete s;
+	return 0;
+}
+
+With the current release, the program would be revised into the
+following:
+
+#include <Set.h>
+#include <stream.h>
+
+Set_or_Bag_hashval Bag<int>::hash(const int& t)
+{
+	if (t % 2 == 0)
+		return 1;
+	else
+		return t;
+}
+
+typedef Map<Set_or_Bag_hashval, unsigned> Histogram;
+
+main()
+{
+	Bag<int>* s = new Bag<int>;
+	for (int i = -20; i<1000; i++)
+		s->insert(i);
+	s->check();
+
+	Histogram h;
+	s->histogram(h);
+	cout << "histogram: " << h << endl;
+
+	delete s;
+	return 0;
+}
+
+Miscellaneous Notes:
+
+Besides the guidelines mentioned in the last section, there are some 
+miscellaneous notes on using the components.  The notes listed in this 
+section do not anticipate  major source level changes in the applications.
+1. Graph and Graph algorithms
+
+Graph and Graph_alg components are the only container classes which are 
+not templatized in the current release.  Therefore, simulated parameter-
+ized types using preprocessor macros are still used in the implementation.
+However, the Graphimplement macro is no longer necessary in the new 
+release and it is optional to delete it from the source code.
+
+2. The Old List Component
+
+In order for applications which have heavily relied on the old List
+to avoid a potential implementation revision, the old List component
+from release 2.0 is also included in this release.  To use the old List 
+instead of the new one, the only source change would be to change
+
+        #include <List.h>
+    to
+        #include <List_old.h>
+
+Moreover, since the old List is also templatized, guidelines in
+Section 2.1 should be followed.
+

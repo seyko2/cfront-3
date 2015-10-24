@@ -1,0 +1,531 @@
+.SK
+.nr Hc 1
+.HU "Appendix A \(em The G2 Data Language"
+.nr Hc 0
+.nr H1 0
+.nr :p 0
+.ft I
+.ce
+J.E. Weythman
+.ft R
+.H 1 "Introduction"
+.ix "%begin G2
+.P
+G2 is a simple data language which provides a visible 
+and program-independent form for data records. G2 records 
+are just sequences of ASCII characters on a byte stream. 
+They ``look'' like indented outlines and contain only 
+visible characters.  
+.P
+Though G2 records are program-independent, a simple 
+interface mechanism makes it quite easy to read and 
+write G2 records from C programs: A G2 record definition
+is compiled to yield (1) a \fIC typedef\fR and
+(2) a \fItypedef descriptor\fR, which is an initialized C 
+data structure describing the physical layout
+of the type defined by the typedef. 
+Typedef descriptors are used by 
+I/O functions to provide direct record-level I/O between C 
+structures and ASCII streams. An interpretive C interface 
+is also provided which presents G2 records to the C program 
+in a navigable tree structure. 
+.H 1 "G2 Records"
+.ix "G2~records
+.P
+G2 records are name-value trees in the form of a 
+tab-indented outline. 
+The simplest form is just a name followed by a value:
+.DS
+.in 1i
+.ft CW
+
+usr     bob
+
+.in 0
+.ft R
+.DE
+.ce
+\fBExample 1\fP
+.SP
+Here, the record name, \f(CWusr\fR, 
+appears at the left margin\*F
+.FS
+\fRIn the streams sense, ``left margin'' refers to the position 
+just before the first character of the stream or just after 
+any subsequent newline. Accordingly, ``indentation'' refers 
+to the apparent indentation when a stream is presented on a
+printer or display terminal.
+.FE
+and is separated from the value, \f(CWbob\fR, 
+by a tab character. A newline terminates the record.  
+.P
+A slightly more complex 
+record involves a set of fields:
+.DS
+.ft CW
+.in 1i
+usr
+        log     bob
+        id      1000
+        gid     1
+        name    Bob Dobbs
+
+.ft R
+.in 0
+.DE
+.ce
+\fBExample 2\fP
+.SP
+In this case \f(CWusr\fR is a group field whose members 
+are indented 
+under it by one extra tab. As in the previous example, the 
+elementary names are separated from their values by a tab 
+and the values terminated by a newline.
+.P
+An even more complicated record is
+.DS
+.ft CW
+.in 1i
+
+usr
+        log     bob
+        id
+                usr     1000
+                grp     1
+        name    Bob Dobbs
+        proj
+                0       148020
+                1       148030
+                2       100022
+
+.ft R
+.in 0
+.DE
+.ce
+\fBExample 3\fP
+.SP
+Here, \f(CWusr\fR is a group that in turn contains another 
+group, \f(CWid\fR and an array, \f(CWproj\fR.  Of course, 
+arrays could contain other groups and arrays and so on.
+.H 1 "Language Syntax" 
+.ix "G2~record~syntax
+.P
+The set of possible G2 records is expressed by the 
+following (non context-free) grammar:
+.DS I
+.ft CW
+    record     => group nl
+
+    group      => name value
+                  name value nl indent group
+    
+    value      => ht string nl
+                  nl indent group
+                  nl indent array
+
+    array      => index value
+                  index value nl indent array
+    
+.ft R
+.DE
+where
+.BL
+.LI
+\fIht\fR is an ASCII tab character (011)
+.LI
+\fInl\fR is an ASCII newline character (012)
+.LI
+\fIname\fR is any valid C++ identifier
+.LI
+\fIindex\fR is a non-negative integer
+.LI
+\fIstring\fR is any sequence of printable ASCII characters,
+as defined by the UNIX \fBisprint(3)\fR function.
+.LI
+\fIindent\fR is one or more tabs, the exact number
+depending on the depth of recursion in the definition.
+.LE
+.P
+The highest level \fIname\fR begins at the left margin
+(indentation level zero).
+\fIValues\fR (other than simple strings, which are separated
+from their names by tab) are indented one 
+level more deeply than their parent groups.  Note that two
+consecutive newlines always terminate a G2 record.
+.H 1 "Record Definition"
+.ix "G2~record~definition~language
+.P
+G2 records are themselves defined with a G2 record. 
+For instance, the G2 record in example 1 could be defined by
+.DS
+.in 1i
+.ft CW
+
+usr     20
+
+.ft R
+.in 0
+.DE
+This G2 record is a definition (or prototype) for the class 
+of \f(CWusr\fR records whose value is a string whose 
+maximum length is 20 characters. 
+The following two G2 definitions/records 
+are suitable for the G2 records in examples 2 and 3 above.
+.DS
+.in 1i
+.ft CW
+usr
+        log     10
+        id      8
+        gid     8
+        name    40
+.ft R
+.in 0
+.DE
+and
+.DS
+.in 1i
+.ft CW
+usr
+        log     10
+        id
+                usr     8
+                grp     8
+        name    40
+        proj
+                4       6
+
+.ft R
+.in 0
+.DE
+.ce
+\fBExample 4\fP
+.SP
+In the array \f(CWproj\fR, the index \f(CW4\fR is taken to 
+mean the number of array elements. G2 arrays have zero as 
+the origin. Thus, the highest defined index in this case
+would be \f(CW3\fR.
+.P
+In the above example \f(CWproj\fR was a simple array. 
+G2 also has more complicated arrays. For example,
+.DS
+.in 1i
+.ft CW
+
+proj
+        5
+                main    10
+                sub     10
+
+.ft R
+.in 0
+.DE
+.P
+Here, we have defined a G2 record with an 
+array \f(CWproj\fR of 5 records, each with
+members \f(CWmain\fR and \f(CWsub\fR.
+.P
+A sample instance of one such defined record is
+.DS
+.in 1i
+.ft CW
+
+proj
+        0
+                main    141433
+        1
+                main    141435
+                sub     0122
+
+.ft R
+.in 0
+.DE
+.P
+Note that there is no \f(CWsubf\fR field in the first 
+element of \f(CWproj\fR. Since G2 only
+represents non-null strings, the value of \f(CWsub\fR is, 
+by definition, the null string.
+.P
+In addition to character string, the following ``types'' 
+can appear in a G2 record definitions: \f(CWLONG\fR,
+\f(CWSHORT\fR, and \f(CWCHAR\fR.  Thus, if
+the \f(CWusr\fR and \f(CWgrp\fR fields in example 4
+were known to always be short and a long integer values, 
+respectively, then we could
+rewrite the definition as follows:
+.DS
+.in 1i
+.ft CW
+
+usr
+        log     10
+        id
+                usr     SHORT
+                grp     LONG
+        name    40
+        proj
+                4       6
+.ft R
+.in 0
+.DE
+.H 1 "C Interface"
+.ix "G2~C~language~interface
+.P
+There are two sets of I/O routines available for
+reading and writing G2 records from a C program.
+One is for applications 
+which deal with a specific set of G2 record types and the 
+other is for programs that work with all G2 records,
+regardless of type. 
+The first set of routines map G2 data records of
+known type directly to or from C variables. 
+This is called the \fIcompiled interface\fR. 
+The second set of I/O routines map G2 data records
+of arbitrary type to or from a general-purpose 
+data structure which can be 
+subsequently navigated through a set of pointers.
+This is called the \fIinterpreted interface\fR.
+Of course, both the compiled and interpreted interfaces can 
+be mixed within a single program and at opposite ends of a 
+communications stream. 
+.H 2 "Compiled Interface"
+.ix "G2~compiled~interface
+.P
+The routines of the compiled interface are constructed
+from G2 record definitions.
+The construction process has four steps:
+.AL
+.LI
+A file of G2 record definitions is prepared and compiled 
+using the record definition compiler, \fBg2comp(1)\fR.
+Compilation yields a pair of files: the \fIheader file\fR 
+contains one or more C typedefs, and the \fIcode file\fR
+contains one initialized C data structure, 
+called a \fItypedef descriptor\fR,
+for each typedef.  A typedef descriptor 
+describes the physical layout of a typedef.
+.LI
+The header file is #include'd in the application program,
+where the typedef(s) it contains are used 
+to define variables that serve as the source or
+target of I/O routines.
+.LI
+The functions \f(CWgetrec()\fR and \fIputrec()\fR 
+are called whenever the application needs to perform
+input or output, respectively.  The appropriate
+parameters are passed
+.LI
+The application files and typedef descriptor 
+file are compiled and linked with the G2 library, 
+producing an executable program.
+.LE
+.P
+We will use an example to show the compiled interface in 
+more detail. 
+.P
+Let's assume that we simply want to read and 
+write G2 records with the definition
+.DS
+.in 1i
+.ft CW
+usr
+        log     10
+        id      8
+        gid     LONG
+        name    40
+.ft R
+.in 0
+.DE
+.P
+We start by typing the above definition into a file 
+named \f(CWusr.g\fR (the name of the file is arbitrary,
+but the \f(CW.g\fR suffix is mandatory). 
+This file is then compiled with 
+the following UNIX command:
+.DS I
+.ft CW
+$ g2comp usr.g
+.ft 2
+.DE
+Assuming this step goes well, we now have two new files:
+\f(CWusr.h\fR which contains a typedef and \f(CWusr.c\fR 
+which contains the typedef descriptor.  
+The typedef in \f(CWusr.h\fR will look like
+.DS I
+.ft CW
+typedef struct {
+        char    log[10+1];
+        char    id[8+1];
+        long    gid;
+        char    name[40+1];
+} USR;
+.ft R
+.DE
+.P
+(the extra character added to each 
+field is for the null byte).
+Note that the typename
+(\f(CWUSR\fR) is the upper-case version 
+of the record name (\f(CWusr\fR).
+.P
+Also in \f(CWusr.h\fR is an external declaration 
+for the typedef descriptor in \f(CWusr.c\fR:
+.DS I
+.ft CW
+extern G2DESC   *usr;
+.ft R
+.DE
+.P
+Now we can write a simple C program to read and write 
+G2 \f(CWusr\fR records:
+.DS I
+.ft CW
+#include <stdio.h>
+#include "usr.h"
+
+main(){
+
+    USR  buf;
+
+    while(getrec(&buf, usr, stdin)){
+          putrec(&buf, usr, stdout);
+    }
+    exit(0);
+}
+.ft R
+.DE
+.P
+Assuming this program resides in a file 
+named \f(CWsimple.c\fR, we compile and link an 
+executable program with the command:
+.DS I
+.ft CW
+$ cc simple.c usr.c -lg2
+.ft R
+.DE
+.P
+In a more realistic program, there would be something 
+useful happening between the \f(CWgetrec\fR and 
+\f(CWputrec\fR function calls. Such code would be in 
+native C and independent of the G2 I/O functions,
+for example:
+.DS I
+.ft CW
+    USR  buf;
+
+    while(getrec(&buf, usr, stdin)){
+	  buf.gid++;
+          putrec(&buf, usr, stdout);
+    }
+.ft R
+.DE
+.P
+Some applications must be prepared to deal with a 
+collection of possible record types in the
+communications stream.   In this case,
+function \f(CWgetname()\fR can be called
+to get the name of the next G2 record, and function
+\f(CWgetbody()\fR can then be used to map the remainder
+of the G2 record into a C variable of the appropriate
+type. The following example illustrates this usage.
+.DS I
+.ft CW
+#include <stdio.h>
+#include <string.h>
+#include "usr.h"
+#include "sys.h"
+
+main(){
+    char  name[20];
+    USR   usrbuf;
+    SYS   sysbuf;
+.ft R
+.DE
+.DS I
+.ft CW
+    while(getname(name, stdin)){
+
+	if(strcmp(name,"usr")==0){
+	    getbody(&usrbuf,usr,stdin);
+	    ...
+	}else if(strcmp(name,"sys")==0){
+	    getbody(&sysbuf,sys,stdin);
+	    ...
+	}
+    }
+    ...
+    exit(0);
+}
+.ft R
+.DE
+Here, two G2 record types, \f(CWusr\fR and 
+\f(CWsys\fR, can be handled. 
+In general, any number of G2
+record types can be dealt with in this way.  Note,
+however, that \fIa priori\fR knowledge of the
+record types was required.  Unknown
+record types must be dealt with using the
+interpreted interface.
+.H 2 "Interpreted Interface"
+.ix "G2~interpreted~interface
+.P
+The compiled interface requires that each G2 record type
+be known at compile time.  For programs which need 
+to handle the conceptually infinite class of G2 records 
+in a general way, an interpretive interface is provided. 
+.P
+The functions \f(CWgetbuf()\fR and \f(CWputbuf()\fR map
+G2 records between a stream and an internal data structure 
+which can be ``navigated'' by following pointers.
+The data structure, of type \f(CWG2BUF\fR, 
+is defined as follows in \f(CWg2.h\fR:
+.DS I
+.ft CW
+    struct G2NODE;
+
+    struct G2BUF{
+	char* name;
+	char* val;
+	G2NODE* child;
+	G2NODE* next;
+    };
+    struct G2NODE{
+	G2NODE* root;
+    };
+.ft R
+.DE
+The following program uses the interpreted interface
+to produce a report of the contents of each G2 record 
+in its input stream:
+.DS I
+.ft CW
+#include <g2.h>
+main(){
+    G2BUF buf[1];
+
+    while(getbuf(buf,stdin)){
+	walk(buf->root,0);
+    }
+}
+.ft R
+.DE
+.DS I
+.ft CW
+walk(np, level)
+    G2NODE* np;
+    int level;
+{
+    G2NODE* cp;	
+    printf("%d: %s",level,np->name);
+    if(np->val){
+	printf("\et%s\en",np->val);
+    }else{
+	printf("\en");
+    }
+    for(cp=np->child;cp;cp=cp->next){
+	walk(cp,level+1);
+    }
+}
+.ft R
+.DE
+.ix "%end G2

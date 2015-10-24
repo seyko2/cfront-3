@@ -1,0 +1,70 @@
+#!/bin/sh
+#ident	"@(#)publik:bin/publik	3.1" 
+###############################################################################
+#
+# C++ Standard Components, Release 3.0.
+#
+# Copyright (c) 1991, 1992 AT&T and Unix System Laboratories, Inc.
+# Copyright (c) 1988, 1989, 1990 AT&T.  All Rights Reserved.
+#
+# THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and Unix System
+# Laboratories, Inc.  The copyright notice above does not evidence
+# any actual or intended publication of such source code.
+#
+###############################################################################
+
+# Set this to your C++ translator.
+CC=${CC-CC}
+
+# Set <CCROOTDIR> to where you installed publik2.
+PUBLIK2=${PUBLIK2-/CCROOTDIR/publik2}
+
+###############################################################
+# You shouldn't have to change anything below this line.
+###############################################################
+pubopts=
+badargs=0
+set -- `getopt clmpvD:U:I:R $*`
+if test $? -ne 0
+then
+	badargs=1
+fi
+
+# parse the options
+#
+for i in $*
+do
+	case $i in
+	-[clmpv]) pubopts="$pubopts $1"; shift;;
+	-I)	CPPOPTS="$CPPOPTS -I$2"; shift; shift;;
+	-D)	CPPOPTS="$CPPOPTS -D$2"; shift; shift;;
+	-U)	CPPOPTS="$CPPOPTS -U$2"; shift; shift;;
+	-R)	CPPOPTS="$CPPOPTS -R"; shift;;
+	--)	shift; break;;
+	-*)	#echo "publik: illegal option $i (ignored)"; 
+		shift;;
+	esac
+done
+
+if test $badargs -eq 1
+then
+	echo "usage: publik [-cmp] [cpp options] file ..."
+	exit 2
+fi
+	
+# analyze all the input files
+#
+if test -z "$*" 
+then
+	$PUBLIK2 $pubopts
+else
+	for file in $*
+	do
+		case $file in 
+		*.[cCh])$CC -C -E $CPPOPTS $file | $PUBLIK2 $pubopts;;
+		*.i)	$PUBLIK2 $pubopts $file;;
+		*) echo "publik: file with unrecognized suffix: $file (ignored)";;
+		esac
+	done
+fi
+

@@ -1,0 +1,40 @@
+/**************************************************************************
+                        Copyright (c) 1991 AT&T
+                          All Rights Reserved
+
+        THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T
+
+        The copyright notice above does not evidence any
+        actual or intended publication of such source code.
+
+***************************************************************************/
+#include <String.h>
+#include <stream.h>
+
+main()
+{
+    String in_String;
+    String out_file; 
+    out_file.reserve(100);
+    char c;
+
+    String old_one[4];
+    String new_one[4];
+
+    old_one[0]=" Zimbabwe ";    new_one[0]=" Zimbabwe ";
+    old_one[1]=" Abdul-Jabbar ";    new_one[1]=" Abdul-Jabbar ";
+    old_one[2]=" Zaire ";       new_one[2]=" Zaire ";
+    old_one[3]=" Bambergers";  new_one[3]=" Macys ";
+ 
+    while(cin >> in_String) {
+        for(int i=0;i<3;i++)
+            if(in_String == old_one[i]) 
+                in_String = new_one[i];
+        out_file += in_String;
+        while((c=cin.peek())==' '||c=='\t'||c=='\n') {
+            cin.get(c);
+            out_file += c;
+        }
+    }
+    cout << out_file;
+}

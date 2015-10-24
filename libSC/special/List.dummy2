@@ -1,0 +1,85 @@
+/*ident	"@(#)List:incl/List.c	3.1" */
+/******************************************************************************
+*
+* C++ Standard Components, Release 3.0.
+*
+* Copyright (c) 1991, 1992 AT&T and Unix System Laboratories, Inc.
+* Copyright (c) 1988, 1989, 1990 ATYPE&T.  All Rights Reserved.
+*
+* THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and Unix System
+* Laboratories, Inc.  The copyright notice above does not evidence
+* any actual or intended publication of such source code.
+*
+******************************************************************************/
+
+#include <List.h>
+#include <TYPE.h>
+#include <stream.h>
+
+ostream&
+operator<<(ostream& oo, const List<TYPE>& ll)
+{
+	int first = 1;
+	oo << "( ";
+	Const_listiter<TYPE> l(ll);
+	while (!l.at_end()) {
+		if (!first)
+			oo << ", ";
+		first = 0;
+		oo << *(l.next());
+	}
+	oo << " )";
+	return oo;
+}
+
+#ifndef __GNUG__
+ostream&
+List<TYPE>::print(ostream& oo) const
+{
+	int first = 1;
+	oo << "( ";
+	Const_listiter<TYPE> l(*this);
+	while (!l.at_end()) {
+		if (!first)
+			oo << ", ";
+		first = 0;
+		oo << *(l.next());
+	}
+	oo << " )";
+	return oo;
+}
+#endif
+
+ostream&
+operator<<(ostream& oo, const List_of_p<TYPE>& ll)
+{
+	int first = 1;
+	oo << "( ";
+	Const_list_of_piter<TYPE> l(ll);
+	while (!l.at_end()) {
+		if (!first)
+			oo << ", ";
+		first = 0;
+		oo << *(l.next());
+	}
+	oo << " )";
+	return oo;
+}
+
+#ifndef __GNUG__
+ostream&
+List_of_p<TYPE>::print(ostream& oo) const
+{
+	int first = 1;
+	oo << "( ";
+	Const_list_of_piter<TYPE> l(*this);
+	while (!l.at_end()) {
+		if (!first)
+			oo << ", ";
+		first = 0;
+		oo << *(l.next());
+	}
+	oo << " )";
+	return oo;
+}
+#endif

@@ -1,0 +1,53 @@
+Hi!
+
+This is the AT&T C++ a.out demangler.   Run it on an a.out file generated
+by AT&T C++, and it will clean up the mangled names for you.  Use the -d option
+to clean up your a.out prior to debugging.
+
+Notice that the a.out demangler is not the same as the demangler library that 
+comes with AT&T C++.  The a.out demangler uses the demangler library.
+
+---------------------
+NEW FOR THIS RELEASE:
+	. Handles nested classes, types, etc. correctly.
+	. libmangle.a uncoupled from this tool.  The build process
+	  for this tool assumes you have the latest version of
+	  libmangle.a somewhere on your library search path.
+	. dem, c++filt, and errfilt no longer shipped with this tool.
+	. BSD memory bug probably eliminated by my fix to libmangle.a.
+
+NEW FOR THIS RELEASE:
+	. Added -T switch.
+	. Changed meaning of -d to be -T -q__ instead of -t -q__.
+
+NEW FOR THIS RELEASE:
+	. The shipment now contains all three tools of the above
+	  tools, not just the a.out demangler.
+	. libmangle.a is automatically built as part of the shipment.
+
+NEW FOR THIS RELEASE:
+	. More makefile options for yet more perverted machines.
+
+NEW FOR THIS RELEASE:
+	. It's much faster.
+	. Bug fix - some class members weren't getting demangled.
+	. Bug fix - on System V, some auxiliary entries were getting corrupted.
+	. New switches; see the manpage.
+	. Name of -dbx switch changed to -d, since it's used with sdb too.
+
+NEW FOR THIS RELEASE:
+	. Now works on HP-UX.
+
+NEW FOR THIS RELEASE:
+	. It's faster.
+	. The -t flag *really* works correctly.
+	. Usage of -q flag has changed.  Now "-q string" makes 
+	  "string" be used in place of the default "::".
+
+NEW FOR THIS RELEASE:
+	. New -dbx switch.
+	. The -t flag works correctly.  
+	. Manpage changes.
+	. Some other minor stuff.
+
+

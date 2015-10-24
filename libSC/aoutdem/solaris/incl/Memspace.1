@@ -1,0 +1,133 @@
+.ds M \f(CWMemspace\fP
+.TH "Memspace" ALPHA
+.SH "NAME"
+Memspace - management of contiguous memory of fixed or dynamic size
+.SH "SYNOPSIS"
+.nf
+.ft CW
+#include "Link.h"
+// manages contiguous memory of fixed or dynamically increasing
+//    number of units
+class Memspace {
+public:
+	// flags
+	enum { M_dynamic=01 };
+
+	// constructor/destructor
+	Memspace( long sz, char* n = "", unsigned long f = 0 );
+	~Memspace();
+
+	// allocation / deallocation
+	long  allocseg( long sz ); // first-fit
+	int   grow( long sz ); // append new free space
+	long  placeseg( long off, long sz ); // allocate at fixed location
+	void  freeseg( long off, long sz );  // free allocated space
+	long  nextfree( long off, long& sz ); // location and size of
+	                                      // next free block
+
+	// save / restore allocation information
+	void  save( FILE* ); // save representation in file
+	void  restore( long* ); // restore from saved representation
+
+	// miscellaneous
+	long  msize(); // number of units in this Memspace
+	long  svsize(); // number of longs needed to save this Memspace
+	void  print();
+	const char* name();
+};
+
+// alignment functions -- return off aligned to a
+inline long align( long off, int a );
+
+// fast alignemnt function for alignment to a power of 2
+inline long align2( long off, long a );
+
+// internal debugging
+#ifdef IDEBUG
+extern int debugMem;
+extern int debugInternal;
+#endif
+.ft R
+.fi
+.SH "DESCRIPTION"
+\*M maintains allocation information for a contiguous
+block of \f(CWsize\fP units of memory, where \f(CWsize\fP may be
+fixed or increasing.
+It is especially tailored for use in maintaining incremental updates to
+large blocks of data, such as object files or virtual memory.
+Note that \*M only maintains the location of free space in the block.
+It is up to the user to preserve the locations and sizes of allocated segments
+and to update the their contents.
+.SS "Detailed Description"
+.TP
+\f(CWMemspace::M_dynamic\fP (enumerator)
+A Memspace with \f(CWM_dynamic\fP set will grow automatically when there is
+not enough space to allocate a given segment.
+Otherwise the user must call \f(CWgrow()\fP explicitly.
+.TP
+\f(CWMemspace::Memspace( long sz, char* n = "", unsigned long f = 0 );\fP
+Allocate a \*M with sz units, name n and flags f.
+.TP
+\f(CWMemspace::~Memspace();\fP
+Destructor.
+.TP
+\f(CWlong Memspace::allocseg( long sz );\fP
+Allocate sz units using first-fit.
+If successful, return the offset of the allocated space.
+If sz contiguous units are not available, \f(CWallocseg()\fP
+will return -1 if \f(CWM_dynamic\fP is not set.
+Otherwise, \f(CWMemspace::grow()\fP
+is called automatically to increase the size of the \*M.
+.TP
+\f(CWint Memspace::grow( long sz );\fP
+Append at least sz units of new free space to the end of this \*M.
+.TP
+\f(CWlong Memspace::placeseg( long off, long sz );\fP
+Attempt to allocate sz units at offset off.
+If successful, off is return.  Otherwise -1 is returned.
+.TP
+\f(CWvoid Memspace::freeseg( long off, long sz );\fP
+Free sz units at offset off.  Freed space is merged with adjacent free space.
+Warnings are printed if unallocated space is freed or the specified segment
+is not in the \*M.
+.TP
+\f(CWlong Memspace::nextfree( long off, long& sz );\fP
+Returns the location and size of the next free block of space after offset off.
+.TP
+\f(CWvoid Memspace::save( FILE* );\fP
+Save a representation of this \*M in a file.
+.TP
+\f(CWvoid Memspace::restore( long* buf );\fP
+Reconstruct a \*M from the data in buf.
+(This was presumably data written by the \f(CWMemspace::save()\fP.)
+.TP
+\f(CWlong Memspace::msize();\fP
+Returns the current size (number of units) in a \*M.
+.TP
+\f(CWlong Memspace::svsize();\P
+Returns the number of longs that would be needed to save
+a representation of this \*M.
+.TP
+\f(CWvoid Memspace::print();\fP
+Display this \*M.
+.TP
+\f(CWconst char* Memspace::name();\fP
+Return the name of this \*M.
+.TP
+\f(CWinline long align( long off, int a );\fP
+Return offset off aligned to a.
+.TP
+\f(CWinline long align2( long off, long a );\fP
+Fast alignemnt function for alignment to a power of 2.
+.TP
+\f(CW// internal debugging\fP
+.nf
+.ft CW
+#ifdef IDEBUG
+extern int debugMem;
+extern int debugInternal;
+#endif
+.ft R
+.fi
+.SH "SEE ALSO"
+Link(1), idebug(1)

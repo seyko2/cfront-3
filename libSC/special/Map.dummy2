@@ -1,0 +1,29 @@
+/*ident	"@(#)Set:incl/Map.c	3.1" */
+/******************************************************************************
+*
+* C++ Standard Components, Release 3.0.
+*
+* Copyright (c) 1991, 1992 AT&T and Unix System Laboratories, Inc.
+* Copyright (c) 1988, 1989, 1990 AT&T.  All Rights Reserved.
+*
+* THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and Unix System
+* Laboratories, Inc.  The copyright notice above does not evidence
+* any actual or intended publication of such source code.
+*
+******************************************************************************/
+
+#include <TYPE1.h>
+#include <TYPE2.h>
+#include <Map.h>
+#include <stream.h>
+
+ostream &operator<<(ostream& os, const Map<TYPE1,TYPE2>& m) {
+        Mapiter<TYPE1,TYPE2> mi(m);
+        os << '{';
+        while (++mi) {
+                os << "[ " << mi.curr()->key << ' '
+                   << mi.curr()->value << " ]";
+        }
+        os << '}';
+        return os;
+}

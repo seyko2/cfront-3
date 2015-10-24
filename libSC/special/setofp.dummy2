@@ -1,0 +1,39 @@
+/*ident	"@(#)Set:incl/set_of_p.c	3.1" */
+/******************************************************************************
+*
+* C++ Standard Components, Release 3.0.
+*
+* Copyright (c) 1991, 1992 AT&T and Unix System Laboratories, Inc.
+* Copyright (c) 1988, 1989, 1990 AT&T.  All Rights Reserved.
+*
+* THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and Unix System
+* Laboratories, Inc.  The copyright notice above does not evidence
+* any actual or intended publication of such source code.
+*
+******************************************************************************/
+
+#include <set_of_p.h>
+#include <TYPE.h>
+#include <stream.h>
+
+#ifndef __GNUG__
+ostream&
+Set_of_p<TYPE>::print(ostream& os) const
+{
+    os << "{";
+    Set_of_piter<TYPE> it(*this);
+    TYPE* p;
+    int first=1;
+
+    while ( p = it.next() ) {
+	if ( first )
+	    first=0;
+	else
+	    os << ",";
+
+	os << *p;
+    }
+    os << "}";
+    return os;
+}
+#endif

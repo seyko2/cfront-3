@@ -1,0 +1,57 @@
+
+Hi!
+
+You should have gotten a letter explaining how to make this 
+tool.  In case you didn't, just look in the file Theletter.
+
+7/24:
+
+Fixed minor bug in fs_[un]register signatures.
+
+Added automated regression testing.  Now you can say 
+"make tests" and watch.
+
+5/23:
+
+Fs now handles the "delete[]" use of the delete operator.
+
+Fs functions can now be (more or less) reliably called 
+during static initialization and finalization.  
+
+Several bug fixes.
+
+3/14:
+
+The shell script fsCC is now obsolete.  I've fixed the CC shell 
+script (the one contained in the Liberty Corner C++ distribution) 
+to understand the -fs option.  To compile and link file with -fs, 
+you can now just say
+
+	CC -fs -c foo.c
+	CC -o foo foo.o -lfs -l++
+
+You'll only need to use fsCC if your CC shell script doesn't 
+understand -fs.
+
+2/90:
+
+Fs does not yet handle the [] use of the C++ delete operator.  (In
+the [] use, you can delete an array without having to remember its
+size, e.g.,
+	int n;
+	T *t = new T [n];
+	...
+	delete [] t; // no longer have to specify array size
+This capability may be coming soon to a cfront near you.)
+
+I never got around to implementing the ability to watch for the
+creation of a particular object.  If you find yourself wanting to
+do that more than twice, drop me a note and I'll implement it.
+
+4/89:
+
+The names of the library functions have changed a bit since AT&T 
+Technical Memorandum 59112-890413-TMS.  Also, one or two new 
+functions have been added.  Please consult the enclosed manpage 
+for the full scoop.
+

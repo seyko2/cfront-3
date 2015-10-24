@@ -1,0 +1,513 @@
+/*ident	"@(#)Set:incl/set.c	3.1" */
+/******************************************************************************
+*
+* C++ Standard Components, Release 3.0.
+*
+* Copyright (c) 1991, 1992 AT&T and Unix System Laboratories, Inc.
+* Copyright (c) 1988, 1989, 1990 AT&T.  All Rights Reserved.
+*
+* THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and Unix System
+* Laboratories, Inc.  The copyright notice above does not evidence
+* any actual or intended publication of such source code.
+*
+******************************************************************************/
+
+
+#ifndef __GNUG__
+#include <TYPE.h>
+#include <Set.h>
+
+int
+Set<TYPE>::containment(const Set<TYPE>& b, int comp_type) const
+{
+    switch (comp_type) {
+    case 0: // set equality
+	if (size() != b.size() )
+	    return 0;
+	break;
+    case 1: // subset
+	if (size() > b.size() )
+	    return 0;
+	break;
+    case 2: // strict subset
+	if (size() >= b.size() )
+	    return 0;
+    }
+
+    Bucketiter_ATTLC<TYPE>     a_it(*this);
+    Bucketiter_ATTLC<TYPE>     b_it(b);
+    register const Bucket_ATTLC<TYPE>* ap = a_it.first();
+    register const Bucket_ATTLC<TYPE>* bp = b_it.first();
+
+    while ( ap && bp ) {
+	if ( ap->hashval == bp->hashval ) {
+	    //  Make sure ap->collision_list is a subset of
+	    //  bp->collision_list
+
+	    if ( ap->collision_list.length() > bp->collision_list.length() )
+		return 0;
+
+	    Listiter<TYPE> lia(((Bucket_ATTLC<TYPE>*)ap)->collision_list);
+	    Listiter<TYPE> lib(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+
+	    while ( !lia.at_end() ) {
+		TYPE* atp;
+		lia.next(atp);
+		lib.reset();
+		int found=0;
+
+		while ( !lib.at_end() ) {
+		    TYPE* btp;
+		    lib.next(btp);
+
+		    if ( *atp == *btp ) {
+			found=1;
+			break;
+		    }
+		}
+		if ( !found )
+		    return 0;
+	    }
+	    ap = a_it.next();
+	    bp = b_it.next();
+
+	}
+	else if ( comp_type == 0 || SET_LT_ATTLC(ap->hashval,bp->hashval) ) {
+	    //  *ap contains values that can't be in oo, since we've
+	    //  already passed the point where they would be found;
+	    //  return failure
+
+	    return 0;
+
+	}
+	else {
+	    //  *ap contains values that may be in a future 
+	    //  Bucket_ATTLC of oo; increment b_it
+
+	    bp = b_it.next();
+	}
+    }
+
+    //  The relation is true only if a_it is exhausted (for subset
+    //  comparisons) or only if both iterators are exhausted (for
+    //  equality comparison)
+
+    if (comp_type == 0)
+	return ap == bp;
+
+    return ap == 0;
+}
+
+const TYPE*
+Set<TYPE>::contains(const TYPE& value) const
+{
+    register Internal_item_ATTLC* itemp;
+    register Internal_node_ATTLC* nodep;
+    Bucket_ATTLC<TYPE>* bp;
+
+    //  Hash the value
+
+    Set_or_Bag_hashval hval = hash(value);
+
+    //  See how much of pos is still good
+
+    register long mask = SET_MASK_BITS_ATTLC << SET_INITIAL_SHIFT_ATTLC;
+
+    int depth;
+    for ( depth = -1 ; depth < pos.curr_depth ; depth++, mask <<= SET_SHIFT_INCR_ATTLC )
+	if ( (pos.curr_value & mask) != (hval & mask) )
+	    break;
+
+    register int unshift = SET_INITIAL_SHIFT_ATTLC + SET_SHIFT_INCR_ATTLC +
+    			   depth * SET_SHIFT_INCR_ATTLC;
+    if ( depth == -1 )
+	itemp = &(((Set<TYPE> *)this)->contents);
+    else
+	itemp = pos.curr_pos[depth];
+
+    nodep = 0;
+    ((Position_ATTLC *) &((Set<TYPE>*)this)->pos)->curr_value = hval;
+
+    for ( ((Position_ATTLC *) &((Set<TYPE>*)this)->pos)->curr_depth = depth ; ;
+	  mask <<= SET_SHIFT_INCR_ATTLC, unshift += SET_SHIFT_INCR_ATTLC )
+    {
+#ifdef DEBUG_ATTLC
+	assert(pos.curr_depth < SET_POSITIONS_ATTLC);
+#endif
+	if ( itemp->is_null() )
+	    return 0;
+
+	if ( itemp->is_leaf() ) {
+	    bp = (Bucket_ATTLC<TYPE>*)itemp->external_leaf();
+	    Listiter<TYPE> it(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+	    TYPE* tp;
+
+	    while ( it.next(tp) )
+		if ( value == *tp )
+		    return tp;
+
+	    return 0;
+	}
+	else {
+	    nodep = itemp->next_node();
+#ifdef DEBUG_ATTLC
+	    assert(nodep);
+#endif
+	    ((Position_ATTLC *) &((Set<TYPE>*)this)->pos)->curr_pos[++((Position_ATTLC *) &((Set<TYPE>*)this)->pos)->curr_depth] = itemp =
+		&nodep->item[(pos.curr_value & mask) >> unshift];
+	}
+    }
+}
+
+Set<TYPE>&
+Set<TYPE>::operator|=(const Set<TYPE>& oo)
+{
+    if ( this != &oo ) {
+	Bucketiter_ATTLC<TYPE> bi(oo);
+	const Bucket_ATTLC<TYPE>* bp = bi.first();
+
+	while ( bp ) {
+	    Listiter<TYPE> li(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+	    while ( !li.at_end() ) {
+		TYPE* tp;
+		li.next(tp);
+		(void)insert(*tp);
+	    }
+	    bp = bi.next();
+	}
+    }
+    return *this;
+}
+
+Set<TYPE>&
+Set<TYPE>::operator-=(const Set<TYPE>& oo)
+{
+    if ( this != &oo ) {
+	Bucketiter_ATTLC<TYPE> bi(oo);
+	const Bucket_ATTLC<TYPE>* bp = bi.first();
+
+	while ( bp ) {
+	    Listiter<TYPE> li(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+	    while ( !li.at_end() ) {
+		TYPE* tp;
+		li.next(tp);
+		(void)remove(*tp);
+	    }
+	    bp = bi.next();
+	}
+    }
+    else
+	remove_all();
+
+    return *this;
+}
+
+Set<TYPE>&
+Set<TYPE>::operator&=(const Set<TYPE>& oo)
+{
+    if ( this != &oo ) {
+	Bucketiter_ATTLC<TYPE> bi(*this);
+	const Bucket_ATTLC<TYPE>* bp = bi.first();
+
+	while ( bp ) {
+	    Listiter<TYPE> li(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+
+	    //  remove() may delete the collision list;
+	    //  beware of dangling list iterator;
+
+	    while ( li.the_list() && !li.at_end() ) {
+		TYPE* tp;
+		li.next(tp);
+		if ( !oo.contains(*tp))
+		    remove(*tp);
+	    }
+	    bp = bi.next();
+	}
+    }
+    return *this;
+}
+
+Set<TYPE>&
+Set<TYPE>::operator^=(const Set<TYPE>& b)
+{
+    if ( this != &b ) {
+	Bucketiter_ATTLC<TYPE> a_it(*this); 
+	Bucketiter_ATTLC<TYPE> b_it(b);
+	const Bucket_ATTLC<TYPE>* ap = a_it.first(); 
+	const Bucket_ATTLC<TYPE>* bp = b_it.first();
+
+	while ( ap && bp ) {
+	    if ( ap->hashval == bp->hashval ) {
+		//  The two hash values are equal; this means the two
+		//  buckets may contain equal values (which must be 
+		//  weeded out).
+
+		Listiter<TYPE> lia(((Bucket_ATTLC<TYPE>*)ap)->collision_list);
+		Listiter<TYPE> lib(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+
+		lib.reset();
+
+		while ( !lib.at_end() ) {
+		    TYPE* atp;
+		    TYPE* btp;
+		    lib.next(btp);
+		    int found=0;
+
+		    //  Guard against the case where removing from this list
+		    //  causes the list to disappear
+
+		    if ( lia.the_list() ) {
+			lia.reset();
+			while ( !lia.at_end() ) {
+			    lia.next(atp);
+			    if ( *atp == *btp ) {
+				found=1;
+				break;
+			    }
+			}
+		    }
+		    if ( found )
+			remove(*atp);
+		    else
+			insert(*btp);
+		}
+		ap = a_it.next();
+		bp = b_it.next();
+	    }
+	    else if ( SET_LT_ATTLC(ap->hashval,bp->hashval) ) {
+		ap = a_it.next();
+	    }
+	    else {
+		Listiter<TYPE> lib(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+
+		while ( !lib.at_end() ) {
+		    TYPE* btp;
+		    lib.next(btp);
+		    insert(*btp);
+		}
+		bp = b_it.next();
+	    }
+	}
+	while ( bp ) {
+	    Listiter<TYPE> lib(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+	    while ( !lib.at_end() ) {
+		TYPE* btp;
+		lib.next(btp);
+		insert(*btp);
+	    }
+	    bp = b_it.next();
+	}
+    }
+    else {
+	remove_all();
+    }
+    return *this;
+}
+
+void
+Set<TYPE>::warn_iterators() const
+{
+    register Bucketiter_ATTLC<TYPE>* it;
+    for ( it = iter_head ; it ; it = it->next_it )
+	it->clobber();
+}
+
+void
+Set<TYPE>::histogram(Map<Set_or_Bag_hashval,unsigned>& m) const
+{
+    //  Iterate over buckets, creating a Map from
+    //  bp->hashval to bp->collision_list.length().
+
+    Bucketiter_ATTLC<TYPE> bi(*this);
+    const Bucket_ATTLC<TYPE>* bp = bi.first();
+    m = Map<Set_or_Bag_hashval,unsigned>();
+
+    while ( bp ) {
+	m[bp->hashval] = bp->collision_list.length();
+	bp = bi.next();
+    }
+}
+
+void
+Set<TYPE>::check() const
+{
+    Bucketiter_ATTLC<TYPE> bi(*this);
+    const Bucket_ATTLC<TYPE>* bp = bi.first();
+#ifdef DEBUG_ATTLC
+    Set_or_Bag_hashval oldhashval=0;  // initialize to avoid warning
+#endif
+    int first=1;
+
+    while ( bp )
+    {
+	//  Buckets must be stored in increasing order of
+	//  hash value
+
+	if ( first )
+	    first=0;
+	else {
+#ifdef DEBUG_ATTLC
+	    assert(SET_LT_ATTLC(oldhashval,bp->hashval));
+#endif
+	}
+#ifdef DEBUG_ATTLC
+	oldhashval = bp->hashval;
+#endif
+
+	//  Collision lists may not be empty
+
+#ifdef DEBUG_ATTLC
+	assert(bp->collision_list.length()>0);
+#endif
+
+	//  Collision lists may not contain duplicates
+
+	Listiter<TYPE> it1(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+	Listiter<TYPE> it2(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+
+	while ( !it1.at_end() ) {
+	    it2.reset();
+	    while ( !it2.at_end() ) {
+		TYPE* p1;
+		TYPE* p2;
+		it1.next(p1);
+		it2.next(p2);
+#ifdef DEBUG_ATTLC
+		assert(*p1 == *p2);
+#endif
+	    }
+	}
+	bp = bi.next();
+    }
+}
+
+void
+Set<TYPE>::make_setlogic(const Set<TYPE>& a, const Set<TYPE>& b, int l_type)
+{
+    //  l_type = 0 (intersection), 1 (union), 2 (set difference), 3 (xor)
+
+#ifdef DEBUG_ATTLC
+    assert(sze == 0);
+#endif
+    Bucketiter_ATTLC<TYPE>     a_it(a), b_it(b);
+    register const Bucket_ATTLC<TYPE> *ap = a_it.first(), *bp = b_it.first();
+    TYPE *atp, *btp;
+
+    while ( ap && bp ) {
+	Listiter<TYPE> lia(((Bucket_ATTLC<TYPE>*)ap)->collision_list);
+	Listiter<TYPE> lib(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+
+	if ( ap->hashval == bp->hashval ) {
+	    // insert all of the necessary items from B
+
+	    if ( l_type == 1 ) {
+		while ( !lib.at_end() ) {
+		    lib.next(btp);
+		    insert(*btp);
+		}
+	    }
+	    else if ( l_type == 3 ) {
+		while ( !lib.at_end() ) {
+		    lib.next(btp);
+		    lia.reset();
+		    int found=0;
+		    while ( !lia.at_end() ) {
+			lia.next(atp);
+			if ( *atp == *btp ) {
+			    found=1;
+			    break;
+			}
+		    }
+		    if ( !found )
+			insert(*btp);
+		}
+	    }
+
+	    // insert all the necessary items from A
+
+	    lia.reset();
+	    while ( !lia.at_end() ) {
+		lia.next(atp);
+		lib.reset();
+		int found=0;
+		while ( !lib.at_end() ) {
+		    lib.next(btp);
+		    if ( *atp == *btp ) {
+			found=1;
+			break;
+		    }
+		}
+		if ( found ) {
+		    if ( l_type == 0 )
+			insert(*atp);
+		}
+		else {
+		    if ( l_type != 0 )
+			insert(*atp);
+		}
+	    }
+	    ap = a_it.next();
+	    bp = b_it.next();
+	}
+	else if ( SET_LT_ATTLC(ap->hashval,bp->hashval) ) {
+	    // an entire bucket of values in A but not in B
+
+	    if (l_type != 0 )
+		while ( !lia.at_end() )
+		{
+		    lia.next(atp);
+		    insert(*atp);
+		}
+
+	    ap = a_it.next();
+	}
+	else {
+	    // an entire bucket of values in B but not in A
+
+	    if (l_type == 1 || l_type == 3 )
+		while ( !lib.at_end() ) {
+		    lib.next(btp);
+		    insert(*btp);
+		}
+
+	    bp = b_it.next();
+	}
+    }
+
+    //  Insert whatever's left over from a and b
+
+    if ( l_type != 0 )
+	for ( ;ap;ap = a_it.next() ) {
+	    Listiter<TYPE> lia(((Bucket_ATTLC<TYPE>*)ap)->collision_list);
+	    while ( !lia.at_end() ) {
+		lia.next(atp);
+		insert(*atp);
+	    }
+	}
+
+    if ( l_type == 1 || l_type == 3 ) {
+	for ( ; bp ; bp = b_it.next() ) {
+	    Listiter<TYPE> lib(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+	    while ( !lib.at_end() ) {
+		lib.next(btp);
+		insert(*btp);
+	    }
+	}
+    }
+}
+
+const TYPE*
+Set<TYPE>::select() const
+{
+    Bucketiter_ATTLC<TYPE> bi(*this);
+    const Bucket_ATTLC<TYPE>* bp = bi.first();
+
+    if ( !bp )
+	return 0;
+
+    Listiter<TYPE> li(((Bucket_ATTLC<TYPE>*)bp)->collision_list);
+    TYPE* tp;
+    li.next(tp);
+    return tp;
+}
+#endif

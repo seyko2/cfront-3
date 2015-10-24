@@ -1,0 +1,20 @@
+
+Hi!
+
+This is a tool for producing drawings of the class inheritance 
+hierarchies in C++ programs.  I hope you like it.
+
+You should have gotten a letter explaining how to build this tool.  
+In case you didn't, just look in the file "Theletter".
+
+Good luck!
+martin carroll	
+carroll@mozart.att.com
+
+-------------------------
+10/3/89
+	New flags: -m, -c, -s, -u, -t.
+	Reimplemented using my nifty OO lexer.
+	Random fixes and improvements.
+
+

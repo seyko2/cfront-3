@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if test "$1" = "BSD"
+then
+	cp -p $2 $3
+else
+	cp $2 $3
+fi

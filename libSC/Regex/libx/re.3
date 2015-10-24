@@ -1,0 +1,170 @@
+.TH RE 3
+.SH NAME
+recomp, reexec, resub, refree, reerror \(mi regular expression library
+.SH SYNOPSIS
+.B #include <re.h>
+.PP
+.B reprogram* recomp(char* pattern, int flags)
+.PP
+.B int reexec(reprogram* re, char* source)
+.PP
+.B "void resub(reprogram* re, char* old, char* new, char* destination, int flags)"
+.PP
+.B void reerror(char* message)
+.PP
+.B void refree(reprogram* re)
+.SH DESCRIPTION
+.I recomp
+compiles a regular expression in
+.B pattern
+and returns a pointer to a compiled regular expression.
+The space is allocated by
+.IR malloc (3)
+and may be released by
+.IR refree .
+Regular expressions are as in
+.I egrep
+(see
+.IR grep (1))
+except that newlines are treated as ordinary
+characters and
+.B $
+matches the end of a null-terminated string.
+.B flags
+may be
+.B RE_EDSTYLE
+which specifies
+.IR ed (1)
+style special characters,
+.BR \e( ,
+.BR \e) ,
+.BR \e? ,
+.B \e+
+and
+.B \e|
+for the
+.IR egrep (1)
+.BR ( ,
+.BR ) ,
+.BR ? ,
+.B +
+and
+.BR | ,
+respectively.
+.PP
+.I reexec
+matches the null-terminated
+.B source
+string against the compiled regular expression
+.I re
+from a previous call to
+.IR recomp .
+If it matches,
+.I reexec
+returns a non-zero value.
+If
+.B flags
+is
+.B RE_MATCH
+then the array
+.B re\->match
+is filled with character pointers to the substrings of
+.B source
+that correspond to the
+parenthesized subexpressions of 
+.BR pattern :
+.B re\->match[i].sp
+points to the beginning and
+.B re\->match[i].ep
+points just beyond
+the end of substring
+.BR i .
+(Subexpression
+.B i
+begins at the
+.BR i th
+matched left parenthesis, counting from 1.)
+Pointers in
+.B re\->match[0]
+pick out the substring that corresponds to
+the entire regular expression.
+Unused elements of
+.B re\->match
+are filled with zeros.
+Matches involving
+.BR * ,
+.BR + ,
+and 
+.B ?
+are extended as far as possible.
+A maximum of 9 subexpressions will be matched.
+The structure of elements of
+.B re\->match 
+is:
+.nf
+.ta 8n
+	typedef struct
+	{
+		char* sp;
+		char* ep;
+	} rematch;
+.fi
+.LP
+.I resub
+places in
+.I destination
+a substitution instance of
+.B old
+to
+.B new
+in
+.B source
+in the context of the last
+.I reexec
+performed on
+.IR re\->match .
+Each instance of
+.BI \e n ,
+where
+.I n
+is a digit, is replaced by the
+string delimited by
+.BI re\->match[ n ].sp
+and
+.BI re\->match[ n ].ep .
+Each instance of 
+.B &
+is replaced by the string delimited by
+.B re\->match[0].sp
+and
+.BR re\->match[0].ep .
+If
+.B flags
+is 
+.B RE_ALL
+then all occurrences of
+.B old
+are replaced by
+.IR new .
+.LP
+.I reerror,
+called whenever an error is detected in
+.I recomp,
+.I reexec,
+or
+.I resub,
+writes the string
+.B msg
+on the standard error file and exits.
+.I reerror
+may be replaced to perform
+special error processing.
+.SH DIAGNOSTICS
+.I recomp
+returns 0 for an invalid expression or other failure.
+.I reexec
+returns 1 if
+.B source
+is accepted, 0 otherwise.
+.SH "SEE ALSO"
+ed(1), grep(1), expr(1)

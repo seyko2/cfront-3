@@ -1,0 +1,911 @@
+#!/bin/sh
+# /*ident	"@(#)cls4:CC	1.2" */
+###############################################################################
+#
+# C++ source for the C++ Language System, Release 3.0.  This product
+# is a new release of the original cfront developed in the computer
+# science research center of AT&T Bell Laboratories.
+#
+# Copyright (c) 1991 AT&T and UNIX System Laboratories, Inc.
+# Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+#
+# THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+#	
+# Laboratories, Inc.  The copyright notice above does not evidence
+# any actual or intended publication of such source code.
+#
+###############################################################################
+
+# This is the AT&T C++ driver.
+
+# PT environment
+PTPATH=$PATH
+# end PT
+PATH=/bin:/usr/bin
+
+# NOTE: To properly use the CC command you should check the values of the
+# following variables to be sure they are the locations of the
+# appropriate translator files on your system.
+
+# directory containing cfront, c++filt, and patch/munch
+CCROOTDIR=${CCROOTDIR-/chome/sun4/3.1}
+
+# directory containing the C++ libraries
+CCLIBDIR=${CCLIBDIR-/chome/sun4/3.1}
+
+# colon-separated list of standard C++ include directories
+I=${I-/chome/sun4/3.1/incl}
+
+# set for +a0 (classic C style declarations) or +a1 (ANSI C style declarations)
+AON=${AON-+a0}
+
+# Set to "+L" to generate source line number information using the format
+# "#line %d" instead of "# %d".  Some cpp's have trouble when this is set,
+# so the default is not to set the variable.
+LINE_OPT=${LINE_OPT-}
+
+# option passed to cc to tell linker to look for libraries in another
+# directory.  For example, -Wl,-L.
+LOPT=${LOPT--L}
+
+# 0 to disable linker output demangling
+DEMANGLE=${DEMANGLE-1}
+
+# id of C++ runtime library
+LIB_ID=${LIB_ID-C}
+
+# C++ runtime library
+LIBRARY=${LIBRARY--l${LIB_ID}} 
+
+if test "$CCROOTDIR" != "" ;then
+	CCROOTDIR="$CCROOTDIR/"
+fi
+
+# location of cfront
+cfrontC=${cfrontC-${CCROOTDIR}cfront}
+
+# top level makefile will set this to MUNCH (default) or PATCH
+PM_FLAG=PATCH
+
+if test "$PM_FLAG" = "PATCH"
+then
+	# location of patch
+	patchC=${patchC-${CCROOTDIR}patch}
+else
+	# location of munch
+	munchC=${munchC-${CCROOTDIR}munch}
+	# location of nm
+	NM=${NM-nm}
+	# whatever extra options you always want passed to nm
+	NMFLAGS=${NMFLAGS-}
+fi
+
+# location of c++filt
+cplusfiltC=${cplusfiltC-${CCROOTDIR}c++filt}
+
+# location of C compiler
+ccC=${ccC-cc}
+
+# whatever extra options you always want passed
+# to cpp, for example, -D-+ for fowler cpp
+CPPFLAGS=${CPPFLAGS-}
+
+# location of preprocessor
+# warning: cppC can get overridden by the -Y switch
+cppC=${cppC-/lib/cpp}
+
+
+# The following two environment variables are hooks for library providers
+
+# 1 if CC -fs option is available
+FS=${FS-0}
+
+# whatever string the command line argument "-l++" should
+# automatically expand into
+LPPEXPAND=${LPPEXPAND-"-l++"}
+
+# PT setup
+ptrdef="./ptrepository"			# default repository
+ptr=${ptrdef}				# repository set by user
+ptdmap="defmap"
+ptroot=${CCROOTDIR}
+ptcompC=${ptcompC-${ptroot}ptcomp}
+ptlinkC=${ptlinkC-${ptroot}ptlink}
+ptdef=
+ptflags=
+ptflags2=
+ptflags3=
+ptrlist=
+ptscnt=0
+ptT=
+ptn=0
+clg=0
+ptrflag=0
+# end PT
+
+#############################################################
+# You shouldn't have to change anything below this line
+#############################################################
+if test "$CCLIBDIR" = "/usr/lib"
+then LLIBPATH=""
+elif test -d /usr/alliant
+then export LD_PATH="${LD_PATH-/lib /usr/lib /usr/local/lib} $CCLIBDIR"
+else LLIBPATH="$LOPT$CCLIBDIR"
+fi
+
+# sys.fix will set SYS to the designated system
+# it will then be defined for each CC invocation
+SYS=-DBSD
+
+export CCROOTDIR
+export cppC
+
+# for Ansi compatibility, c_plusplus => __cplusplus
+# for backward compatibility, retain c_plusplus for 2.0
+CPLUS=-Dc_plusplus=1
+cPLUS=-D__cplusplus=1
+
+IDIRS=
+while [ "$I" != "" ]; do
+	idir=`echo $I | sed 's/:.*$//'`
+	if [ "$idir" = "" ]; then
+		idir=.
+	fi
+	IDIRS="$IDIRS -I$idir"
+	case "$I" in
+	*:*)	I=`echo $I | sed 's/^[^:]*://'`
+		;;
+	*)	I=
+	esac
+done
+
+TMPDIR=${TMPDIR-/usr/tmp}
+TEMPDIR=$TMPDIR/CC.$$
+C= EE=0 FON= XON= O=
+PON= R= SUF= X= DASHR= PLUSI= STRIP=
+Z= E=0 OF= P=
+NOLOAD= NLO=
+AFAIL=0
+OO="a.out"
+FINALNAME=$OO
+ISUF=".c"
+MVLIST=
+APASS=0
+defmem=D deflist=
+Y="$CPPFLAGS"
+
+rm -fr $TEMPDIR
+trap 'rm -fr $TEMPDIR; exit' 1 2 3 13 15
+mkdir $TEMPDIR
+E=$?
+if test $E -ne 0
+then
+     echo "CC: error: cannot create temporary directory in $TEMPDIR: stop" 1>&2
+     exit $E
+fi
+for A do
+	case $A in
+	# PT option parsing 1
+	-ptr*)	if [ "$A" = "-ptr" ]
+		then
+			echo "CC[pt] warning: no repository specified after $A" 1>&2
+		else
+			x=`echo $A | cut -c5-999`
+			ptrflag=1
+			if [ "$ptrlist" = "" ]
+			then
+				ptr=$x
+				ptrlist=" "
+			else
+				ptrlist="$ptrlist $x"
+			fi
+		fi
+		;;
+	-ptv)	ptflags="$ptflags $A"
+		;;
+	-pta)	ptflags2="$ptflags2 $A"
+		;;
+	-pts)	ptflags2="$ptflags2 $A"
+		;;
+	-ptt)	ptflags2="$ptflags2 $A"
+		;;
+	-ptn)	ptn=1
+		;;
+	-pto*)	if [ "$A" = "-pto" ]
+		then
+			echo 'CC[pt] warning: no pathname specified after -pto' 1>&2
+		else
+			ptflags2="$ptflags2 $A"
+		fi
+		;;
+	*.[Cc])	if [ $ptscnt -eq 0 ]
+		then
+			ptscnt=1
+		elif [ $ptscnt -eq 1 ]
+		then
+			ptscnt=2
+		fi
+		;;
+	+T*)	if [ "$A" = "+T" ]
+		then
+			echo "CC[pt] warning: no pathname specified after +T" 1>&2
+		elif [ "$ptT" != "" ]
+		then
+			echo "CC[pt] warning: second +Tfile illegal, ignored" 1>&2
+		else
+			ptT=$A
+		fi
+		;;
+	# end PT
+	-Yp,*)	cppC=`expr $A : '-Yp,\(.*\)'`/`basename ${cppC}`
+		;;
+	-YI*)	X="$X $A"
+		;;
+	-Y0*)	X="$X $A" 
+		;;
+	-Y2*)	X="$X $A"
+		;;
+	-Ya*)	X="$X $A"
+		;;
+	-Y*)	Z="$Z $A"
+		;;
+	+a?)	AON=$A
+		;;
+	-E)     PON=1
+		;;
+	-F)	FON=1
+		;;
+	-Fc)	FON=1
+		;;
+	-C)	Y="$Y $A"
+		;;
+	-P)	PON=1			# pre-process only
+		Y="$Y $A"
+		SUF=".i"
+		NOLOAD=".i"
+		;;
+	-H)	Y="$Y $A"
+		;;
+	-S*)	if test "$NOLOAD" != ".i"
+		then
+			NOLOAD=".s"
+			NLO="$A"
+		fi
+		;;
+	-c*)	if test "$NOLOAD" != ".i"
+		then
+			if test "$NOLOAD" != ".s"
+			then
+				NOLOAD=".o"
+				NLO="-c"
+			fi
+		fi
+		;;
+	-fs)    if [ $FS -eq 1 ]
+		then	Y="$Y -fs"
+		else    echo "CC: -fs not available (ignoring -fs)" 1>&2
+		fi
+		;;
+	-I*) 	if test "$A" != "-I" 
+		then
+		  	Y="$Y $A"
+		else
+			ION=1
+		fi
+		;;
+	-D*)	eval $defmem='"$A"'
+		deflist="$deflist \"\$$defmem\""
+		defmem=${defmem}x
+		# PT option parsing 2
+		ptdef="$ptdef $A"
+		# end PT
+		;;
+	-U*)	Y="$Y $A"
+		;;
+	-g)	Z="$Z $A"
+		X="$X $A"
+		O="$O +g"
+		;;
+	 *)	;;
+	esac
+done
+
+for A do
+	case $A in
+	# PT option parsing 3
+	-ptr*)	;;
+	-ptv)	;;
+	-pta)	;;
+	-ptt)	;;
+	-pts)	;;
+	-ptn)	;;
+	-pto*)	;;
+	+T*)	;;
+	# end PT
+	-Y*)	;;
+	+S)	echo "CC: +S no longer accepted (ignored)" >&2
+		;;
+	+V)	echo "CC: +V no longer accepted (ignored)" >&2
+		;;
+	+i)	PLUSI=1
+		;;
+	-s)	STRIP=1
+		;;
+	+x)	XON=1
+		;;
+	+a?)	;;
+	+*)	O="$O $A"
+		;;
+	-E)	;;
+	-fs)	;;
+	-F)	;;
+	-Fc)	;;
+	-C)	;;
+	-P)	;;
+	-H)	;;
+	-D)	;;
+	-U)	;;
+	-I)	;;
+	-S*)	;;
+	-P)	;;
+	-c*)	;;
+	-p|-pg)	P="$P $A"
+		;;
+	-g) 	;;
+	-r)	DASHR=1
+		Z="$Z $A"
+		;;
+	-o*)	if test "$A" != "-o" 
+		then
+			OO=`expr $A : '-o\(.*\)'`
+			FINALNAME=$OO
+		  	A="-o $OO"
+		else
+			OX=1
+		fi
+		OF="$OF $A"
+		Z="$Z $A"
+		;;
+	-.c)	echo "CC: bad suffix option: -.c (ignored)" 1>&2
+		;;
+	-.*)	SUF=`expr "$A" : '-\(.*\)'`
+		;;
+	*.[Cc]) if	test -f $A
+		then
+			case $A in
+				*.c) B=`basename $A .c` ;;
+				*.C) B=`basename $A .C` ;;
+			esac
+
+			if	test $PON
+			then
+				if test $SUF
+				then
+					echo "$cppC $O  $A > $B$SUF:" 1>&2
+					eval '$cppC' '$Y' $deflist '$CPLUS' '$cPLUS' '$SYS' '$IDIRS' '$A' >$B$SUF
+					E=$?
+				else
+					#echo "$cppC $Y $deflist $CPLUS $cPLUS $SYS $IDIRS $A" 1>&2
+					eval '$cppC' '$Y' $deflist '$CPLUS' '$cPLUS' '$SYS' '$IDIRS' '$A'
+					E=$?
+				fi
+				case $E in
+				0)	;;
+				*)	AFAIL=1; break
+					;;
+				esac
+			elif	test $FON
+			then
+				if test $SUF
+				then
+					echo "$cfrontC $O  $A > $B$SUF:" 1>&2
+					eval '$cppC' '$Y' $deflist '$CPLUS' '$cPLUS' '$SYS' '$IDIRS' '$A' >$TEMPDIR/cpptmp
+					E=$?
+					if test $E -ne 0
+					then
+						echo "CC: cpp failure: $E" 1>&2
+						AFAIL=1; break
+					fi
+					$cfrontC ${LINE_OPT} +f$A $O $AON <$TEMPDIR/cpptmp >$B$SUF
+					E=$?
+				else	
+					eval '$cppC' '$Y' $deflist '$CPLUS' '$cPLUS' '$SYS' '$IDIRS' '$A' >$TEMPDIR/cpptmp
+					E=$?
+					if test $E -ne 0
+					then
+						echo "CC: cpp failure: $E" 1>&2
+						AFAIL=1; break
+					fi
+					$cfrontC ${LINE_OPT} +f$A $O $AON <$TEMPDIR/cpptmp 
+					E=$?
+				fi
+				case $E in
+				0)	;;
+				*)	AFAIL=1; break
+					;;
+				esac
+			else
+				echo "CC $O $A:" 1>&2
+				#echo "$cppC $Y $deflist $CPLUS $cPLUS $SYS $IDIRS $A" 1>&2
+				eval '$cppC' '$Y' $deflist '$CPLUS' '$cPLUS' '$SYS' '$IDIRS' '$A' >$TEMPDIR/cpptmp
+				E=$?
+				if test $E -ne 0
+				then
+					echo "CC: cpp failure: $E" 1>&2
+					AFAIL=1; break
+				fi
+				# PT compile-time actions
+
+				# set up for directed mode
+				if [ "$ptT" = "" -a $ptscnt -eq 1 -a "$NLO" != "-c" -a $ptn -eq 0 ]
+				then
+					clg=1
+				fi
+				if [ $clg -eq 1 ]
+				then
+					x=$TEMPDIR/dirinst
+					echo '@all' > $x
+					x="+T$x +s"
+				elif [ "$ptT" != "" ]
+				then
+					x="$ptT +s"
+				else
+					x=$TEMPDIR/dirinst
+					echo '@none' > $x
+					x="+T$x +s"
+				fi
+				$cfrontC ${LINE_OPT} +f$A $x +t$TEMPDIR/ptcf $O $AON <$TEMPDIR/cpptmp >$TEMPDIR/$B$ISUF
+				E=$?
+				R=1
+				C="$C $TEMPDIR/$B$ISUF"
+				case $E in
+				0)	X="$X $B$ISUF"
+					if test "$NOLOAD" != ".c" 
+					then
+						Z="$Z $TEMPDIR/$B.o"
+					fi
+					MVLIST="$MVLIST $B"
+					OLDAPASS=$APASS
+					APASS=1
+
+					# see if any templates encountered
+					err=0
+					grep '^[tf] ' $TEMPDIR/ptcf >/dev/null 2>&1
+					err2=$?
+
+					# create repository if have to
+					if [ $err2 -eq 0 -a ! -d $ptr ]
+					then
+						mkdir $ptr 2>/dev/null
+						err=$?
+						if [ "$ptr" = "$ptrdef" ]
+						then
+							ptflags3="$ptflags3 -ptd"
+						fi
+					fi
+					if [ $err -ne 0 ]
+					then
+						echo "CC[ptcomp] warning: could not create repository $ptr, ignoring type information" 1>&2
+					elif [ -d $ptr -a ! -w $ptr ]
+					then
+						echo "CC[ptcomp] warning: repository $ptr is not writable, ignoring type information" 1>&2
+
+					# update repository
+					elif [ $err2 -eq 0 -o -d $ptr ]
+					then
+						sort -u $TEMPDIR/ptcf >$TEMPDIR/ptcf2
+						if [ "$ptT" != "" ]
+						then
+							ptflags3="-ptl"
+						fi
+						# get include list
+						ptincl=$TEMPDIR/ptincl
+						> $ptincl
+						for pti in $Y $IDIRS
+						do
+							echo $pti
+						done > $ptincl
+						PATH=$PTPATH $ptcompC $PTOPTS $ptflags $ptflags3 $ptr $TEMPDIR/ptcf2 $ptdmap $A $ptincl
+						if [ $? -ne 0 ]
+						then
+							AFAIL=1
+							APASS=$OLDAPASS
+						fi
+					fi
+					# end PT
+					;;
+				127)    echo "Too many compilation errors" 1>&2
+					AFAIL=1
+					;;
+				999)	echo "CC argument error" 1>&2
+					AFAIL=1
+					;;
+				1)	echo "1 error" 1>&2
+					AFAIL=1
+					;;
+				*)	echo "$E errors" 1>&2
+					AFAIL=1
+					;;
+				esac
+			fi
+		else
+			echo "CC: $A not found" 1>&2
+			EE=1
+		fi
+		;;
+	*.h)	if	test -f $A
+		then
+
+			B=`basename $A .h`
+
+			if	test $PON
+			then
+				if test $SUF
+				then
+					echo "$cppC $O  $A > $B$SUF:" 1>&2
+					eval '$cppC' '$Y' $deflist '$CPLUS' '$cPLUS' '$SYS' '$IDIRS' '$A' >$B$SUF
+					E=$?
+				else
+					eval '$cppC' '$Y' $deflist '$CPLUS' '$cPLUS' '$SYS' '$IDIRS' '$A'
+					E=$?
+				fi
+				case $E in
+				0)	;;
+				*)	AFAIL=1; break
+					;;
+				esac
+			else
+				echo "CC: error: file with unknown suffix: $A" 1>&2
+			fi
+		else
+			echo "CC: $A not found" 1>&2
+			EE=1
+		fi
+		;;
+	*.i)    if test -f $A
+		then
+
+			if test $PON
+			then
+				echo "CC -E $A incompatible: ignoring $A" 1>&2
+			else
+				if test $FON
+				then
+					#eval '$cppC' '$Y' $deflist '$CPLUS' '$cPLUS' '$SYS' '$IDIRS' '$A' >$TEMPDIR/cpptmp
+					#if test $? -ne 0
+					#then
+					#	echo "CC: cpp failure: $E" 1>&2
+					#	AFAIL=1; break
+					#fi
+					#$cfrontC +L +f$A $O $AON <$TEMPDIR/cpptmp 
+					$cfrontC ${LINE_OPT} +f$A $O $AON < $A
+					if test $? -ne 0
+					then
+						AFAIL=1
+					fi
+  				else	
+					B=`basename $A .i`
+					echo "CC $O $A:" 1>&2
+					$cfrontC ${LINE_OPT} +f$A $O $AON < $A > $TEMPDIR/$B$ISUF
+					E=$?
+					R=1
+					C="$C $TEMPDIR/$B$ISUF"
+					case $E in
+					0)	X="$X $B$ISUF"
+						if test "$NOLOAD" != "-c" 
+						then
+							Z="$Z $TEMPDIR/$B.o"
+						fi
+						MVLIST="$MVLIST $B"
+						APASS=1
+						;;
+					*)	AFAIL=1
+						;;
+				esac
+				fi
+			fi
+
+		else
+			echo "CC: $A not found" 1>&2
+			EE=1
+		fi
+		;;
+	*.s)	# add to list to be compiled in $TEMPDIR, set flag to go on
+		B=`basename $A .s`
+		X="$X $B.s"
+		cp $A $TEMPDIR/$B.s
+		APASS=1
+
+		if test "$NOLOAD" != "-c" 
+		then
+			# add object entry to the load list
+			Z="$Z $TEMPDIR/$B.o"
+		fi
+		;;
+	*.o)	Z="$Z $A"
+		if test $OX
+		then
+			OO=$A
+			FINALNAME=$OO
+			OF="$OF $A"
+			OX=""
+		else
+			X="$X $A"
+		fi
+		APASS=1 # setting APASS to 1 causes link step to execute
+		;;
+	-l++)	Z="$Z $LPPEXPAND"
+		X="$X $LPPEXPAND"
+                ;;  
+	*)	if test $XON
+		then	
+			O="$O +x$A"
+			XON=""
+		elif test $ION
+		then
+			Y="$Y -I$A"
+			ION=""
+		else
+			Z="$Z $A"
+			if test $OX
+			then
+				OO=$A
+				FINALNAME=$OO
+				OF="$OF $A"
+				OX=""
+			else
+				X="$X $A"
+			fi
+		fi
+		;;
+	esac
+done
+
+case $APASS in
+0)	;;
+*)					# generate code
+	if test "$PLUSI"		#leave ..c's lying around
+	then
+		#remove #line's from the ..c's for sdb
+		for f in $C
+		do
+			sed "/^#/d" $f >$TEMPDIR/temp
+			mv $TEMPDIR/temp $f 2> /dev/null
+		done
+	fi
+	
+	#if one file failed in cpp or cfront then do not create a.out
+	if test $AFAIL -eq 1
+	then
+		if test -z "$NOLOAD"
+		then
+			NOLOAD=".o"
+			NLO="-c"
+		fi
+	fi 
+
+	if test "$NOLOAD"
+	then
+ 		# make sure there are some .c, .s, or .i files in X
+ 		ANY_CS=`expr "$X" : '.*\(\.[CcSsi]\).*'`
+ 		if test "$ANY_CS"
+ 		then
+			echo "$ccC $P $NLO $X" 1>&2
+   			# contortions to cope with bug handling path in cc
+			#compile, no load
+   			(cd $TEMPDIR; $ccC $P $NLO $X)
+ 			EE=$?
+   			if test $EE = 0
+   			then
+ 				# move products back into current directory
+   				mv $TEMPDIR/*$NOLOAD . 2> /dev/null
+   			fi
+ 		fi
+	else
+		echo "$ccC $P $LLIBPATH $OF $X $LIBRARY" 1>&2
+ 		
+		# run cc on the cfront-generated files.
+		# first have to remove .o's from the argument list
+		# passed to cc, since some cc's don't like .o's with -c
+		cfiles=
+		xxx=
+ 		for x in $X
+ 		do
+ 			case $x in
+ 			*${ISUF})	cfiles="$cfiles $x"
+ 				;;
+			*.o)	;;
+			*)	xxx="$xxx $x"
+				;;
+ 			esac
+ 		done
+ 		if [ "$cfiles" != "" ]
+ 		then
+			#echo "$ccC $P -c $xxx $cfiles in $TEMPDIR" 1>&2
+ 	  		(cd $TEMPDIR; $ccC $P -c $xxx $cfiles)  # compile, no load
+ 			EE=$?	# don't link if there was an error
+ 		else
+ 			EE=0	# okay to link
+ 		fi
+ 		
+		case $EE in
+		0) # load
+			#echo "$ccC $P $LLIBPATH $Z $LIBRARY"
+			# PT link-time actions
+			PTEE=0
+			grep "@de[cf]" $ptr/$ptdmap >/dev/null 2>&1
+			x=$?
+			if [ $x -eq 0 -o $ptrflag -eq 1 ]
+			then
+				ptincl=$TEMPDIR/ptincl
+				ptin=$TEMPDIR/ptin
+				ptout=$TEMPDIR/ptout
+				ptccopt=$TEMPDIR/ptccopt
+				ptrlistx=$TEMPDIR/ptrlistx
+				> $ptincl
+				> $ptin
+				> $ptout
+				> $ptccopt
+				> $ptrlistx
+
+				# get include list
+				for pti in $Y $ptdef $CPLUS $cPLUS $SYS $IDIRS
+				do
+					echo $pti
+				done > $ptincl
+
+				# build list of input files and options
+				skipflag=0
+				for pti in $P $Z $LIBRARY
+				do
+					if [ $skipflag -eq 1 ]
+					then
+						skipflag=0
+						continue
+					fi
+					x=`echo $pti | cut -c1-1`
+					if [ "$x" != "-" -a "$x" != "+" ]
+					then
+						echo $pti
+					elif [ "$pti" = "-o" -o "$x" = "-I" -o "$x" = "-D" -o "$x" = "-U" ]
+					then
+						skipflag=1
+					else
+						x=`echo $pti | cut -c1-2`
+						xx=`echo $pti | cut -c3-99`
+						if [ "$x" = "-l" -a -f $CCLIBDIR/lib${xx}.a ]
+						then
+							echo $CCLIBDIR/lib${xx}.a
+						elif [ "$x" != "-I" -a "$x" != "-D" -a "$x" != "-U" ]
+						then
+							echo $pti 1>&2
+						fi
+					fi
+				done >$ptin 2>$ptccopt
+				echo $AON >>$ptccopt
+
+				# deal with standard library
+				if [ "$LIBRARY" = "-l${LIB_ID}" ]
+				then
+					grep "$CCLIBDIR/libC.a" $ptin >/dev/null 2>&1
+					if [ $? -ne 0 ]
+					then
+						echo $CCLIBDIR/libC.a >> $ptin
+					fi
+				else
+					echo $LIBRARY >> $ptin
+				fi
+
+				# deal with +i
+				pi=
+				if [ "$PLUSI" -eq 1 ]
+				then
+					pi="-pti"
+				fi
+
+				# make list of repositories
+				for pti in $ptrlist
+				do
+					echo $pti
+				done >$ptrlistx
+
+				# and we're off to the races
+				PATH=$PTPATH $ptlinkC $PTOPTS $pi $ptflags $ptflags2 $ptr $TEMPDIR $0 $ptincl $ptin $ptout $ptdmap $ptccopt $ptrlistx "$cppC"
+				PTEE=$?
+
+				# add in any instantiated objects
+				Z="`cat $ptout` $Z"
+			fi
+			if [ $PTEE -eq 0 ]
+			# end PT
+			then
+				$ccC $P $LLIBPATH $Z $LIBRARY >$TEMPDIR/__err 2>&1
+				EE=$?
+				(test $DEMANGLE = 1 &&
+				 $cplusfiltC <$TEMPDIR/__err 2>/dev/null |
+				 sed "s/^[ 	]*\(..*\)::__vtbl.*$/   Virtual table for class '\1': first non-inline virtual function in '\1' is not defined./") ||
+				cat $TEMPDIR/__err
+			else
+				EE=$PTEE
+			fi
+
+			if test $EE = 0  -a "$DASHR" != 1
+			then	#find ctors/dtors
+				if test "$FINALNAME" = "a.out"
+					then chmod 644 a.out
+					else chmod 644 $FINALNAME
+				fi
+				case $PM_FLAG in
+				PATCH)
+					$patchC $OO
+					EE=$?
+					if test $EE != 0 
+					then
+					echo "CC: error: patch failed in handling static constructors or destructors" 1>&2
+					fi
+					;;
+				*)
+					CTDT=__ctdt$$
+					TCTDT=${TEMPDIR}/${CTDT}
+					$NM $NMFLAGS $OO | \
+						$munchC $P > ${TCTDT}.c
+					$ccC -c ${TCTDT}.c && \
+						$ccC $P $LLIBPATH ${CTDT}.o $Z $LIBRARY
+					EE=$?
+					if test $EE != 0 
+					then
+					echo "CC: error: munch failed in handling static constructors or destructors" 1>&2
+					fi
+					rm ${CTDT}.o
+					;;
+				esac
+				if test $EE = 0
+				then
+					if test "$FINALNAME" = "a.out"
+					then chmod 755 a.out
+					else chmod 755 $FINALNAME
+					fi
+				fi
+				if test "$STRIP"
+				then
+					strip $OO
+				fi
+			fi
+			COUNT=0 
+			for A in $X
+			do 
+			   COUNT="`expr $COUNT + 1`"
+			done
+			if test $COUNT -gt 1
+			then
+			   mv $TEMPDIR/*.o . 2> /dev/null
+			fi
+			;;
+		esac
+	fi
+esac
+
+if test "$R"
+then
+   if test "$PLUSI"
+   then
+ 	for A in $MVLIST
+ 	do
+ 		mv $TEMPDIR/$A${ISUF} $A.${ISUF} 2> /dev/null
+ 	done
+   fi
+fi
+
+rm -fr $TEMPDIR
+
+if test $AFAIL -ne 0
+then
+	exit $AFAIL
+fi
+
+case $E in
+0)	exit $EE
+	;;
+*)	exit $E
+esac
+

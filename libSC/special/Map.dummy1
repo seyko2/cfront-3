@@ -1,0 +1,400 @@
+/*ident	"@(#)Map.c	1.1.2.3" */
+/******************************************************************************
+*
+* C++ Standard Components, Release 3.0.
+*
+* Copyright (c) 1991, 1992 AT&T and Unix System Laboratories, Inc.
+* Copyright (c) 1988, 1989, 1990 AT&T.  All Rights Reserved.
+*
+* THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and Unix System
+* Laboratories, Inc.  The copyright notice above does not evidence
+* any actual or intended publication of such source code.
+*
+******************************************************************************/
+
+#ifdef __GNUG__
+#pragma implementation "Map.h"
+#endif
+#include <TYPE1.h>
+#include <TYPE2.h>
+#include <Map.h>
+#ifdef __GNUG__
+template class Map<TYPE1,TYPE2>;
+#endif
+
+#ifndef __GNUG__
+Mapnode_ATTLC<TYPE1,TYPE2>::~Mapnode_ATTLC()
+{
+}
+
+Map<TYPE1,TYPE2>::~Map()
+{
+	Mapiter<TYPE1,TYPE2>* p = iter_head;
+	while (p) {
+		p->m = 0;
+		p = p->iter_next;
+	}
+}
+
+Mapiter<TYPE1,TYPE2>::Mapiter (const Map<TYPE1,TYPE2>* map, Mapnode_ATTLC<TYPE1,TYPE2>* n): p(n)
+{
+	m = (Map<TYPE1,TYPE2>*)map;
+	m->mi_count++;
+	iter_next = m->iter_head;
+	m->iter_head = this;
+}
+
+Mapiter<TYPE1,TYPE2>::Mapiter (const Map<TYPE1,TYPE2>& map): p(0)
+{
+	m = (Map<TYPE1,TYPE2>*)(&map);
+	m->mi_count++;
+	iter_next = m->iter_head;
+	m->iter_head = this;
+}
+
+Mapiter<TYPE1,TYPE2>::~Mapiter ()
+{
+	if (m==0 || m->iter_head == 0) return;
+	if (--m->mi_count == 0 && m->remove_flag) {
+		m->remove_deadwood();
+		m->remove_flag = 0;
+	}
+	if (this == m->iter_head) {
+		m->iter_head = iter_next;
+	} else {
+		Mapiter<TYPE1,TYPE2>* _p = m->iter_head;
+		while (_p->iter_next!=this) {
+			_p = _p->iter_next;
+		}
+		_p->iter_next = iter_next;
+	}
+}
+
+Mapnode_ATTLC<TYPE1,TYPE2>::Mapnode_ATTLC(const TYPE1& xs, const TYPE2& xt): map_data (xs)
+{
+	map_data.value = xt;
+}
+
+Map<TYPE1,TYPE2>::Map() : def (*Mapnode_ATTLC<TYPE1,TYPE2>::default_T())
+{
+	mi_count = 0; 
+	remove_flag = 0; 
+	iter_head = 0;
+}
+
+Map<TYPE1,TYPE2>::Map(const TYPE2& d) : def (d)
+{
+	mi_count = 0; 
+	remove_flag = 0; 
+	iter_head = 0;
+}
+
+Map<TYPE1,TYPE2>&
+Map<TYPE1,TYPE2>::operator= (const Map<TYPE1,TYPE2>& m)
+{
+	if (this != &m) {
+		make_empty();
+		for (Mapiter<TYPE1,TYPE2> p (m); ++p; ) {
+			// TYPE1 s = p.key();	/* sidestep a cfront bug */
+			// (*this) [s] = p.value();
+			(*this) [p.key()] = p.value();
+		}
+//		iter_head=0;
+//		mi_count = 0;
+		/* march through the iterator list, setting each to vacuous */
+		for (Mapiter<TYPE1,TYPE2> *ip = iter_head; ip; ip = ip->iter_next) {
+			/* ip->m = this; */ /* unnecessary */
+			ip->p = 0;
+		}
+   		remove_flag = 0;
+	}
+	return *this;
+}
+/**
+int
+Map<TYPE1,TYPE2>::operator== (const Map<TYPE1,TYPE2>& m)
+{
+	if (m.size() != n) {
+		cout << "aaa\n";
+		return 0;
+	}
+
+	if (this != &m) {
+		Mapiter<TYPE1,TYPE2> q(*this);
+		Mapiter<TYPE1,TYPE2> p(m);
+		while (++p) {
+			if (++q == 0) 
+			    return 0;
+
+			if (q.key() != p.key()) {
+			    cout << "bbb:q=" << q.key() << " p=" << p.key() << "\n";
+			    return 0;
+			}
+			if (q.value() != p.value()) {
+			    cout << "bbb:q=" << q.value().value() << " p=" << p.value().value() << "\n";
+			    return 0;
+			}
+		}
+		if (++q == 0) 
+			return 1;
+		
+		cout << "ccc:" << (void*)p << " " << (void*)q << "\n";
+	  	return 0;
+	}
+	cout << "ddd\n";
+	return 1;
+}
+**/
+Map<TYPE1,TYPE2>::Map (const Map<TYPE1,TYPE2>& m): def (m.def), mi_count(0), remove_flag(0), iter_head(0)
+{
+	operator= (m);
+}
+
+TYPE2&
+Map<TYPE1,TYPE2>::newnode (Mapnodebase_ATTLC*& ptr, const TYPE1& s, Mapnode_ATTLC<TYPE1,TYPE2>* parent)
+{
+	Mapnode_ATTLC<TYPE1,TYPE2>* p = new Mapnode_ATTLC<TYPE1,TYPE2> (s, def);
+	ptr = p;
+	TYPE2& retval = p->map_data.value;
+
+	p->U_ = parent;
+	n++;
+
+	Mapbase_ATTLC::newnode(ptr);
+	
+	return retval;
+}
+
+TYPE2&
+Map<TYPE1,TYPE2>::operator[] (const TYPE1& s)
+{
+	if (head()) {
+		Mapnode_ATTLC<TYPE1,TYPE2>* t = head();
+		for(;;) {
+			if (s < t->map_data.key) {
+				if (t->L())
+					t = t->L();
+				else
+					return newnode (t->L_, s, t);
+			} else if (t->map_data.key < s) {
+				if (t->R())
+					t = t->R();
+				else
+					return newnode (t->R_, s, t);
+			} else
+				break;
+		}
+		if (t->remove_mark != 0) {
+			t->remove_mark = 0;
+			t->map_data.value = def;
+			n++;
+		}
+		return t->map_data.value;
+	} else
+		return newnode (head_, s, 0);
+}
+
+const TYPE2&
+Map<TYPE1,TYPE2>::operator[] (const TYPE1& s) const
+{
+	return (const TYPE2&)(((Map<TYPE1,TYPE2>*)this)->operator[](s));
+}
+
+Mapiter<TYPE1,TYPE2>
+Map<TYPE1,TYPE2>::element (const TYPE1& s) const
+{
+	Mapnode_ATTLC<TYPE1,TYPE2>* t = head();
+	while (t) {
+		if (s < t->map_data.key)
+			t = t->L();
+		else if (t->map_data.key < s)
+			t = t->R();
+		else
+			break;
+	}
+	if (t && t->remove_mark == 0)
+		return Mapiter<TYPE1,TYPE2> (this, t);
+	else
+		return Mapiter<TYPE1,TYPE2> (this, 0);
+}
+
+int
+Map<TYPE1,TYPE2>::remove(const TYPE1& s)
+{
+	Mapnode_ATTLC<TYPE1,TYPE2>* t = head();
+	while (t) {
+		if (s < t->map_data.key)
+			t = t->L();
+		else if (t->map_data.key < s)
+			t = t->R();
+		else break;
+	}
+	if (t) {
+		if (mi_count > 0) {
+			remove_flag = 1;
+			if (!t->remove_mark) {
+				t->remove_mark = 1;
+				n--;
+			}
+			return (1);
+		}
+		else {
+			removenode(t);
+			delete t;
+			n--;
+			return (1);
+		}
+	}
+	else {
+		return (0);
+	}
+}
+
+void
+Mapiter<TYPE1,TYPE2>::remove()
+{
+	if (p) {
+		m->remove_flag = 1;
+		p->remove_mark = 1;
+		m->n--;
+	}
+}
+
+Mapiter<TYPE1,TYPE2>&
+Mapiter<TYPE1,TYPE2>::operator++()
+{
+	while (1) {
+		p = m->successor(p);
+		if (p == 0 || p->remove_mark == 0) {
+			return (*this);
+		}
+	}
+}
+
+Mapiter<TYPE1,TYPE2>&
+Mapiter<TYPE1,TYPE2>::operator--()
+{
+	while (1) {
+		p = m->predecessor(p);
+		if (p == 0 || p->remove_mark == 0) {
+			return (*this);
+		}
+	}
+}
+
+Mapiter<TYPE1,TYPE2>::Mapiter(const Mapiter<TYPE1,TYPE2>& mi) : m(mi.m),p(mi.p)
+{
+	m->mi_count++;
+	iter_next = m->iter_head;
+	m->iter_head = this;
+}
+
+Mapiter<TYPE1,TYPE2>&
+Mapiter<TYPE1,TYPE2>::operator=(const Mapiter<TYPE1,TYPE2>& mi)
+{
+	if (this == m->iter_head) {
+		m->iter_head = iter_next;
+	} else {
+		Mapiter<TYPE1,TYPE2>* _p = m->iter_head;
+		while (_p && _p->iter_next!=this) {
+			_p = _p->iter_next;
+		}
+		if (_p) {
+			_p->iter_next = iter_next;
+		}
+	}
+	((Map<TYPE1,TYPE2>*)m)->mi_count--;
+	((Map<TYPE1,TYPE2>*)mi.m)->mi_count++;
+	m = (Map<TYPE1,TYPE2>*)(mi.m);
+	p = mi.p;
+	iter_next = m->iter_head;
+	m->iter_head = this;
+	return *this;
+}
+
+const TYPE1*
+Mapnode_ATTLC<TYPE1,TYPE2>::default_S()
+{
+	static TYPE1 S_default_item;
+	return (&S_default_item);
+}
+
+const TYPE2*
+Mapnode_ATTLC<TYPE1,TYPE2>::default_T()
+{
+	static TYPE2 T_default_item;
+	return (&T_default_item);
+}
+
+Mapiter<TYPE1,TYPE2>
+Map<TYPE1,TYPE2>::lub (const TYPE1& s) const
+{
+        Mapnode_ATTLC<TYPE1,TYPE2>* t = head();
+
+        while(t){
+                if(s < t->map_data.key){
+                        if(t->L())
+                                t = t->L();
+                        else
+                                break;
+                }
+                else if(t->map_data.key < s){
+                        if(t->R())
+                                t = t->R();
+                        else {
+                                t = successor(t);
+                                break;
+                        }
+                }
+                else
+                        break;
+        }
+        while (t && t->remove_mark){
+                t = successor(t);
+        }
+        if(t)
+                return Mapiter<TYPE1,TYPE2> (this, t);
+        else
+                return Mapiter<TYPE1,TYPE2> (this, 0);
+}
+
+Mapiter<TYPE1,TYPE2>
+Map<TYPE1,TYPE2>::glb (const TYPE1& s) const
+{
+        Mapnode_ATTLC<TYPE1,TYPE2>* t = head();
+
+        while(t){
+                if(t->map_data.key < s){
+                        if(t->R())
+                                t = t->R();
+                        else
+                                break;
+                }
+                else if (s < t->map_data.key){
+                        if(t->L())
+                                t = t->L();
+                        else {
+                                t = predecessor(t);
+                                break;
+                        }
+                }
+                else
+                        break;
+        }
+        while (t && t->remove_mark){
+                t = predecessor(t);
+        }
+        if(t)
+                return Mapiter<TYPE1,TYPE2> (this, t);
+        else
+                return Mapiter<TYPE1,TYPE2> (this, 0);
+}
+
+Mapiter<TYPE1,TYPE2> Map<TYPE1,TYPE2>::first() const {
+        return ++Mapiter<TYPE1,TYPE2> (*this);
+}
+ 
+Mapiter<TYPE1,TYPE2> Map<TYPE1,TYPE2>::last() const {
+        return --Mapiter<TYPE1,TYPE2> (*this);
+}
+#endif

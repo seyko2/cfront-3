@@ -1,0 +1,58 @@
+.tr ~-
+.TH DEMANGLE 1 "" "" HP-UX
+.ad b
+.SH NAME
+demangle \- demangle names throughout an a.out file (HP-UX version)
+.SH SYNOPSIS
+.B
+demangle
+.I file
+.SH DESCRIPTION
+.I Demangle
+changes C++ mangled names to ``human-readable'' names in HP-UX a.out files.
+This permits tools such as symbolic debuggers and profilers to be used
+more easily.
+.PP
+.I Demangle
+overwrites the a.out file's symbol table.
+Names of local variables are mapped back to their original spellings.
+Names of data members and nested classes are also mapped back
+to their original spellings.
+The demangled names of data members and nested classes do
+not include qualification, whereas member functions are mapped to
+.IR Classname__function .
+If
+.IR Classname
+is a nested class name, then occurrences of
+.IR ::
+in the qualified name are mapped to
+.IR __ .
+.PP
+Each demangled name is written in place in the a.out over the mangled name,
+so care must be taken that the demangled name is no longer than the mangled one.
+Toward that end,
+.IR "`operator'"
+is elided from the names of operator functions and conversion functions.
+Also, the names of constructors and destructor of a class
+.IR Classname
+are demangled to Classname____ct and Classname____dt, respectively.
+In those rare cases where the demangled name is still longer
+than the mangled name, e.g.,
+.IR "Classname::operator unsigned short" ,
+a message is printed to
+.IR stderr
+and the name is not demangled.
+.SH FILES
+.ta 20
+/tmp/dx??????	temporary file
+.SH AUTHOR
+Dennis Mancl
+.SH BUGS
+Trouble arises for overloaded functions: they are mapped
+to the same name, so a symbolic debugger may not be able to distinguish them.
+Overloaded operator functions may also cause difficulty, because
+the name mapping produces a name with the operation symbol in it
+(such as
+.IR "Classname__+" ).
+Some symbolic debuggers can't handle identifiers with these special symbols
+in them.

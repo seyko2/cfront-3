@@ -1,0 +1,92 @@
+/*ident	"@(#)List:incl/List.c	3.1" */
+/******************************************************************************
+*
+* C++ Standard Components, Release 3.0.
+*
+* Copyright (c) 1991, 1992 AT&T and Unix System Laboratories, Inc.
+* Copyright (c) 1988, 1989, 1990 ATYPE&T.  All Rights Reserved.
+*
+* THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and Unix System
+* Laboratories, Inc.  The copyright notice above does not evidence
+* any actual or intended publication of such source code.
+*
+******************************************************************************/
+
+#ifdef __GNUG__
+#pragma implementation "List.h"
+#endif
+#include <List.h>
+#include <TYPE.h>
+#ifdef __GNUG__
+template class List_of_p<TYPE>;
+template class List_of_piter<TYPE>;
+#endif
+
+#ifndef __GNUG__
+List_of_piter<TYPE>::List_of_piter(List_of_p<TYPE>& l) : 
+	Const_list_of_piter<TYPE>((const List_of_p<TYPE>&)l)
+{
+}
+
+List_of_piter<TYPE>::List_of_piter(const List_of_piter<TYPE>& l) : 
+	Const_list_of_piter<TYPE>((Const_list_of_piter<TYPE>)l)
+{
+}
+
+List_of_piter<TYPE>::~List_of_piter()
+{
+}
+
+List_of_p<TYPE>::List_of_p(const TYPE* x) : List<voidP>((voidP) x)
+{
+}
+
+List_of_p<TYPE>::List_of_p(const TYPE* x, const TYPE* y) :
+	List<voidP>((voidP) x, (voidP) y)
+{
+}
+
+List_of_p<TYPE>::List_of_p(const TYPE* x, const TYPE* y, const TYPE* z) :
+	List<voidP>((voidP)x, (voidP)y, (voidP)z)
+{
+}
+
+List_of_p<TYPE>::List_of_p(const TYPE* x, const TYPE* y, const TYPE* z, const TYPE* w) :
+	List<voidP>((voidP) x, (voidP) y, (voidP) z, (voidP) w)
+{
+}
+
+Const_list_of_piter<TYPE>::Const_list_of_piter(const List_of_p<TYPE>& l) :
+	Listiter<voidP>((List<voidP>&) l)
+{
+}
+
+Const_list_of_piter<TYPE>::Const_list_of_piter(const Const_list_of_piter<TYPE>& l) :
+	Listiter<voidP>((Listiter<voidP>&) l)
+{
+}
+
+List_of_p<TYPE> List_of_p<TYPE>::operator+(const List_of_p<TYPE>& ll)
+{
+	List<voidP> result((List<voidP>&)*this + (List<voidP>&)ll);
+	return (List_of_p<TYPE>&)result;
+}
+
+List_of_p<TYPE> List_of_p<TYPE>::operator+(const TYPE* _t)
+{
+	List<voidP> result((List<voidP>&)*this + (voidP)_t); 
+	return (List_of_p<TYPE>&)result;
+}
+
+TYPE*&
+List_of_p<TYPE>::operator[](unsigned ii)
+{
+	return (TYPE*&)*getAt(ii);
+}
+
+const TYPE*&
+List_of_p<TYPE>::operator[](unsigned ii) const
+{
+	return (const TYPE*&)*((List_of_p<TYPE>*)this)->getAt(ii);
+}
+#endif

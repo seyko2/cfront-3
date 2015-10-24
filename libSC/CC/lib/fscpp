@@ -1,0 +1,61 @@
+#!/bin/sh
+#ident	"@(#)CC:lib/fscpp	3.1" 
+###############################################################################
+#
+# C++ Standard Components, Release 3.0.
+#
+# Copyright (c) 1991, 1992 AT&T and Unix System Laboratories, Inc.
+# Copyright (c) 1988, 1989, 1990 AT&T.  All Rights Reserved.
+#
+# THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and Unix System
+# Laboratories, Inc.  The copyright notice above does not evidence
+# any actual or intended publication of such source code.
+#
+###############################################################################
+
+# fscpp - run the C preprocessor and the freestore filter (fsipp) if requested.
+
+CCLIBDIR=${CCLIBDIR-/libdir}	   # I set if not set (null is considered set)
+CCLIBDIR=${CCLIBDIR:+${CCLIBDIR}/} # if set and not null, I add a / to the end
+realcppC=${realcppC-/lib/cpp}	   # user must set this to same cpp used by C++
+fsippC=${fsippC-${CCLIBDIR}fsipp}  # free store filter (may not be available)
+fstmpbaseC=${fstmpbaseC-/tmp/Tmp_fscpp_} #becomes 2 files: ${fstmpbaseC}1 & 2
+
+arglist=  cppopts=  fspipe=  passcomments=  usetmpfile=  verbose=
+
+for A 
+do   case $A in
+	-C)	passcomments=1 ;;	 # pass comments, but only if no fsipp
+	-fs)	fspipe="|$fsippC" ;;	 # use the free store filter, fsipp
+	-tmp)	usetmpfile=1 ;;		 # use tmp files (to check exit status)
+	-v)	verbose=1 ;;		 # echo stuff
+	*)	arglist="$arglist $A" ;; # some other arg to be passed along
+     esac
+     shift
+done
+# only allow -C if not using fsipp because fsipp doesn't understand comments
+[ "$passcomments" -a ! "$fspipe" ] && arglist="-C $arglist"
+
+clean_exit(){	[ $usetmpfile ] && rm -f ${fstmpbaseC}[12]; exit $1; }
+check_exit(){	[ $1 -ne 0 ] && clean_exit $1; }
+ 
+if [ $usetmpfile ]; then
+	[ $verbose ] && echo "${realcppC} $arglist > ${fstmpbaseC}1" 1>&2
+	eval ${realcppC} '$arglist' > ${fstmpbaseC}1
+	check_exit $?
+	if [ $fspipe ]; then
+		[ $verbose ] && echo "cat ${fstmpbaseC}1 $fspipe > ${fstmpbaseC}2" 1>&2
+		eval cat ${fstmpbaseC}1 $fspipe > ${fstmpbaseC}2
+		check_exit $?
+		[ $verbose ] && echo "cat ${fstmpbaseC}2" 1>&2
+		cat ${fstmpbaseC}2
+	else
+		[ $verbose ] && echo "cat ${fstmpbaseC}1" 1>&2
+		cat ${fstmpbaseC}1
+	fi
+else
+	[ $verbose ] && echo "${realcppC} $arglist $fspipe" 1>&2
+	eval ${realcppC} '$arglist' $fspipe
+fi
+
+clean_exit 0

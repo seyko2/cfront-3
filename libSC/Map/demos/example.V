@@ -1,0 +1,1 @@
+{[ #include 3 ][ (cin 1 ][ 0; 1 ][ << 2 ][ <Map.h> 1 ][ <String.h> 1 ][ <stream.h> 1 ][ >> 1 ][ Map<String,int> 1 ][ String 1 ][ count 1 ][ count; 1 ][ count[word]++; 1 ][ cout 1 ][ endl; 1 ][ main() 1 ][ return 1 ][ while 1 ][ word) 1 ][ word; 1 ][ { 1 ][ } 1 ]}

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# for each function f in the arg list which is in the section 3
+# library on this machine, print out "#define F 1"
+
+for func
+do	echo "main() { $func(); }" > $$.c
+	cc $$.c >/dev/null 2>&1 
+	rm -f $$.c
+	if [ $? -eq 0 ]
+	then	FUNC=`echo $func | tr a-z A-Z`
+		echo "#define $FUNC 1"
+	fi
+done
+

@@ -1,0 +1,36 @@
+/*ident	"@(#)Block:incl/Block.c	3.1" */
+/******************************************************************************
+*
+* C++ Standard Components, Release 3.0.
+*
+* Copyright (c) 1991, 1992 AT&T and Unix System Laboratories, Inc.
+* Copyright (c) 1988, 1989, 1990 AT&T.  All Rights Reserved.
+*
+* THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and Unix System
+* Laboratories, Inc.  The copyright notice above does not evidence
+* any actual or intended publication of such source code.
+*
+******************************************************************************/
+
+#include <Block.h>
+#include <TYPE.h>
+#include <stream.h>
+
+ostream& operator<<(ostream& os, const Block<TYPE>& b)
+{
+	os << '[';
+
+	if ( b.n > 0 )
+		os << b.p[0];
+
+#ifdef __GNUG__
+	int i;
+	for ( i=1 ; i<b.n ; i++ )
+#else
+	for ( int i=1 ; i<b.n ; i++ )
+#endif
+		os << "," << b.p[i];
+
+	os << ']';
+	return os;
+}

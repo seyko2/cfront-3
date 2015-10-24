@@ -1,0 +1,489 @@
+/*ident	"@(#)List.c	1.1.2.4" */
+/******************************************************************************
+*
+* C++ Standard Components, Release 3.0.
+*
+* Copyright (c) 1991, 1992 AT&T and Unix System Laboratories, Inc.
+* Copyright (c) 1988, 1989, 1990 AT&T.  All Rights Reserved.
+*
+* THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and Unix System
+* Laboratories, Inc.  The copyright notice above does not evidence
+* any actual or intended publication of such source code.
+*
+******************************************************************************/
+
+#ifdef __GNUG__
+#pragma implementation "List.h"
+#endif
+#include <List.h>
+#include <TYPE.h>
+#ifdef __GNUG__
+template class List<TYPE>;
+template class Listiter<TYPE>;
+#endif
+
+#ifndef __GNUG__
+#ifdef __GNUG__
+Pool *lnnk_ATTLC<TYPE>::pool() {
+	Pool *lcl_pool = 0;
+	if (lcl_pool == 0) {
+		lcl_pool = new Pool(sizeof(lnnk_ATTLC<TYPE>));
+	}
+	return lcl_pool;
+}
+#else
+Pool* lnnk_ATTLC<TYPE>::pool = 0;
+#endif
+
+lnnk_ATTLC<TYPE>::~lnnk_ATTLC()
+{
+}
+
+lnk_ATTLC*
+lnnk_ATTLC<TYPE>::copy()
+{
+	return new lnnk_ATTLC<TYPE>((TYPE&)val);
+}
+
+int
+lnnk_ATTLC<TYPE>::operator==(lnk_ATTLC& x)
+{
+	return val == ((lnnk_ATTLC<TYPE>*)&x)->val;
+}
+
+void* 
+lnnk_ATTLC<TYPE>::operator new(size_t)
+{
+#ifdef __GNUG__
+	return pool()->alloc();
+#else
+	return pool->alloc();
+#endif
+}
+
+lnk_ATTLC*
+lnnk_ATTLC<TYPE>::getnewlnnk_ATTLC(const TYPE& x)
+{
+	return (new lnnk_ATTLC<TYPE>((TYPE&)x));
+}
+
+void
+lnnk_ATTLC<TYPE>::deletelnnk_ATTLC(TYPE& t, lnnk_ATTLC<TYPE>* ptr)
+{
+	t = ptr->val;
+	delete ptr;
+}
+
+List<TYPE>::List(const List<TYPE>& a0, const TYPE& _t) : Lizt_ATTLC((Lizt_ATTLC&)a0)
+{
+	put(_t);
+}
+
+List<TYPE>::List()
+{
+#ifndef __GNUG__
+	lnnk_ATTLC<TYPE>::init_pool(); 
+#endif
+}
+
+List<TYPE>::List(const TYPE& _t)
+{
+#ifndef __GNUG__
+	lnnk_ATTLC<TYPE>::init_pool();
+#endif
+	put(_t);
+}
+
+List<TYPE>::List(const TYPE& _t, const TYPE& u)
+{
+#ifndef __GNUG__
+	lnnk_ATTLC<TYPE>::init_pool();
+#endif
+	put(_t);
+	put(u);
+}
+
+List<TYPE>::List(const TYPE& _t, const TYPE& u, const TYPE& v)
+{
+#ifndef __GNUG__
+	lnnk_ATTLC<TYPE>::init_pool();
+#endif
+	put(_t);
+	put(u);
+	put(v);
+}
+
+List<TYPE>::List(const TYPE& _t, const TYPE& u, const TYPE& v, const TYPE& w)
+{
+#ifndef __GNUG__
+	lnnk_ATTLC<TYPE>::init_pool();
+#endif
+	put(_t);
+	put(u);
+	put(v);
+	put(w);
+}
+
+List<TYPE>::List(const List<TYPE>& a) : Lizt_ATTLC((const Lizt_ATTLC&)a)
+{
+#ifndef __GNUG__
+	lnnk_ATTLC<TYPE>::init_pool(); 
+#endif
+}
+
+TYPE 
+List<TYPE>::unput()
+{ 
+	lnnk_ATTLC<TYPE>* ll = (lnnk_ATTLC<TYPE>*)Lizt_ATTLC::unput();
+	TYPE ans = ll->val; 
+	delete ll; 
+	return ans; 
+}
+
+TYPE 
+List<TYPE>::get()
+{ 
+	lnnk_ATTLC<TYPE>* ll = (lnnk_ATTLC<TYPE>*)Lizt_ATTLC::get();
+	// if (ll == 0)
+	//	return 0;
+	TYPE ans = ll->val; 
+	delete ll; 
+	return ans; 
+}
+
+TYPE*
+List<TYPE>::getAt(int i)
+{ 
+	lnnk_ATTLC<TYPE>* ll = (lnnk_ATTLC<TYPE>*)Lizt_ATTLC::getAt(i);
+	if ( ll )
+		return &(ll->val);
+	else
+		return (TYPE*)0;
+}
+
+TYPE&
+List<TYPE>::operator[](unsigned ii)
+{
+	return (TYPE&)*(getAt(ii));
+}
+
+const TYPE&
+List<TYPE>::operator[](unsigned ii) const
+{
+	return (const TYPE&)*(((List<TYPE>*)this)->getAt(ii));
+}
+
+TYPE*
+List<TYPE>::head() const
+{
+	lnnk_ATTLC<TYPE>* ll = (lnnk_ATTLC<TYPE>*)Lizt_ATTLC::head();
+	if (ll == 0)
+		return 0;
+	return &(ll->val);
+}
+
+TYPE*
+List<TYPE>::tail() const
+{
+	lnnk_ATTLC<TYPE>* ll = (lnnk_ATTLC<TYPE>*)Lizt_ATTLC::tail();
+	if (ll == 0)
+		return 0;
+	return &(ll->val);
+}
+
+void
+List<TYPE>::sort(int (*cmp)(const TYPE&,const TYPE&))
+{
+	if ( length() < 2 )
+		return;
+
+	voidP_List_sort_internal(*(List<voidP>*)this, (int (*)(const voidP &, const voidP &))cmp);
+	reset_all_iters();
+}
+
+int
+List<TYPE>::unput(TYPE& _t)
+{
+	lnnk_ATTLC<TYPE>* ll = (lnnk_ATTLC<TYPE>*)Lizt_ATTLC::unput();
+	if ( ll )
+	{ 
+		lnnk_ATTLC<TYPE>::deletelnnk_ATTLC(_t, ll);
+		return 1;
+	}
+	else
+		return 0;
+}
+
+int
+List<TYPE>::get(TYPE& _t)
+{ 
+	lnnk_ATTLC<TYPE>* ll = (lnnk_ATTLC<TYPE>*)Lizt_ATTLC::get();
+	if ( ll )
+	{ 
+		lnnk_ATTLC<TYPE>::deletelnnk_ATTLC(_t, ll);
+		return 1;
+	}
+	else
+		return 0;
+}
+
+List<TYPE>&
+List<TYPE>::put(const TYPE& x)
+{
+	return (List<TYPE>&) Lizt_ATTLC::put(lnnk_ATTLC<TYPE>::getnewlnnk_ATTLC(x));
+}
+
+List<TYPE>&
+List<TYPE>::unget(const TYPE& x)
+{ 
+	return (List<TYPE>&)Lizt_ATTLC::unget(lnnk_ATTLC<TYPE>::getnewlnnk_ATTLC(x));
+}
+
+Const_listiter<TYPE>::Const_listiter(const List<TYPE>& a) : Liztiter_ATTLC((Lizt_ATTLC&)a)
+{
+}
+ 
+Const_listiter<TYPE>::Const_listiter(const Const_listiter<TYPE>& a) : Liztiter_ATTLC((const Liztiter_ATTLC&)a)
+{
+} 
+
+int
+Const_listiter<TYPE>::next(TYPE& t)
+{
+	if ( at_end() )
+		return 0;
+	else
+		return (t = ((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::next())->val, 1);
+}
+
+int
+Const_listiter<TYPE>::next(TYPE*& t)
+{
+	if ( at_end() )
+		return 0;
+	else
+		return (t = &((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::next())->val, 1);
+}
+
+TYPE*
+Const_listiter<TYPE>::next()
+{
+	if ( at_end() )
+		return 0;
+	lnnk_ATTLC<TYPE>* ll = (lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::next();
+	return &(ll->val);
+}
+
+int
+Const_listiter<TYPE>::prev(TYPE& t)
+{
+	if ( at_head() )
+		return 0;
+	else
+		return (t=((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::prev())->val, 1);
+}
+
+int
+Const_listiter<TYPE>::prev(TYPE*& t)
+{
+	if ( at_head() )
+		return 0;
+	else
+		return (t= &((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::prev())->val, 1);
+}
+
+TYPE*
+Const_listiter<TYPE>::prev()
+{
+	if ( at_head() )
+		return 0;
+	lnnk_ATTLC<TYPE>* ll = (lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::prev();
+	return &(ll->val);
+}
+
+int
+Const_listiter<TYPE>::find_prev(const TYPE& x)
+{
+	if ( at_head() || theLizt->length()==0 )
+		return 0;
+
+	lnnk_ATTLC<TYPE>* iter = (lnnk_ATTLC<TYPE>*) pred->nxt;
+	register int i = index;
+	do {
+		iter = (lnnk_ATTLC<TYPE>*) iter->prv;
+		if (iter->val==x) {
+			index = i;
+			pred = iter;
+			return 1;
+		}
+		i--;
+	} while ( i > 0 );
+	return 0;
+}
+
+int
+Const_listiter<TYPE>::find_next(const TYPE& x)
+{
+	if ( at_end() || theLizt->length()==0 )
+		return 0;
+
+	lnnk_ATTLC<TYPE>* iter = (lnnk_ATTLC<TYPE>*) pred;
+	register int i = index;
+	do {
+		iter = (lnnk_ATTLC<TYPE>*) iter->nxt;
+		if (iter->val==x) {
+			index = i;
+			pred = iter->prv;
+			return 1;
+		}
+		i++;
+	} while ( i < theLizt->length() );
+	return 0;
+}
+
+TYPE*
+Const_listiter<TYPE>::peek_prev() const
+{
+	if ( at_head() )
+	 	return 0;
+	return &(((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::peek_prev())->val);
+}
+
+int
+Const_listiter<TYPE>::peek_prev(TYPE& t) const
+{
+	if ( at_head() )
+		return 0;
+	else
+		return (t = ((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::peek_prev())->val, 1);
+}
+
+int
+Const_listiter<TYPE>::peek_prev(TYPE*& t) const
+{
+	if ( at_head() )
+		return 0;
+	else
+		return (t = &((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::peek_prev())->val, 1);
+}
+
+TYPE*
+Const_listiter<TYPE>::peek_next() const
+{
+	if ( at_end() )
+	 	return 0;
+	return &(((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::peek_next())->val);
+}
+
+int
+Const_listiter<TYPE>::peek_next(TYPE& t) const
+{
+	if ( at_end() )
+		return 0;
+	else
+		return (t = ((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::peek_next())->val, 1);
+}
+
+int
+Const_listiter<TYPE>::peek_next(TYPE*& t) const
+{
+	if ( at_end() )
+		return 0;
+	else
+		return (t = &((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::peek_next())->val, 1);
+}
+
+TYPE*
+Const_listiter<TYPE>::getAt(int i)
+{
+	lnnk_ATTLC<TYPE>* ll = ((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::getAt(i));
+	if ( ll )
+		return &(ll->val);
+	else
+		return (TYPE*)0;
+}
+
+Listiter<TYPE>::Listiter(List<TYPE>& a) : Const_listiter<TYPE>((const List<TYPE>&)a)
+{
+}
+ 
+Listiter<TYPE>::Listiter(const Listiter<TYPE>& a) : Const_listiter<TYPE>((Const_listiter<TYPE>)a)
+{
+}
+
+int
+Listiter<TYPE>::remove_prev()
+{
+	lnnk_ATTLC<TYPE> *aLink = (lnnk_ATTLC<TYPE> *)Liztiter_ATTLC::remove_prev();
+	if ( aLink ) {
+		delete aLink;
+		return 1;
+	} else
+		return 0;
+}
+
+int
+Listiter<TYPE>::remove_prev(TYPE &x)
+{
+	lnnk_ATTLC<TYPE> *aLink = (lnnk_ATTLC<TYPE> *)Liztiter_ATTLC::remove_prev();
+	if ( aLink ) {
+		x = aLink->val;
+		delete aLink;
+		return 1;
+	} else
+		return 0;
+}
+
+int
+Listiter<TYPE>::remove_next()
+{
+	lnnk_ATTLC<TYPE> *aLink = (lnnk_ATTLC<TYPE> *)Liztiter_ATTLC::remove_next();
+	if ( aLink ) {
+		delete aLink;
+		return 1;
+	} else
+		return 0;
+}
+
+int
+Listiter<TYPE>::remove_next(TYPE &x)
+{
+	lnnk_ATTLC<TYPE> *aLink = (lnnk_ATTLC<TYPE> *)Liztiter_ATTLC::remove_next();
+	if ( aLink ) {
+		x = aLink->val;
+		delete aLink;
+		return 1;
+	} else
+		return 0;
+}
+
+int
+Listiter<TYPE>::replace_prev(const TYPE& x)
+{
+	if ( at_head() )
+		return 0;
+	else
+		return (((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::peek_prev())->val=x,1);
+}
+
+int
+Listiter<TYPE>::replace_next(const TYPE& x)
+{
+	if ( at_end() )
+		return 0;
+	else
+		return (((lnnk_ATTLC<TYPE>*)Liztiter_ATTLC::peek_next())->val=x,1);
+}
+
+void 
+Listiter<TYPE>::insert_prev(const TYPE& x)
+{
+	Liztiter_ATTLC::insert_prev(lnnk_ATTLC<TYPE>::getnewlnnk_ATTLC(x));
+}
+
+void 
+Listiter<TYPE>::insert_next(const TYPE& x)
+{
+	Liztiter_ATTLC::insert_next(lnnk_ATTLC<TYPE>::getnewlnnk_ATTLC(x));
+}
+#endif

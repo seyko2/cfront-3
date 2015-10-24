@@ -1,0 +1,23 @@
+PATTERNS 0
+
+object
+selected end
+
+% text                          
+pen_pattern -2
+selected end
+35.560012817382813 230.29331970214844
+1 0
+0 1 18
+7 pgscriptver 
+3 DefPolyType 4097 DefLineStyle -1 DefPenColor -1 DefFillColor 0 DefMasterRef 0 
+DefSLinksFlags 0 DefStreamSucc 0 DefStreamPred 2 DefTextHandle 0 0 10000 0 10000 10000 0 10000 4 
+3 0 0 1 TextPolygon 
+100 DefSpaceEx 100 DefCharEx 0 0 DefTypeFlags 0 DefTypeColor 8448 DefFace 18 
+DefSize 
+0 DefIndent 0 2 DefParaFlags 2 DefEndLead 16504 DefLead 0 DefLeftIndent 0 
+DefRightIndent 0 DefFirstIndent 0 DefRuler 
+-1 -1 0 47 2 textstream 
+E = embryonic,  A = allocated,  I = initialized
+
+END_OBJECT

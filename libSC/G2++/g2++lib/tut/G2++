@@ -1,0 +1,2534 @@
+.sB "G2++ Tutorial" "G2++(3C++)"
+.ds gt \(*t
+.ft I
+.ce
+John F. Isner
+.ft R
+.H 1 "Introduction"
+.P
+.ix "interprocess^communication;~see~G2++
+.ix "message^handling;~see~G2++
+.ix "record^formatting;~see~G2++
+.ix "input/output~of structures;~see~G2++
+.ix "input/output~of user~defined~types;~see~G2++
+.ix "G2;~see~also~G2++
+.ix "%begin G2++~relationship~to~G2
+\fBG2++\fR is an upward-compatible extension to \fBG2\fR, 
+a system developed by Jim Weythman and used widely
+within Bell Labs.
+G2 consists of a \fIlanguage\fR, a \fIC library\fR, 
+and a collection of \fItools\fR 
+for defining and manipulating 
+complex, hierarchically-structured \fImessages\fR used for
+interprocess communication.\*F
+.FS
+G2 messages can also be used as \fIrecords\fR for 
+long-term data storage in files, which is also a 
+kind of interprocess communication.  We will
+tend to use the more general term ``record,'' rather 
+than ``message,'' in this tutorial.
+.FE
+.BL
+.LI
+The \fIlanguage\fR is used to describe the structure 
+of records and the types of data they can contain.
+.LI
+The \fIC library\fR contains I/O routines that
+can be called by C client programs in order to 
+send, receive, and examine G2 records.
+.LI
+The \fItools\fR are used for `batch processing'
+streams of G2 records.
+.LE
+.P
+The simplest way to characterize the extensions 
+to G2 described in this paper (beginning in Section 4)
+would be to say that \fIG2++ does for C++ what G2 
+does for C\fR.
+.P
+If you are already familiar with G2, you should now 
+skip to section 4 and begin reading about G2++.  
+If you are completely unfamiliar with G2, or if
+you would like to learn more about the history,
+rationale, and current implementation of G2, keep
+reading.  You can also read
+two short papers by Jim Weythman,
+both included in the appendix for your convenience:
+\fIThe G2 Data Language\fR and 
+\fIGuidelines for Using G2\fR.
+.H 1 "The rationale for G2 (and G2++)"
+.P
+G2 was designed to address one of the most
+.ix "G2++~rationale
+fundamental issues in interprocess communication: 
+What form should the records take?
+One strategy (which you may have actually used)
+is to send \fIraw structures\fR.
+The following example illustrates this
+.ix "%begin G2++~inadequacy~of~raw~structures~for~communication
+strategy.  It involves two processes which
+exchange raw \f(CWReqest\fR and \f(CWReply\fR
+structures through a pipe:
+.DS
+.ft CW
+    \fItransaction.h\fP
+.sp 0.5
+        struct Request{
+            char name[20];
+            char address[40];
+            struct{
+                short area_code;
+                long number;
+            }phone;
+            long dollar_amt;
+        };
+.ft R
+.DE
+.DS
+.ft CW
+        struct Reply{
+            char code;
+            long acct_no;
+        };
+.ft R
+.DE
+.DS
+.ft CW
+    \fIclient.c\fP
+.sp 0.5
+        #include "transaction.h"
+        main(){
+            Request r;
+            Reply p;
+
+            \fIcommunication set-up\fP
+
+            write(wfd,&r,sizeof(Request));
+            read(rfd,&p,sizeof(Reply));
+        }
+.ft R
+.DE
+.DS
+.ft CW
+    \fIserver.c\fP
+.sp 0.5
+        #include "transaction.h"
+        main(){
+            Request r;
+            Reply p;
+.ft R
+.DE
+.DS
+.ft CW
+            \fIcommunication set-up\fP
+
+            read(rfd,&r,sizeof(Request));
+            ...
+            write(wfd,&p,sizeof(Reply));
+        }
+.ft R
+.DE
+Unfortunately, this solution is 
+highly \fIenvironment-dependent\fR:
+.ix "G2++ environment~independence
+it only works as long as both processes run on 
+the same machine, or two machines with identical 
+numeric representation, wordsize, byte ordering, 
+alignment restrictions, and so-on.
+Since the trend in modern message-based systems is
+increasingly toward distributed solutions involving
+networks and heterogeneous machine architectures,
+raw structures do not represent viable long-term strategy.
+Weythman\*(Rf
+.RS
+\fIGuidelines for Using G2\fR, at the end of this
+tutorial.
+.RF
+lists several examples of the kinds of differences 
+(in addition to hardware) that tend to develop among 
+independent computing environments, including programming 
+languages and (perhaps most importantly) the record 
+definitions themselves.
+.ix "%end G2++~inadequacy~of~raw~structures~for~communication
+.P
+.ix "G2++~alternative~message~schemes
+Different schemes have been proposed as an alternative
+to raw structures.  
+Some of these abandon structures altogether and provide 
+client programs with a purely functional interface to 
+data items.  FML\*(Rf
+.RS
+\fIAT&T TUXEDO Release 2.0 FML Programmer's Guide.\fR
+.RF
+is one such scheme.  The disadvantage of these 
+schemes is that functions must be called to store and 
+retrieve each data item.  Their advantage is that reading
+and writing are usually fast.
+Other schemes continue the practice of representing 
+records as C structures \fIinside\fR client programs, 
+but provide runtime support for mapping the structures 
+to and from some standard external representation 
+(e.g., ASCII name-value pairs).
+These schemes have the advantage that all 
+data manipulation is performed directly in the host 
+language, with all the efficiency of
+the underlying data types.  Their overhead occurs in 
+reading and writing records.  G2 is one such scheme.
+.H 1 "A G2 Example"
+.P
+Let's start by looking at a simple G2 program.
+.ix "%begin G2~program example
+In the next section, we'll look at the equivalent
+G2++ program and discuss the differences.
+The G2 program uses the following record definition,
+written in the G2 record definition language:
+.ix "G2++~[.g]~(record~definition)~file
+.DS
+.ft CW
+    \fIusr.g\fP
+.sp 0.5
+        usr
+                login   6
+                id
+                        usr     LONG
+                        grp     SHORT
+                name    20
+                proj
+                        4       LONG
+.ft R
+.DE
+First, we compile \fBusr.g\fR using the G2 compiler,
+\fBg2comp(1)\fR:
+.DS
+.ft CW
+        $ g2comp usr.g
+.ft R
+.DE
+to which \fBg2comp(1)\f1 responds
+.DS
+.ft CW
+        usr.g:
+         =>usr.[hc]
+.ft R
+.DE
+indicating that two files have been created: 
+\fBusr.h\fR and \fBusr.c\fR.
+You need not be concerned with \fBusr.c\fR;
+just remember to compile and link it together with
+your application (see below).
+\fBusr.h\fR contains a structure definition for
+type \f(CWstruct USR\fR:
+.DS
+.ft CW
+    \fIusr.h \(em generated by g2comp(1)\fP
+.sp 0.5
+        typedef struct USR{
+            char login[6+1];
+            struct{
+                long usr;
+                short grp;
+            }id;
+            char name[20+1];
+            long proj[4];
+        }USR;
+.ft R
+.DE
+Client programs which include this file
+can declare variables of type \f(CWstruct USR\fR to
+serve as the source or destination of I/O operations.
+The following client program reads a file of G2 records, 
+updating \f(CWusr\fR records 
+and passses other records through unchanged.
+.DS
+.ft CW
+    \fImain.c \- C program\fP
+.sp 0.5
+        #include <g2.h>
+        #include "usr.h"
+
+        main(){
+            char name[G2MAXNAME];
+
+            while( getname(name,stdin) ){
+.ft R
+.DE
+.DS
+.ft CW
+                if( strcmp(name,"usr")==0 ){
+                    USR u;
+                    getbody(&u,usr,stdin);
+                    u.id.grp =+ 100;
+                    putrec(&u,usr,stdout);
+                }else{
+                    G2BUF b;
+                    getbuf1(&b,name,stdin);
+                    putbuf(&b,stdout);
+                }
+            }
+        }
+.ft R
+.DE
+Finally, we compile and link this program together with
+\fBusr.c\fR and I/O routines from the G2 library:\*F
+.FS
+Neither the G2 compiler nor the G2 library are part of
+this release.
+.FE
+.DS
+.ft CW
+        $ cc main.c usr.c -lg2
+.ft R
+.DE
+.ix "%end G2++~relationship~to~G2
+.ix "%end G2~program example
+.H 1 "Introduction to G2++"
+.P
+The remainder of this tutorial is about extensions to 
+the G2 scheme.
+We begin in Section 5 by describing the programming
+language interface to G2++.  
+Section 6 shows how
+records can be read from and written to a variety
+of sources and sinks simply by using different 
+kinds of streams with the I/O routines.  
+Sections 7 and 8
+discusses two library components that are used 
+in the G2++ programming language interface 
+(\fBString(3C++)\fR and \fBVblock(G2++(3C++))\fR)
+and sections 8 through 11 show how to take 
+advantage of the arbitrary sizes these types afford.  
+Section 12 shows how to define G2++ records containing 
+user-defined types and how to build 
+the infrastructure necessary to 
+get the I/O routines to work properly with these.
+Manual entries for G2++\*F
+.FS
+\fBg2++comp(1C++)\fR, \fBg2++(3C++)\fR, \fBg2++(4C++)\fR.
+.FE
+can be found in the \fIC++ Standard Components Programmer's Manual\fP.
+.H 1 "G2++ Programming Language Interface"
+.P
+The most noticeable difference between G2 and G2++
+is the radically different appearance of the G2++
+programming language interface.  To illustrate the
+interface, we will build the G2++ equivalent 
+to the client program developed in the last section.  
+.ix "%begin G2++~version~of~G2~program example
+We start by compiling the identical \fBusr.g\fR file,
+.ix "G2++~[.g]~(record~definition)~file
+but this time we use the G2++ compiler \fBg2++comp(1C++)\fR:
+.cx g2++comp G2++
+.DS
+.ft CW
+        $ g2++comp usr.g
+.ft R
+.DE
+to which \fBg2++comp(1C++)\f1 responds:
+.DS
+.ft CW
+        usr.g:
+         =>usr.[hc]
+.ft R
+.DE
+indicating, once again, that two files have been 
+created: \fBusr.h\fR and \fBusr.c\fR.
+.P
+The fact that we compiled the identical \fBusr.g\fR
+.ix "G2++~record~definition~language
+file illustrates an important point: the G2++ record 
+definition language is a \fIstrict superset\fR of the G2 
+language;
+we will look at G2++ language extensions later in this paper,
+but for now, suffice it to say that \fIthe common subset has 
+identical semantics in both languages\fR.  
+This means that a G2++ program and a G2 program that use 
+the same record definition \fIcannot be told apart by purely 
+external means\fR.
+.P
+.ix "G2++~[.h]~file~generated~by~[g2++comp]
+The \fBusr.h\fR produced by \fBg2++comp(1C++)\f1 
+contains a somewhat different-looking
+structure definition for type \f(CWUSR\fR:
+.DS
+.ft CW
+    \fIusr.h \(em generated by g2++comp(1C++)\fP
+.sp 0.5
+        #include <String.h>
+        #include <Vblock.h>
+.ft R
+.DE
+.DS
+.ft CW
+        typedef struct USR{
+            String login;
+            struct{
+                long usr;
+                short grp;
+            }id;
+            String name;
+            Vblock<long> proj;
+            USR();
+        }USR;
+        ostream& operator<<(ostream& os, const USR& x);
+        istream& operator>>(istream& is, USR& x);
+.ft R
+.DE
+.P
+Next, we write the client C++ program:
+.DS
+.ft CW
+    \fImain.c \- C++ program\fP
+.sp 0.5
+        #include <g2++.h>
+        #include "usr.h"
+
+        main(){
+            String name;
+.ft R
+.DE
+.DS
+.ft CW
+            while( name=g2seek(cin) ){
+                if( name == "usr" ){
+                    USR u;
+                    cin >> u;
+                    u.id.grp += 100;
+                    cout << u;
+                }else{
+                    G2BUF b;
+                    cin >> b;
+                    cout << b;
+                }
+            }
+        }
+.ft R
+.DE
+Finally, we compile and link this program together with
+the \fB.c\fR file produced by the G2++ compiler, 
+.ix "G2++~[.c]~file~generated~by~[g2++comp]
+plus I/O routines from the library:
+.DS
+.ft CW
+        $ CC main.c usr.c -l++
+.ft R
+.DE
+Perhaps the most surprising thing about the C++ version
+.ix "[operator_>_>()]
+.ix "[operator_>_>()]
+.ix "[operator_<_<()]
+.ix "[operator_<_<()]
+.ix "G2++~[operator_>_>()]
+.ix "G2++~[operator_>_>()]
+.ix "G2++~[operator_<_<()]
+.ix "G2++~[operator_<_<()]
+.ix "[operator_>_>()];~see~also~G2++~typed~extractor
+.ix "[operator_>_>()];~see~also~G2++~untyped~extractor
+.ix "[operator_<_<()];~see~also~G2++~typed~inserter
+.ix "[operator_<_<()];~see~also~G2++~untyped~inserter
+.cx g2seek() G2++
+of \fBmain.c\fR is that it appears to use only three 
+I/O routines (as compared with five for the C program):
+.DS
+.ft CW
+    g2seek(cin);   \fIFind the next record and return its name\fP
+.sp 0.5
+    cin >> x;      \fIExtract a record from cin into x\fP
+.sp 0.5
+    cout << x;     \fIInsert a record from x into cout\fP
+.ft R
+.DE
+where \f(CWx\fR may be either of type \f(CWG2BUF\fR or
+.cx G2BUF G2++
+type \f(CWUSR\fR.  
+The right shift and left shift operators,
+called \fIextractors\fR and \fIinserters\fR,
+respectively, are actually overloaded:
+.VL 4 4
+.LI "\fBUntyped inserters and extractors\fP"
+.ix "G2++ untyped~inserters
+.ix "G2++ untyped~extractors
+.P
+If \f(CWx\fR is of type \f(CWG2BUF\fR (a type
+.ix "G2++~[G2BUF]
+defined in the header file \fBg2++.h\fR), then
+.ix "G2++~[g2++.h]~header~file
+this is an \fIuntyped\fR inserter or extractor.
+A G2++ application uses the untyped operators 
+when it lacks \fIa priori\fR knowledge of the
+types of records it manipulates.\*F
+.FS
+\fRA good example of such an application is
+the G2++ compiler, \fBg2++comp(1C++)\fR.
+.FE
+A \f(CWG2BUF\fR is a \fInavigable syntax tree\fR whose
+.ix "navigable~syntax~tree;~see~[G2BUF]
+hierarchical structure is isomorphic to
+that of the G2++ record from which it is constructed.  
+Your program can ``navigate'' a \f(CWG2BUF\fR 
+.ix "G2++~[G2BUF]~navigation
+by following \f(CWroot\fR,
+\f(CWchild\fR, and \f(CWnext\fR pointers, 
+exactly as you would do in a G2 program.
+.P
+Untyped inserters and extractors do the work of
+the G2 functions \f(CWputbuf()\fR, \f(CWgetbuf()\fR, 
+and \f(CWgetbuf1()\fR (functions that constitute 
+what Weythman calls G2's ``interpreted interface'').
+The untyped inserters and extractors are
+declared in \fBg2++.h\fR; their behavior is
+specified in \fBuntyped_io(G2++(3C++))\fR.
+.LI "\fBTyped inserters and extractors"
+.ix "G2++ typed~inserter
+.ix "G2++ typed~extractor
+.P
+If \f(CWx\fR is of type \*(gt, where \*(gt is
+a type defined in a header file created by \fBg2++comp(1C++)\fR,
+then this is a \fItyped\fR inserter or extractor.
+A G2++ application uses typed inserters and extractors when 
+it has advance knowledge of record types.
+The user must first compile definitions 
+of all such records using \fBg2++comp(1C++)\fR,
+thereby creating the header file(s) 
+containing C++ type definitions and their related 
+operator declarations.
+The operator \fIdefinitions\fR are generated in the 
+corresponding \fB.c\fR files.
+.ix "G2++~[.c]~file~generated~by~[g2++comp]
+Typed inserters and extractors do the work of
+the G2 functions
+\f(CWgetrec()\fR, \f(CWgetbody()\fR, and \f(CWputrec()\fR,
+(functions that constitute what Weythman calls 
+G2's ``compiled interface''.
+The behavior of the typed inserters and extractors 
+is specified in \fBtyped_io(G2++(3C++))\fR.
+.LE
+.P
+.ix "G2++~[g2seek()]
+The function \f(CWg2seek()\fR searches a
+stream for a G2++ record and returns the name of the
+record.  The function comes in two overloaded versions:
+.DS
+.ft CW
+    g2seek(cin)
+.sp 0.5
+        \fIScan the input stream for the next record and return its name.\fP
+
+    g2seek(cin,"usr")
+.sp 0.5
+        \fIScan the input stream for the next ``usr'' record\fP
+.ft R
+.DE
+.P
+Following a call to \f(CWg2seek()\fR\fR, the client is 
+free to extract the record or ignore it entirely.
+The operator used to extract the record may be typed
+or untyped, depending on how the client wishes to treat 
+the record.
+\f(CWg2seek()\fR is similar to
+the G2 function \f(CWgetname()\fR.
+\f(CWg2seek()\fR is declared in \fBg2++.h\fR and
+specified along with the untyped inserters and
+extractors in \fBuntyped_io(G2++(3C++))\fR.
+.P
+Let us continue with the example. 
+After a typed extraction, each
+member of the structure \f(CWu\fR will 
+contain a value obtained from the input record
+(or the appropriate null value if the corresponding 
+field was missing from the record).
+The client program can manipulate a
+given member using operations applicable to objects 
+of the member's type.  For example,
+an integer member can be incremented.
+After an untyped extraction, the nodes of 
+the structure \f(CWb\fR  will be 
+populated with the ASCII field names and values 
+from the input record, and can be navigated
+by the client program.\*F
+.FS
+\fRThere is currently no provision 
+in \fBuntyped_io(G2++(3C++))\fR for altering the 
+structure of a syntax tree; trees may only be
+navigated by following \f(CWroot\fR, \f(CWchild\fR 
+and \f(CWnext\fR pointers.
+.FE
+.P
+For example, suppose that the standard 
+input contains a \f(CWperson\fR record followed 
+by a \f(CWusr\fR record:\*F
+.FS
+\fRTabs are used for indentation and also to separate
+field names from their corresponding values.
+.FE
+.DS
+.ft CW
+        person
+                name    Bob
+                age     11
+                hobbies
+                        0       swimming
+                        1       tennis
+.ft R
+.DE
+.DS
+.ft CW
+        usr
+                login   jrd
+                id
+                        usr     129
+                        grp     159
+                name    J.R. Dobbs
+                logdir  /usr/bob
+                shell   /usr/tools/bin/ksh
+.ft R
+.DE
+The first pass through the loop will result in
+an untyped extraction, 
+creating the following value in \f(CWb\fR:
+.ix "G2++~[G2BUF]~navigation
+.DS CB
+.PS
+scale=110
+define m0 |
+[ box invis ht 66 wid 92 with .sw at 0,0
+BX: box ht 66 wid 92 with .nw at 0,66
+line  from 0,22 to 92,22
+line  from 0,44 to 92,44
+line  from 46,0 to 46,22
+CIR: circle rad 4 at 23,11
+line  from 46,22 to 92,0
+"$1" center at 46,53
+"$2" center at 46,31
+] |
+define m1 |
+[ box invis ht 66 wid 92 with .sw at 0,0
+BX: box ht 66 wid 92 with .nw at 0,66
+line  from 0,22 to 92,22
+line  from 0,44 to 92,44
+line  from 46,0 to 46,22
+line  from 0,22 to 46,0
+CIR: circle rad 4 at 69,11
+"$1" center at 46,53
+"$2" center at 46,31
+] |
+define m2 |
+[ box invis ht 66 wid 92 with .sw at 0,0
+BX: box ht 66 wid 92 with .nw at 0,66
+line  from 0,22 to 92,22
+line  from 0,44 to 92,44
+line  from 46,0 to 46,22
+line  from 0,22 to 46,0
+line  from 46,22 to 92,0
+"$1" center at 46,53
+"$2" center at 46,31
+] |
+
+A1: m0(\f4\s10\"person\"\f1\s0,\f4\s10\"\"\f1\s0) with .nw at 117,322
+A2: m1(\f4\s10\"name\"\f1\s0,\f4\s10\"Bob\"\f1\s0) with .nw at 1,218
+A3: m1(\f4\s10\"age\"\f1\s0,\f4\s10\"11\"\f1\s0) with .nw at 117,218
+A4: m0(\f4\s10\"hobbies\"\f1\s0,\f4\s10\"\"\f1\s0) with .nw at 238,218
+A5: m1(\f4\s10\"0\"\f1\s0,\f4\s10\"swimming\"\f1\s0) with .nw at 117,74
+A6: m2(\f4\s10\"1\"\f1\s0,\f4\s10\"tennis\"\f1\s0) with .nw at 238,74
+"\f4\s10\&b.root\f1\s0" at 19,326
+START: circle rad 4 at 19,311
+line -> from START.e to A1.BX.w + (0,22)
+line -> from A1.CIR.sw to A2.BX.n
+line -> from A2.CIR.e to A3.BX.w - (0,22)
+line -> from A3.CIR.e to A4.BX.w - (0,22)
+line -> from A4.CIR.sw to A5.BX.n
+line -> from A5.CIR.e to A6.BX.w - (0,22)
+.PE
+.ft R
+.DE
+The second pass through the loop will result in a typed 
+extraction, creating the following value of \f(CWu\fR:
+.BL
+.LI
+\f(CWu.login\fR will contain the string \f(CW"jrd"\fR, 
+.LI
+\f(CWu.id.usr\fR will contain the (long integer) value 129, 
+.LI
+\f(CWu.id.grp\fR will contain the (short integer) value 159, 
+.LI
+\f(CWu.name\fR will contain the string \f(CW"J.R. Dobbs"\fR 
+.LI
+the \f(CWu.proj\fR array will contain four zeroes (there was no
+project data in the record)
+.LE
+.P
+Note that the unexpected fields \f(CWlogdir\fR 
+and \f(CWshell\fR were simply ignored.
+.ix "%end G2++~version~of~G2~program example
+.P
+Having just seen two functionally equivalent programs, 
+don't conclude that G2++ is mere 
+syntactic ``sugar coating'' on G2.  The differences 
+between G2 and G2++ are quite significant, 
+as we hope to show in the remainder of this tutorial. 
+.H 1 "Support for iostream(3C++)"
+.P
+.ix "G2++~[iostream]~support
+The G2++ programming language interface achieves much
+of its flexibility, while retaining complete type safety,
+by using
+the \f(CWiostream(3C++)\fR architecture.  For example,
+consider untyped I/O:
+.DS
+.ft CW
+    \fIC interface (g2.h)\fP
+.sp 0.5
+        int getbuf(G2BUF*,FILE*);
+        int putbuf(G2BUF*,FILE*);
+
+    \fIC++ interface (g2++.h)\fP
+.sp 0.5
+        istream& operator>>(istream&,G2BUF&);
+        ostream& operator<<(ostream&,const G2BUF&);
+.ft R
+.DE
+Flexibility is achieved in the following way.
+There are certain contexts in which 
+C++ permits substitution of one type for another;
+one such context is that in which
+an object of a derived class is passed to
+a function having a reference parameter
+of the base class type:
+.DS
+.ft CW
+    class my_ostream : public ostream{ ... };
+    my_ostream os;
+    G2BUF x;
+
+    os << x;
+.ft R
+.DE
+Several useful classes have already
+been derived from \f(CWistream\fR and \f(CWostream\fR;
+each of these specializes its base class for a
+particular kind of character source or sink and
+buffering paradigm:
+.VL 4 4
+.LI "\fBstrstream(iostream(3C++))\fR"
+.P
+The following example writes a G2++ record into a
+character array by inserting it into 
+an \f(CWostrstream\fR:
+.DS
+.ft CW
+        #include <strstream.h>
+        #include "usr.h"
+
+        const int BUFSIZE = 100;
+        char buf[BUFSIZE];
+        main(){
+            USR u;
+            ostrstream os(buf,BUFSIZE);
+            ...
+            os << u;
+        }
+.ft R
+.DE
+.LI "\fBStrstream(3C++)\fR"
+.P
+The following example writes a G2++ record into a
+\fBString(3C++)\fR by inserting it into
+an \f(CWOstrstream\fR:
+.DS
+.ft CW
+        #include <Strstream.h>
+        #include "usr.h"
+
+        String buf;
+
+        main(){
+            USR u;
+            Ostrstream os(buf);
+            ...
+            os << u;
+        }
+.ft R
+.DE
+.LI "\fBfstream(iostream(3C++))\fR"
+.P
+The following example writes a G2++ record into a
+file named \f(CWX\fR by inserting it into 
+an \f(CWofstream\fR:
+.DS
+.ft CW
+        #include <fstream.h>
+        #include "usr.h"
+
+        main(){
+            USR u;
+            ofstream os("X");
+            ...
+            os << u;
+        }
+.ft R
+.DE
+.LI "\fBipcstream(3C++)\fR"
+.P
+The following example writes a G2++ record to
+a concurrent process by inserting it into
+an \f(CWipcstream\fR over an 
+``ipc attachment'' named \f(CWX\fR:
+.DS
+.ft CW
+        #include <ipcstream.h>
+        #include "usr.h"
+
+        main(){
+            USR u;
+            ipc_attachment att("X");
+            att.listen();
+            ipcstream os(att);
+            ...
+            os << u;
+        }
+.ft R
+.DE
+.LE
+.P
+Note how insertion looks the same in all 
+five examples, regardless of the type of 
+the \f(CWostream\fR.
+Similar examples could be written to illustrate
+this uniformity for stream extraction and
+untyped I/O.
+.H 1 "Support for String(3C++)"
+.ix "G2++~[String]~support
+.ix "%begin G2++~string~overrun~problem~in~G2
+.P
+Another obvious difference between the G2++ and G2
+programming language interfaces
+is that G2++ uses \fBString(3C++)\fR
+everywhere that G2 uses character arrays.
+Two advantages of
+Strings are (1) Strings are easy
+and natural to manipulate and (2) you never have
+to worry about string overrun.
+String overrun can be a particularly nasty problem 
+in G2 when using \fBstrcpy(3C)\fR to store
+characters into a character array member of
+a structure defined by \fBg2comp(1)\fR.
+To illustrate, consider the original \fBusr.g\fR 
+file of Section 3.
+Compiling this file with the G2 compiler \fBg2comp(1)\fR 
+generates the following type definition:
+.DS
+.ft CW
+        typedef struct USR{
+            char login[6+1];
+            struct{
+                long usr;
+                short grp;
+            }id;
+            char name[20+1];
+            long proj[4];
+        }USR;
+.ft R
+.DE
+When a client program stores characters into 
+the \f(CWlogin\fR field, it must take care to assign no
+more than seven characters, including the 
+terminating null byte.  If it does assign more than
+seven, the excess characters may run over into
+the \f(CWid\fR field, with disastrous results:
+.DS
+.ft CW
+    \fImain.c \- C program\fP
+.sp 0.5
+        #include "usr.h"
+        main(){
+            USR u;
+            strcpy(u.login,"hello world");  // overrun!
+            putrec(&u,usr,stdout);
+        }
+.ft R
+.DE
+String overrun can't happen in G2++.  
+Compiling the same file \fBusr.g\fR 
+using \fBg2++comp(1C++)\fR, 
+generates the following type definition:
+.DS
+.ft CW
+        typedef struct USR{
+            String login;
+            struct{
+                long usr;
+                short grp;
+            }id;
+            String name;
+            Vblock<long> proj;
+            USR();
+        }USR;
+.ft R
+.DE
+Note that the \f(CWlogin\fR field is now of
+type \f(CWString\fR rather than \f(CWchar[]\fR.  
+The possibility of overrunning the login field no 
+longer exists, even though \fBusr.g\fR declared
+the field as having a maximum length of six characters:
+.DS
+.ft CW
+    \fImain.c \- C++ program\fP
+.sp 0.5
+        #include "usr.h"
+
+        main(){
+            USR u;
+            u.login = "hello world";  //  no overrun!
+            cout << u;
+        }
+.ft R
+.DE
+.P
+If we inspect the \f(CWu.login\fR field
+immediately after the assignment statement, we will
+find that it contains all eleven characters
+of the string \f(CW"hello world"\fR, even 
+though \fBusr.g\fR declared the field as
+having a a maximum length of six.
+Is this a problem?  
+.ix "G2++~String~truncation~in
+The answer is ``No:''  
+although we can grow the \f(CWlogin\fR
+field to an arbitrary size by assigning strings
+of any size to it, the inserter will 
+not write out more than the six characters we
+declared as its maximum size.  
+Similarly, the
+typed extractor will ignore characters
+in excess of six when reading from an input stream.
+This behavior is strictly compatible with G2.
+In the next section, we will see that
+\fRG2++ also allows users to define records 
+containing \fIarbitrary size\fR strings.  
+.ix "%end G2++~string~overrun~problem~in~G2
+.P
+Strings also show up in untyped I/O,
+where they are used instead of character arrays 
+as the types of the \f(CWname\fR and \f(CWval\fR fields 
+of a \f(CWG2NODE\fR:
+.DS
+.ft CW
+    \fIg2++.h\fP
+.sp 0.5
+        struct G2NODE{
+            String      name;
+            String      val;
+            G2NODE*     next;
+            G2NODE*     child; 
+        };
+        struct G2BUF{
+            ...
+            G2NODE*     root;
+            ...
+        };
+.ft R
+.DE
+As a result, untyped extraction is
+guaranteed to work (barring heap exhaustion)
+even when reading records with huge value fields.
+This capability was needed to guarantee the integrity,
+under manipulation by programs using untyped I/O,
+of records containing external representations of
+abstract data types.
+.H 1 "Support for Vblock(G2++(3C++))"
+.cx Vblock G2++
+.P
+Note another difference in the type definitions
+created by the two compilers:
+while \fBg2comp(1)\fR 
+gives the \f(CWproj\fR field a type 
+of \f(CWlong[4]\fR, \fBg2++comp(1C++)\fR gives it 
+a type of \f(CWVblock<long>\fR.  In general,
+\fBg2++comp(1C++)\fR replaces \fI\*(gt\f(CW[]\fR by
+\f(CWVblock<\*(gt>\fR.
+.P
+As the manpage explains, a \f(CWVblock\fR is just 
+like a \f(CWBlock\fR (see \fBBlock(3C++)\fR),
+except that (for technical reasons) some of its functions 
+are virtual.
+.P
+From the client programmer's viewpoint, 
+\f(CWproj\fR can be accessed exactly as if
+it were a one-dimensional array with four cells.
+Unlike an array, however, the number of cells
+can be increased beyond this defined size if needed.
+When the size is increased,
+a new, larger storage area is allocated 
+and the contents of the old storage area are copied
+into the new area.
+A \f(CWVblock\fR is not resized automatically, however;
+it is the client's responsibility to check that 
+an index is within bounds before
+using it to access a \f(CWVblock\fR element:\*F
+.FS
+The function \f(CWreserve(i)\fR guarantees that the
+index \f(CWi\fR is valid; in other words, it guarantees
+that the number of elements is strictly greater 
+than \f(CWi\fR.
+``Extra'' elements, if any, will be zeros.
+.FE
+.DS
+.ft CW
+        #include "usr.h"
+
+        main(){
+            USR u;
+            ...
+            for( unsigned i=0;i<100;i++ ){
+                u.proj.reserve(i);
+                u.proj[i]=i;
+            }
+            cout << u;
+        }
+.ft R
+.DE
+.P
+If we inspect the \f(CWu.proj\fR field 
+before the loop, we will see that it
+has four cells, each containing zero.
+Immediately after the loop,
+we will find that it contains at least 100 cells
+containing consecutive integers \fI0,1,2,....99.\fR
+The G2++ record definition, on the other
+hand, defined \f(CWproj\fR as having a maximum
+of four elements.  
+Is this a problem?  Once again,
+the answer is ``No:'' the 
+typed inserter will not write out
+more than four elements, and the typed extractor
+will ignore any index greater than three.
+Again, this behavior is strictly compatible with G2.
+In the next section, we will see that
+\fRG2++ also allows users to define records 
+containing \fIarbitrary size\fR arrays.  
+.H 1 "Arbitrary Size Strings and Arrays"
+.ix "G2++~arbitrary~size~strings
+.ix "G2++~arbitrary~size~arrays
+.P
+In the examples of the last section, we showed 
+how to extend the size of string and array fields
+beyond their defined limits:
+.DS
+.ft CW
+
+        #include "usr.h"
+
+        USR u;
+        ...
+        u.login="hello world";  \fIOK even though the defined size is 6!\fP
+        u.proj.reserve(99);     \fIOK even though the defined size is 4!\fP
+
+.ft R
+.DE
+We also learned that, for compatibility with G2,
+fields that exceed their defined length will be
+truncated by the typed inserters and extractors.
+For example:
+.DS
+.ft CW
+
+        cout << u;    \fItruncation of login and proj fields occurs here\fP
+
+.ft R
+.DE
+.P
+Fixed size strings and arrays are in some ways
+like hardware addresses: just as you may
+occasionally need to hard-code an address into a 
+program in order to communicate with a special 
+piece of hardware, you may also need to use 
+a fixed size string in order to communicate with 
+an external system that expects one.\*F
+.FS
+Consider a software package that asks for
+input by giving you a pointer to a private buffer 
+together with the buffer's length; you have no choice 
+but to place the string into the buffer, being
+careful to observe the buffer length limitation.
+.FE
+When the programmer 
+has complete control, fixed sizes make less sense; 
+their presence may be a symptom of inflexible design.
+Not only would such programs avoid the use of fixed size
+strings and arrays \fIinternally\fR,\*F
+.FS
+By using types like \fBString(3C++)\fR 
+and \fBBlock(3C++)\fR
+.FE
+but they would also communicate among themselves 
+by sending and receiving records 
+containing \fIarbitrary size\fR strings and arrays.
+For this reason, G2++ supports records with
+arbitrary size strings and arrays.
+.P
+We have already seen how to declare fixed size
+strings and arrays: simply use numbers for string 
+and array sizes:
+.DS
+.ft CW
+    \fIusr.g\fP
+.sp 0.5
+        usr
+                login   6               # max 6 chars
+                id
+                        usr     LONG
+                        grp     SHORT
+                name    20              # max 20 chars
+                proj
+                        4       LONG    # max 4 elements
+.ft R
+.DE
+To declare an arbitrary size string or array, 
+.ix "G2++~asterisk~notation
+use an asterisk (*) instead of a number:\*F
+.FS
+\fRThis is the first of several extensions to the
+G2 record definition language.
+.FE
+.DS
+.ft CW
+    \fIusr.g\fP
+.sp 0.5
+        usr
+                login   *    # any number of chars
+                id
+                        usr     LONG
+                        grp     SHORT
+                name    *    # any number of chars
+                proj
+                        *       LONG   # any number
+                                       # of elements
+.ft R
+.DE
+Arbitrary size fields 
+are never truncated, on either input or output:
+.DS
+.ft CW
+        #include "usr.h"
+
+        USR u;
+        ...
+        cin >> u;               \fIno truncation\fP
+
+        u.login="hello world";
+        u.proj.reserve(99);
+        u.proj[99]=1;
+
+        cout << u;              \fIno truncation\fP
+.ft R
+.DE
+Fixed and arbitrary size fields may 
+be mixed in the same record definition.  
+.H 1 "The Initial Capacity of Strings and Arrays"
+.ix "G2++
+.ix "G2++~initial~capacity~of~strings
+.ix "G2++~initial~capacity~of~arrays
+.P
+The \fIinitial capacity\fR of a string or array
+is the number of cells initially allocated to it.
+Initial capacity should not be confused with
+\fImaximum size\fR, which is the size at which G2++ 
+truncates fixed size strings and arrays during input 
+or output.  Since a string or array can grow up to its
+initial capacity without reallocation,
+.ix "G2++~efficiency
+understanding initial capacity\(emand how to control 
+it\(emis the key to writing efficient G2++ programs.
+.P
+When a number \fIN\fR is used to declare the size of
+a string or array, the string or array will, in most
+cases, be created with an initial capacity of
+\fIN\fR elements.\*F
+.FS
+There are cases where \fIN\fR is ignored
+insofar as initial capacity is concerned.  These cases
+are discussed in the next section.
+.FE
+When an asterisk is used, the string or array
+will be allocated with a \fIdefault initial capacity\fR 
+of at least ten elements.  Why not 100?  Whatever number
+we chose for the default, it would not be
+right for some programs.
+We have therefore enhanced the asterisk
+notation to allow programmers to specify an explicit
+initial capacity for arbitrary size Strings and arrays.\*F
+.DS
+.ft CW
+        *          \fIdefault initial capacity\fP
+        *(N)       \fIdefault initial capacity of N\fP
+.ft R
+.DE
+.FS
+Again, there are pathological cases where the enhanced
+notation has no effect.  See the next section.
+.FE
+.ix "G2++~avoiding~reallocation
+To avoid reallocation entirely, always specify a value
+of \fIN\fR greater than the largest number of elements 
+anticipated.
+Here's an example:
+.DS
+.ft CW
+    \fIusr.g\fP
+.sp 0.5
+        usr
+                login   *(11)
+                id
+                        usr     LONG
+                        grp     SHORT
+                name    *
+                proj
+                        *(100)  LONG
+.ft R
+.DE
+As before, \f(CWlogin\fR, \f(CWname\fR 
+and \f(CWproj\fR are arbitrary size strings and arrays,
+but \f(CWlogin\fR will have an initial capacity of at 
+least 11 characters and \f(CWproj\fR will have
+an initial capacity of at least 100 longs.
+\f(CWname\fR takes has the default initial
+capacity of at least 10 characters.
+The following code is therefore guaranteed not to 
+incur any runtime overhead due to reallocation:
+.DS
+.ft CW
+        #include "usr.h"
+
+        USR u;
+        ...
+        u.login="hello world";
+        u.proj.reserve(99);
+.ft R
+.DE
+.H 1 "Pathological Record Definitions"
+.ix "G2++~record~definitions~(pathological)
+.ix "G2++~initial~capacity~of~strings
+.ix "G2++~initial~capacity~of~arrays
+.P
+For technical reasons, initial capacity specifications 
+in G2++ record definitions are sometimes ignored.  
+.ix "G2++~[g2++comp]~warnings
+Fortunately, \fBg2++comp(1C++)\fR
+warns about these cases and even suggests
+corrective action.
+.P
+Specifically, initial capacity specifications in either 
+of the two forms discussed in the last section are honored
+only for strings or arrays that occur as members 
+of an immediately enclosing structure.  This condition 
+guarantees that the string or array has a name
+(names act as "carriers" of initial 
+capacity information).
+.P
+Each of the following four record definitions fails 
+to satisfy the condition:
+.DS
+.ft CW
+    \fIcase_1.g\fP
+.sp 0.5
+        case_1a 100
+
+        case_1b
+                100     LONG
+
+        case_1c *(100)
+
+        case_1d
+                *(100)  LONG
+.ft R
+.DE
+In the code generated by \fBg2++comp(1C++)\fR,
+\f(CWCASE_1A\fR and \f(CWCASE_1C\fR are strings, 
+and \f(CWCASE_1B\fR and \f(CWCASE_1D\fR are
+arrays; since none of these strings or arrays is
+the member of an immediately enclosing structure, 
+their initial capacity specifications are ignored.
+The following code is therefore problematic:
+.DS
+.ft CW
+    #include "case_1.h"
+    main(){
+        CASE_1A a;
+        CASE_1B b;
+        CASE_1C c;
+        CASE_1D d;
+
+        a.pad(100,'x');  \fIinefficient\fP
+        b[99] = 99;      \fIcore dump?\fP
+        c.pad(100,'x');  \fIinefficient\fP
+        d[99] = 99;      \fIcore dump?\fP
+    }
+.ft R
+.DE
+The corrective action is suggested by the compiler:
+.DS
+.ft CW
+  g2++comp: file 'case_1.g': path 'case_1a.100' warning:
+    100 will not be used as the initial string size; for
+    proper preallocation, use a constructor argument,
+    e.g., CASE_1A x(Stringsize(100));
+
+  g2++comp: file 'case_1.g': path 'case_1b.100' warning:
+    100 will not be used as the initial array size; for
+    proper preallocation, use a constructor argument,
+    e.g., CASE_1B x(100);
+
+  g2++comp: file 'case_1.g': path 'case_1c.*(100)'
+    warning: 100 will not be used as the initial string
+    size; for proper preallocation, use a constructor
+    argument, e.g., CASE_1C x(Stringsize(100));
+
+  g2++comp: file 'case_1.g': path 'case_1b.*(100)'
+    warning: 100 will not be used as the initial array
+    size; for proper preallocation, use a constructor
+    argument, e.g., CASE_1D x(100);
+
+.ft R
+.DE
+Here's the client code after taking the corrective action:
+.DS
+.ft CW
+    #include "case_1.h"
+    main(){
+        CASE_1A a(Stringsize(100));
+        CASE_1B b(100);
+        CASE_1C c(Stringsize(100));
+        CASE_1D d(100);
+
+        a.pad(100,'x');  \fIefficient\fP
+        b[99] = 99;      \fIOK\fP
+        c.pad(100,'x');  \fIefficient\fP
+        d[99] = 99;      \fIOK\fP
+    }
+.ft R
+.DE
+.P
+The same problem can occur at deeper levels within
+a structure:\*F
+.FS
+Case 2c and 2d would specify \f(CW*(100)\fR instead
+of \f(CW100\fR.  We omit these cases for brevity.
+.FE
+.P
+.DS
+.ft CW
+    \fIcase_2.g\fP
+.sp 0.5
+        case_2a
+                x       LONG
+                y
+                        *       100
+
+        case_2b
+                x       LONG
+                y
+                        50
+                                100     LONG
+.ft R
+.DE
+In the code generated by \fBg2++comp(1C++)\fR,
+the elements of the arbitrary size 
+array \f(CWCASE_2A::y\fR are anonymous;
+the 100 will therefore be ignored as an initial
+capacity specification.
+In \f(CWCASE_2B::y\fR, the elements
+of the array \f(CWy\fR, themselves
+arrays, will not have 100 elements preallocated
+for the same reason.  The following client code
+therefore exhibits problematic behavior:
+.DS
+.ft CW
+    #include "case_2.h"
+    main(){
+        CASE_2A a;
+        CASE_2B b;
+
+        a.y[10].pad(100,'x');  \fIinefficient\fP
+        b.y[49][99] = 99;     \fIcore dump?\fP
+    }
+.ft R
+.DE
+.P
+The earlier corrective action \*(EM specifying a
+constructor argument \*(EM is not available in this
+case; instead, we must modify the record definition
+itself.  This is suggested by the compiler:
+.DS
+.ft CW
+  g2++comp: file 'case_2.g': path 'case_2a.y.0' warning:
+    100 will not be used as the initial string capacity; 
+    consider redefining the element type as a structure
+
+  g2++comp: file 'case_2.g': path 'case_2b.y.0' warning:
+    100 will not be used as the initial array size; 
+    consider redefining the element type as a structure
+.ft R
+.DE
+Taking the suggested action gives
+the following record definitions:
+.DS
+.ft CW
+    \fIcase_2.g\fP
+.sp 0.5
+        case_2a
+                x       LONG
+                y
+                        *
+                                x       100
+
+        case_2b
+                x       LONG
+                y
+                        *
+                                x
+                                        100     LONG
+.ft R
+.DE
+Here is the corrected client code:
+.DS
+.ft CW
+    #include "case_2.h"
+    main(){
+        CASE_2A a;
+        CASE_2B b;
+
+        a.y[10].x.pad(100,'x');  \fIefficient\fP
+        b.y.[49].x[99] = 99;      \fIOK\fP
+    }
+.ft R
+.DE
+These record definitions entail a slight
+runtime overhead which will be more than offset
+by the efficiency gained by honoring initial
+capacity specifications.
+.H 1 "Using G2++ with User-Defined Types"
+.ix "%begin G2++~user-defined~([USER])~types
+.P
+G2 provides support for typed I/O of records containing
+a fixed repertoire of builtin C types.\*F
+.FS
+\fRBesides character arrays, 
+G2 supports \f(CWCHAR\fR,
+\f(CWSHORT\fR and \f(CWLONG\fR.
+.FE
+G2++ typed I/O extends G2's range to a virtually
+unlimited number of new types by providing support 
+for \fIuser-defined types\fR.
+This section explains how to define G2++ records
+containing user-defined types
+and how to build the infrastructure necessary to 
+get the typed inserters and extractors
+to do the mapping for you.
+.H 2 "Record Definition"
+.P
+Suppose that we want to extend \f(CWusr\fR records
+by adding a field of some user-defined type.
+The type of interest may already be defined in 
+an existing header file; or, it may be a new
+type that we have yet to define.  
+.ix "G2++~[USER]~type~restrictions
+As we will see, there are only two unavoidable restrictions 
+that G2++ imposes on a user-defined type:
+(1) the type must have an assignment operator\*F
+.FS
+\fRThe assignment operator is used by the 
+extractor to assign values to structure 
+members of that type.
+.FE
+(2) if the type occurs in an array, 
+it must have a parameterless constructor.\*F
+.FS
+\fRThis restriction is inherited from C++.
+.FE
+.P
+For example, suppose that we decide to add 
+a field named \f(CWlast_login\fR of type \fBTime(3C++)\fR
+to \f(CWusr\fR records.\*F
+.FS
+\fBTime(3C++)\fR is one of our library components,
+but it could just as well have been one of yours.
+.FE
+\fBg2++comp(1C++)\fR requires 
+that a user-defined type be explicitly declared with 
+the keyword \f(CWUSER\fR 
+.ix "G2++~[USER]~type
+.ix "%begin G2++ [Time] example
+prior to its first use in a record definition.  
+Here, then, is the 
+simplest \fB.g\fR file that will compile 
+without error:
+.DS
+.ft CW
+    \fIusr.g\fP
+.sp 0.5
+        Time    USER
+
+        usr
+                login   6
+                last_login      Time
+                id
+                        usr     LONG
+                        grp     SHORT
+                name    20
+                proj
+                        4       LONG
+.ft R
+.DE
+Given only the information that \f(CWTime\fR 
+is a user-defined type, \fBg2++comp(1C++)\fR will 
+be forced to make a few assumptions.
+.ix "G2++~[USER]~type~default~attributes
+First, it will assume that there is 
+a file named \fBTime.h\fR that defines a type 
+named \f(CWTime\fR (this assumption happens to be correct).  
+Accordingly, it generates the following header file:
+.DS
+.ft CW
+    \fIusr.h\fP
+.sp 0.5
+        #include "Time.h"
+
+        typedef struct USR{
+           ...
+           Time last_login;
+           ...
+        }USR;
+.ft R
+.DE
+\fBg2++comp(1C++)\fR will also assume 
+that \fBTime.h\fR declares inserters and extractors
+capable of writing or reading
+external representations of \f(CWTime\fR values to 
+or from an \fBostream(iostream(3C++))\fR or 
+an \fBistream(iostream(3C++))\fR,
+respectively.  
+.ix "G2++~inserters~for~[USER]~types
+.ix "G2++~extractors~for~[USER]~types
+These operators are needed because
+the \f(CWUSR\fR inserter and 
+extractor \fIdelegate\fR insertion and extraction 
+of \f(CWTime\fR values to them:
+.DS
+.ft CW
+
+        USR u;
+.sp 0.5
+        cout << u;     \fIdelegates insertion of last_login field\fP
+                       \fIto Time::operator<<\fP
+.sp 0.5
+        cin >> u;      \fIdelegates extraction of last_login field\fP
+                       \fIto Time::operator>>\fP
+.ft R
+.DE
+This last assumption is not correct, at least insofar as 
+extraction is concerned, but
+let us continue anyway.  Other assumptions made 
+by \fBg2++comp(1C++)\fR in the current example include:
+.BL
+.LI
+.ix "G2++~null~values
+Class \f(CWTime\fR has a parameterless constructor whose
+value serves as the null value for \f(CWTime\fR
+.LI
+Class \f(CWTime\fR has an assignment operator
+.LI
+Class \f(CWTime\fR has an equality operator.
+.LE
+.P
+In general, such default assumptions may either be 
+false or inappropriate.  In the present example
+.BL
+.LI
+The assumption about inserters and extractors is false: 
+while \fBTime.h\fR
+defines an inserter, it does 
+not define an extractor.
+.LI
+Just to make the problem interesting, let's assume
+that the best value for ``null'' Time in our application
+is the value \f(CWTime::MIN\fR, a constant defined 
+in \fBTime.h\fR.
+Therefor, the default assumption about the parameterless 
+constructor (which returns a Time of January 1, 1970 
+at 0h, GMT) is \fIinappropriate\fR.
+.LE
+.P
+.ix "G2++~overriding~[USER]~type~default~attributes
+Fortunately, \fBg2++comp(1C++)\fR allows users to override
+its default assumptions by attaching \fIattributes\fR 
+to the USER type definition:
+.DS
+.ft CW
+    \fIusr.g\fP
+.sp 0.5
+        Time    USER
+                .header Time.h
+                .header Timeio.h
+                .null   Time::MIN
+        ...
+.ft R
+.DE
+We will address the specific attributes used in the
+above example later.  First, let's look at the
+general form of a USER type definition:
+.DS
+.ft CW
+        \*(gt   USER
+                .header \fIH1\fP
+                .header \fIH2\fP
+                    ...
+                .null   \fIN\fP
+                .isnull \fII\fP
+                .put    \fIP\fP
+                .get    \fIG\fP
+.ft R
+.DE
+.ix "G2++~[USER]~type~attributes
+The significance of each of the attributes is
+explained below:
+.VL 4 4
+.ix "G2++~[.header]~attribute
+.LI "\f(CW.header\ \fIH\fR"
+.P
+There may be zero or more \f(CWheader\fR attributes.
+Each \fIH\fR value is
+interpreted as the name of a header file.
+\fBg2++comp(1C++)\fR will generate an \f(CW#include "\fIH\fP"\fR 
+directive for each attribute, in the same order 
+in which the attributes occur.  As mentioned 
+above, the default header filename 
+is \*(gt\f(CW.h\fR, which will be used if no
+\f(CWheader\fR attributes are given.
+The remaining attributes are allowed
+to assume the existence of definitions exported by the 
+transitive closure of header files named 
+by \f(CWheader\fR attributes.\*F
+.FS
+\fRThat is, if \fIH1, H2, ...\fR are files
+named in header attributes, then the closure consists
+of \fIH1+H2+...\fR plus any header files included 
+by those files, and so-on, transitively.
+.FE
+.ix "G2++~[.null]~attribute
+.LI "\f(CW.null\ \fIN\fR"
+.P
+There may be zero or one \f(CWnull\fR attributes.
+When translated in the context of 
+the header file closure implied by header attributes,
+\fIN\fP must be a valid C++ expression of type \*(gt.
+Its value will be used as 
+the null value for type \*(gt.
+Omitting the \f(CWnull\fR attribute implies a contract
+that a parameterless constructor \*(gt\f(CW()\fR 
+exists, and its value will be used 
+as the null value.
+.ix "G2++~[.isnull]~attribute
+.LI "\f(CW.isnull\ \fII\fR"
+.P
+There may be zero or one \f(CWisnull\fR attributes.
+\fII\fR is taken as the name of a function 
+that indicates whether or not its argument is null.
+Including an \f(CWisnull\fR attribute implies a
+contract that there exists, somewhere in the 
+header file closure implied by \f(CWheader\fR attributes, 
+a declaration of the form:
+.DS
+.ft CW
+    int \fII\fP(const \*(gt& t);
+.ft R
+.DE
+This function is expected to return 1 if its 
+argument is null, and 0 otherwise.
+If the \f(CWisnull\fR attribute is omitted, \fBg2++comp(1C++)\fR
+will generate code to explicitly test for equality with 
+the null value defined by the \f(CWnull\fR attribute;
+this means that omitting the \f(CWisnull\fR attribute 
+implies a contract that there exists, somewhere in the
+header file closure implied by \f(CWheader\fR attributes,
+the declaration of an equality operator for type \*(gt.
+.ix "G2++~[.put]~attribute
+.LI "\f(CW.put\ \fIP\fR"
+.P
+There may be zero or one \f(CWput\fR attributes.
+\fIP\fR is taken as the name of a function 
+that knows how to insert an external representation 
+of type \*(gt into an output stream.
+Including a \f(CWput\fR attribute 
+implies a contract that there exists,
+somewhere in the header file closure implied by
+\f(CWheader\fR attributes, a declaration of the form:
+.DS
+.ft CW
+    ostream& \fIP\fP(ostream& os,const \*(gt& t);
+.ft R
+.DE
+\fIP\fR is expected to insert an external
+representation of \f(CWt\fR into stream \f(CWos\fR.
+To preserve the integrity of the record, the external
+representation must not contain tabs, newlines, or 
+other nonprintable ASCII characters.\*F
+.FS
+Printability is defined by the \f(CWisprint()\fR 
+function, described in \fBctype(3C)\fR.
+.FE
+If the \f(CWput\fR attribute is omitted, \fBg2++comp(1C++)\fR
+will call \f(CW\*(gt::operator<<\fR to do the insertion.
+This means that omitting the \f(CWput\fR attribute 
+implies a contract that there exists, somewhere in
+the header file closure implied by \f(CWheader\fR
+attributes, the declaration of an inserter
+for type \*(gt.
+.ix "G2++~[.get]~attribute
+.LI "\f(CW.get\ \fIG\fR"
+.P
+There may be zero or one \f(CWget\fR attributes.
+\fIG\fR is taken as the name of a function
+that knows how to extract an external representation 
+type \*(gt from an input stream.
+Including a \f(CWget\fR attribute 
+implies a contract that there exists,
+somewhere in the header file closure implied by
+\f(CWheader\fR attributes, a declaration of the form:
+.DS
+.ft CW
+    istream& \fIG\fP(istream& is,\*(gt& t);
+.ft R
+.DE
+\fIG\fR is expected to extract an external representation
+from stream \f(CWis\fR, construct an object of type \*(gt,
+and assign it to \f(CWt\fR.
+The function must extract only the characters 
+constituting the external representation and leave the 
+stream positioned so that the first character extracted
+by a subsequent extraction 
+will be the first character following
+the external representation of type \*(gt.
+If \fIG\fR cannot construct an object of type \*(gt,
+it should assign a null value to \f(CWt\fR and
+clear the error bits (see \fBios(iostream(3C++))\fR).
+If the \f(CWget\fR attribute is omitted, \fBg2++comp(1C++)\fR
+will call \f(CW\*(gt::operator>>\fR to do the extraction.
+This means that omitting the \f(CWget\fR attribute 
+implies a contract that there exists, somewhere in
+the header file closure implied by \f(CWheader\fR
+attributes, the declaration of an extractor
+for type \*(gt.
+.LE
+.P
+We cannot overemphasize that each piece of information 
+furnished via an attribute 
+(or implied by omitting an attribute) merely creates 
+a \fIcontract\fR between the record definer and 
+the software developers responsible for providing the 
+named or implied facilities.  
+\fBg2++comp(1C++)\fR cannot check or enforce these contracts.  
+For
+example, it does not check for the existence of files 
+named in \f(CWheader\fR attributes, nor does it
+typecheck any expressions in \f(CWnull\fR attributes.
+It is only later, when the application 
+is compiled and linked, that the named or implied
+facilities must actually exist.  
+This delayed binding allows applications to 
+be developed in parallel with their infrastructure.
+.H 2 "Null Values"
+.ix "G2++~null~values
+.P
+In our hypothetical application,
+we assumed that
+the constant \f(CWTime::MIN\fR 
+is a more appropriate null 
+value for \f(CWTime\fR than the value of the
+parameterless constructor.  
+This section illustrates how to change the default
+definition of null for user-defined types.
+.P
+First, we specify, via the \f(CWnull\fR attribute,
+.ix "G2++~[.null]~attribute
+the expression \f(CWTime::MIN\fR:
+.DS
+.ft CW
+        Time    USER
+                .null   Time::MIN
+.ft R
+.DE
+.P
+Since the default header attribute is \fBTime.h\fR,
+and since \f(CWTime::MIN\fR is defined in \f(CWTime.h\fR,
+this definition satisfies the requirement that the
+null attribute be a well-defined C++ expression of type
+\f(CWTime\fR under the header file closure. This would end 
+our consideration of the issue of null values, were it not 
+for one additional (and somewhat subtle) issue: 
+what method should be used to \fItest\fR for null values?
+.P
+Recall that a typed inserter only inserts 
+data members into the output stream if their values
+are non-null.  For builtin types, null values are 
+(for strings) the empty string
+and (for integral values) zero.\*F
+.FS
+\fRWe will see how to change
+these definitions later in this section.
+.FE
+The null tests for these builtin types are hard-coded 
+into switch statements in the inserter.
+How is the analogous test implemented for 
+user-defined types?  In terms of our example,
+how does the \f(CWusr\fR inserter tell
+whether the \f(CWlast_login\fR member is null?
+.P
+The answer is that the inserter can use
+either of two methods:
+.BL
+.LI
+It can use the type's own equality operator to compare 
+a given value with the null value specified 
+by the \f(CWnull\fR attribute.  
+This is the default method; 
+in fact, it is the method that will be employed
+if we use the simple USER type definition given above.
+.LI
+It can use a special-purpose function that tells whether
+its argument is null.  This method requires the user
+to specify the \f(CWisnull\fR attribute.
+.ix "G2++~[.isnull]~attribute
+.LE
+.P
+The first method is perfectly acceptable for \f(CWTime\fR, 
+since (1) \f(CWTime\fR has an equality operator, and
+(2) the equality operator is an efficient way to
+test for null.
+For more complicated types, however, 
+(1) an equality operator
+may not exist, or (2) equality with the null value
+may be a prohibitively expensive test.
+For such types, we must use the second method.
+.P
+To illustrate the second method, 
+.ix "%begin G2++ [Stack] example
+assume that we will add a \f(CWStack\fR field 
+to the \f(CWusr\fR record.  Assume further that 
+(1) class \f(CWStack\fR is defined in file \fBStack.h\fR,
+(2) \f(CWStack\fR has a parameterless constructor that
+creates an empty Stack,
+(3) \f(CWStack()\fR is acceptable as the null value, and
+(4) \f(CWStack\fR does not have an equality test, but
+(5) \f(CWStack\fR does have a member function 
+named \f(CWheight()\fR that returns the number of 
+elements in the stack.
+.P
+We could define the \f(CWStack\fR USER type as follows:
+.DS
+.ft CW
+    \fIusr.g\fP
+.sp 0.5
+        Stack   USER
+                .header Stack.h
+                .header Stacknull.h
+                .isnull is_empty
+.ft R
+.DE
+implying a contract that function \f(CWis_empty\fR
+is declared somewhere in the header file closure implied 
+by header attributes.  
+In fact, we have declared the function
+in \fBStacknull.h\fR and defined it in \fBStacknull.c\fR:
+.DS
+.ft CW
+    \fIStacknull.h\fP
+.sp 0.5
+        int is_empty(const Stack& s);
+
+    \fIStacknull.c\fP
+.sp 0.5
+        int is_empty(const Stack& s){
+            return s.height()==0;
+        }
+.ft R
+.DE
+Each time it needs to test whether a given Stack is null,
+the typed inserter
+will call \f(CWis_empty()\fR with the Stack in question.
+.ix "%end G2++ [Stack] example
+.H 2 "Providing Inserters and Extractors for User-Defined Types"
+.ix "G2++~inserters~for~[USER]~types
+.ix "G2++~extractors~for~[USER]~types
+.P
+For some user-defined types, inserters and extractors
+may already exist; for such types, we only need
+check that the routines have the required semantics
+before we ``hook'' them into G2++ via attributes or defaults.
+For other user-defined types, however, it will be necessary 
+to write the inserters and extractors ourselves.
+.P
+According to \fBList(3C++)\fR, for example:
+.DS L F
+.in 0.5i
+\fIfriend\f(CW ostream& operator<<(ostream& os,List<\*(gt>& x);\fR
+.sp 0.5
+.in 0.75i
+.ll -0.25i
+Inserts an ASCII representation of \f(CWx\fR into \f(CWos\fR.
+The representation consists of (1) an open 
+parenthesis followed by (2) the elements of \f(CWx\fR
+separated by commas followed by (3) a close 
+parenthesis.  
+.ll
+.in 0
+.DE
+Since the output consists entirely of printable characters,
+this operator is acceptable and we may 
+omit the \f(CWget\fR attribute
+when defining USER type \f(CWList\fR.
+\fBList(3C++)\fR does not specify an extractor,
+however, so we would need to provide one ourselves.
+.P
+For simplicity, let's go back to the \f(CWTime\fR 
+example.  Since \f(CWTime\fR provides an inserter
+but not an extractor, we have two choices:
+.BL
+.LI
+Provide an extractor compatible with the existing
+inserter;\*F
+.FS
+That is, provide an extractor
+that reads the external representation created by the 
+existing inserter;
+.FE
+.LI
+Provide a brand-new pair of functions that use 
+some new external representation.
+.LE
+.P
+First consider the issue of external representation.  
+Besides the basic G2++ requirement
+(printable ASCII characters only) there are also 
+the following desiderata:
+.ix "G2++ choosing~an external representation~for~[USER]~types
+.ix "G2++ environment~independence
+.VL 4 4
+.LI "\fBEnvironment independence\fR" 
+.P
+Two environments may wish to communicate
+by exchanging records containing values of type \fIT\fR.  
+It is only realistic to assume that, in addition
+to the normal evolution occurring independently
+within the two environments (hardware, operating
+system, data views), the code implementing type \fIT\fR
+will also be evolving independently.
+The external representation chosen for \fIT\fR
+should therefore be as immune as possible to the 
+effects of such evolution.  
+.P
+For example, representing a value by its ASCII-fied
+core image\*F 
+.FS
+\fRObtained, say, by representing consecutive groups 
+of six bits by ASCII escape sequences.
+.FE
+may be fast, but is certainly a bad idea since it
+locks both environments into using the same 
+(1) machine architecture and
+(2) implementation of class \fIT\fR.
+.ix "G2++~visibility~of~external~representations
+.LI "\fBVisibility\fR"
+.P
+If the data in G2 records is semantically meaningful 
+to a human reader, records can be inspected, manipulated,
+and even created by human users using text editors or other
+tools.  
+Reports can be readily formatted using standard UNIX 
+text processing tools.
+This would argue for a representation natural to humans.
+.LE
+.P
+Two external representations come to mind:
+.VL 4 4
+.LI "\fB2:30:27 PM January 1, 1989 EST\fR"
+.P
+This external representation the advantage of 
+extreme visibility.
+It is environment-independent to the extent that
+the \fBTime(3C++)\fR function \f(CWmake_time()\fR 
+can parse strings in a wide variety of formats 
+(American, European, etc.).
+Since \f(CWmake_time()\fR cannot handle
+timezone names embedded in the text, however,
+communication would be restricted to environments 
+located within the same timezone.
+.LI "\fB3879637\fR"
+.P
+(an integer value representing the number of seconds
+elapsed since January 1, 1970 at 0h, GMT).
+This external representation is not very meaningful
+to humans, but it is environment-independent, 
+since it is a universal representation of absolute time.  
+It also has the advantage of speed over the first
+representation, which requires parsing.
+.LE
+.P
+After considering these tradeoffs, we will choose
+the second representation.  Since the existing Time 
+inserter produces the first representation, we will
+supply \f(CWput\fR and \f(CWget\fR attributes naming two
+functions, to be declared in a file called \fBTimeio.h\fR:
+.DS
+.ft CW
+    \fIusr.g\fP
+.sp 0.5
+        Time    USER
+                .header Time.h     # class definition
+                .header Timeio.h   # inserter, extractor
+                .put    Tput       # inserter
+                .get    Tget       # extractor
+                .null   Time::MIN
+.ft R
+.DE
+.DS
+.ft CW
+    \fITimeio.h\fP
+.sp 0.5
+        #include <Time.h>
+        #include <iostream.h>
+
+        ostream& Tput(ostream& os,const Time& t);
+        istream& Tget(istream& is,Time& t);
+.ft R
+.DE
+.P
+Next, we write the operation definitions,
+which turn out to be surprisingly simple:\*F
+.FS
+\fRTo understand the code, it is sufficient to know
+that (1) member function \f(CWTime::make_time_t()\fR 
+returns the number of seconds
+elapsed since the reference time (January 1, 1970 at 0h, 
+GMT), and (2) \f(CWmake_time()\fR makes 
+a \f(CWTime\fR from an argument representing 
+the number of seconds elapsed since the reference time.
+.FE
+.DS
+.ft CW
+    \fITimeio.c\fP
+.sp 0.5
+        #include "Timeio.h"
+
+        ostream& Tput(ostream& os,const Time& t){
+            os << t.make_time_t();
+            return os;
+        }
+        istream& Tget(istream& is,Time& t){
+            long x;
+            is >> x;
+            t=make_time(x);
+            return is;
+        }
+.ft R
+.DE
+.H 2 "Strings Containing Nonprintable Characters"
+.cx Text G2++
+.ix "G2++~non-printable~characters~in~external~representations
+.P
+At one time or another most every G2++ programmer has 
+stumbled into the following situation:  a field 
+that seems natural to declare as a String needs to
+contain a newline, tab, or other nonprintable character.
+For compatibility with G2, such characters are not 
+permitted; they cause String fields to be truncated on 
+input or output.
+If this were not the case, tabs and newlines would
+corrupt the record structure, while permitting other 
+nonprintable characters would violate the principal
+of visibility (see Section 12.3) and would destroy
+the interoperability of G2++ and G2 applications.
+.P
+The restriction against including non-printable
+characters can be circumvented by defining
+a user-defined type that simply dumps out arbitrary
+characters and using it instead of String.
+For example, one user defined a USER type \f(CWBlob\fR 
+whose inserter
+output a number \fIN\fR followed by \fIN\fR bytes, 
+and whose extractor first extracted the number and then extracted
+as many bytes.
+This ``works,'' but read on.
+.P
+This solution works when two G2++ applications
+communicate using the same record definition, but
+it destroys the interoperability of G2++ and G2 applications. 
+The only safe solution is to convert the nonprintable
+characters to printable ones.
+Because this is such a common requirement, we have
+provided a user-defined type called Text.\*F
+.FS
+You can find the manual page in \fBText(G2++(3C++))\fR.
+.FE
+.P
+Text is exactly like \fBString(3C++)\fR in every respect
+but for its inserter and extractor, which
+convert nonprintable characters to and from printable ASCII
+escape sequences.  The following example illustrates
+the definition and use of a Text field in a G2++ record:
+.DS
+.ft CW
+    \f2usr.g:\fP
+.sp 0.5
+        Text    USER
+
+        usr
+                name    *
+                age     SHORT
+                bio     Text    # can contain
+                                # nonprintables
+.ft R
+.DE
+.DS
+.ft CW
+    \f2client.c:\fP
+.sp 0.5
+        #include "usr.h"
+        main(){
+            USR u;
+            u.name = "Crockett";
+            u.age = 50;
+            while(cin){
+                u.bio += sgets(cin) + "\en";
+            }
+            cout << u;
+        }
+.ft R
+.DE
+.DS
+.ft CW
+    \f2standard input:\fP
+.sp 0.5
+        Born on a mountaintop in Tenessee,
+        Greenest state in the land of the Free,
+        ...
+.ft R
+.DE
+.DS
+.ft CW
+    \f2standard output:\fP
+.sp 0.5
+        usr
+                name    Crockett
+                age     50
+                bio     Born on a mountaintop in
+         Tenessee,\e012Greenest state...
+.ft R
+.DE
+To display a Text object in its original form, simply
+cast it to a String:
+.DS
+.ft CW
+    cout << (String)u.bio;
+.ft R
+.DE
+which prints:
+.DS
+.ft CW
+        Born on a mountaintop in Tenessee,
+        Greenest state in the land of the Free,
+        ...
+.ft R
+.DE
+.H 2 "Pointers"
+.ix "G2++~and~pointers
+.P
+You may have already asked the following question:
+``Many of my most important and efficient data structures 
+contain pointers.  Shouldn't G2++ support pointer types 
+so that I can transmit these data structures in my records?''
+This is a very difficult problem to which
+no universally-acceptable solution has been found, although
+several interesting schemes have been put forward.
+Lack of ability to deal with pointers in records
+is a deficiency of G2++ that we hope to remedy in 
+a future version.
+.P
+We believe, however, that the presence of 
+pointers in application data structures 
+is not always the result of design necessity; it
+can also be a symptom of insufficient data hiding.
+When this is the case, the pointers can be eliminated
+from the interface, permitting the use of G2++.
+We illustrate this transformation below.
+.P
+.ix "%begin G2++ [List] example 
+Consider a C program that uses pointers to 
+implement a ``list'' data structure:
+.DS
+.ft CW
+    typedef struct NODE{
+        int   value;
+        NODE* next;
+    }NODE;
+    extern NODE *first,*last;
+.ft R
+.DE
+.DS
+.ft CW
+    for(i=0;i<10;i++){
+        NODE* temp = (NODE*)malloc(sizeof(NODE));
+        if(last){
+            last->next=temp;
+            last=temp;
+        }else{
+            first=last=temp;
+        }
+        last->value=i;
+    }
+.ft R
+.DE
+Next, consider the functionally equivalent C++ program
+which hides the identical pointer-based data structure 
+behind a functional interface:\*F
+.FS
+The private part is not good C++ programming style.
+It was written this way to make a point:  the
+pointer-based data structure of the C program 
+has be made private by moving it \fIverbatim\fR into
+into the private part of the class definition.
+.FE
+.DS
+.ft CW
+    class List{
+    public:
+        ...
+        inline List();
+        inline void put(int i);
+        ...
+    private:
+        typedef struct NODE{
+            int   value;
+            NODE* next;
+        }NODE;
+        NODE *first,*last;
+    };
+.ft R
+.DE
+.DS
+.ft CW
+    List::List():first(0),last(0){ }
+
+    void List::put(int i){
+        NODE* temp = new NODE;
+        if(last){
+            last->next=temp;
+            last=temp;
+        }else{
+            first=last=temp;
+        }
+        last->value=i;
+    }
+.ft R
+.DE
+.DS
+.ft CW
+    List x;
+
+    for(i=0;i<10;i++){
+        x.put(i);
+    }
+.ft R
+.DE
+.ix "%end G2++ [List] example 
+Note that the C++ program, although
+it uses the \fIidentical\fR pointer-based internal
+representation, hides the pointers from client code.  
+This means that pointers are no longer a part of 
+the contract between the user of the type 
+(as illustrated by the loop code) 
+and the supplier of the type 
+(illustrated by the body of function \f(CWput()\fR).  
+Data hiding has an important implication for communication
+of \f(CWList\fR values between programs: 
+it means that we are free to
+choose an external representation for lists
+independent of their (pointer-based) internal 
+representation.  
+Naturally, such an external
+representation will not contain any pointers.
+.P
+.ix "%begin G2++ [Map] example 
+To illustrate building the infrastructure for a
+pointer-based user-defined type, consider \fBMap(3C++)\fR.
+A \f(CWMap\fR is a \fIcontainer type\fR, that is, 
+a type whose objects contain objects of 
+other types.
+Our G2++ record will contain a single
+\f(CWMap\fR from \fBTime(3C++)\fR to \fBBits(3C++)\fR:
+.FS
+\fRNote that since record typenames must be 
+valid identifiers, 
+we must use the name produced by the expansion of 
+the \f(CWMap\fR macro, namely, \f(CWMap_Time_Bits\fR.
+.FE
+.DS
+.ft CW
+    \fImtb.g\fP
+.sp 0.5
+        Map_Time_Bits   USER
+                .header Mapstuff.h
+                .isnull is_empty
+
+        mtb     Map_Time_Bits
+.ft R
+.DE
+The single \f(CWheader\fR attribute names 
+a file with the following contents:
+.DS
+.ft CW
+    \fIMapstuff.h\fP
+.sp 0.5
+        #include <Map.h>
+        #include <Time.h>
+        #include <Bits.h>
+        #include <iostream.h>
+.ft R
+.DE
+.DS
+.ft CW
+        ostream& operator<<(ostream& os,
+            const Map<Time,Bits>& m);
+        istream& operator>>(istream& is,
+            Map<Time,Bits>& m);
+.ft R
+.DE
+.DS
+.ft CW
+        inline int is_empty(const Map<Time,Bits>& m){
+            return m.size()==0;
+        }
+.ft R
+.DE
+A \f(CWMap\fR is a set of elements, each of which
+is a key-value pair (the keys are unique).
+Assuming \fIN\fR is the number of elements 
+in a \f(CWMap\fR, we have chosen the following
+external representation:
+it will contain \fI2N+1\fR blank-separated numeric fields; 
+the first field will contain the number \fIN\fR
+and the remaining fields will contain
+alternating keys and values.
+Here is an example of an external representation 
+of a \f(CWMap\fR with two associations.\*F
+.FS
+(1) the \f(CWTime\fR whose external representation 
+is \f(CW37418482\fR
+maps the to \f(CWBits\fR whose external representation 
+is \f(CW010111\fR, and 
+(2) the \f(CWTime\fR whose external representation 
+is \f(CW37418499\fR
+maps to the \f(CWBits\fR whose external representation
+is \f(CW0110111\fR.
+.FE
+.DS
+.ft CW
+        mtb     2 37418482 010111 37418499 0110111
+.ft R
+.DE
+The implementation of the inserter and extractor
+is almost trivial:
+.DS
+.ft CW
+    \fIMapstuff.c\fP
+.sp 0.5
+        #include "Mapstuff.h"
+        #include "Timeio.h"
+        #include "Bitsio.h"
+
+        ostream& operator<<(ostream& os,
+          const Map<Time,Bits>& m){
+            os << m.size();
+.ft R
+.DE
+.DS
+.ft CW
+            Mapiter<Time,Bits> i(m);
+
+            while(++i){
+                os << " ";
+                Tput(os,i.key());
+                os << " " << i.value();
+            }
+            os << " ";
+            return os;
+        }
+.ft R
+.DE
+.DS
+.ft CW
+        istream& operator>>(istream& is,
+          Map<Time,Bits>& m){ 
+            Time t;
+            Bits b;
+            int count;
+
+            is >> count;
+.ft R
+.DE
+.DS
+.ft CW
+            for(int i=0;i<count;i++){
+                Tget(is,t);
+                is >> b;
+                m[t]=b;
+            }
+            return is;
+        }
+.ft R
+.DE
+Note that because it uses the inserter and extractor
+for both \f(CWTime\fR and \f(CWBits\fR, 
+\fBMapstuff.c\fR includes \fBTimeio.h\fR 
+and \fBBitsio.h\fR;
+\fBTimeio.h\fR and \fBTimeio.c\fR were developed 
+in the preceding example; \fBBitsio.h\fR 
+and \fBBitsio.c\fR are left to the reader as an exercise.
+.ix "%end G2++ [Map] example 
+.P
+If caution is not exercised in designing an
+external representations, an extractor
+may become confused, 
+fail to construct an object of the appropriate type, 
+and (perhaps most seriously) consume too many characters, 
+causing data in adjacent fields to be lost.\*F
+.FS
+Errors like this should never cause applications
+to crash, however.
+.FE
+Specifically, the designer of an external representation
+for type \f(CWU\fR must bear in mind that some 
+future application may define a type \f(CWT\fR whose
+objects contain objects of type \f(CWU\fR. 
+In such an application, the external representation 
+of a \f(CWU\fR object will be embedded within an 
+external representation of a \f(CWT\fR object.  
+The designer cannot, in other words, depend on context
+(e.g., the existence of a terminating newline) to
+determine when an external representation ends.
+For example, the extra blank written by the \f(CWMap\fR 
+inserter at the end of the external
+representation guarantees that \f(CWBits\fR
+extractor will not accidentally consume
+characters which happen to follow the \f(CWMap\fR
+representation in some unforseen future context.
+.H 2 "Stream Errors"
+.ix "G2++~iostream~errors
+.P
+It is the responsibility of the user-defined
+extractor to assign a null value of 
+the appropriate type to its second argument if it cannot
+construct an object of that type from the
+characters in the input stream.
+Doing this properly may require extra
+error-handling code for some user-defined types, 
+but the overhead is necessary if G2++ is to be
+as robust in handling user-defined types as
+it is in handling builtin types.
+.P
+The code for extracting \f(CWTime\fR in Section
+12.3 did not include error handling:
+.DS
+.ft CW
+        istream& operator>>(istream& is,Time& t){
+            long x;
+            is >> x;             \fIthis could fail\fP
+            t=make_time(x);
+            return is;
+        }
+.ft R
+.DE
+There are two things that can go wrong here: 
+(1) the external representation may contain
+non-numeric characters or (2) the external representation
+may have more digits than a \f(CWlong\fR can represent.
+Either error will cause \f(CWis\fR to test as null after
+the extraction, causing subsequent extractions to 
+have no effect.
+We can compensate for this undesired behavior as follows:
+.DS
+.ft CW
+        istream& operator>>(istream& is,Time& t){
+            long x;
+
+            if(is>>x){
+                t=make_time(x);
+            }else{
+                is.clear();
+                t=Time::MIN;
+            }
+            return is;
+        }
+.ft R
+.DE
+One Time value will be lost, but the input stream
+will still be readable, allowing the typed extractor
+to re-synchronize itself on the next newline.
+See the manual entries for class \fBios(iostream(3C++))\fR 
+for more information on stream errors and how to detect
+and handle them.
+.ix "%end G2++ [Time] example
+.H 2 "Adding Builtin C Types to the Repertoire of G2++ Types"
+.ix "G2++~adding~new~builtin~types
+.P
+By capitalizing on the knowledge of stream 
+insertion and extraction of C types built into
+\fBiostream(3C++)\fR, new C 
+builtin types\(emin addition to those already 
+hard-wired into G2++\(emcan easily and quickly
+be added to the repertoire of types G2++ knows 
+how to handle. We illustrate how to do this by giving
+two examples.
+.P
+First, suppose we want to handle doubles.  The
+following USER type definition does the trick:\*F
+.DS
+.ft CW
+        double  USER
+                .header iostream.h
+                .null   0.0
+.ft R
+.DE
+This works because 
+(1) \f(CWdouble\fR has equality and assignment (they're
+built into the language) and
+(2) \fBiostream.h\fR
+defines an inserter and extractor
+for \f(CWdouble\fR.  
+The \f(CWnull\fR attribute
+is necessary to prevent \fBg2++comp(1C++)\fR 
+from defining null via a parameterless constructor
+\f(CWdouble()\fR, which would be an error 
+because \f(CWdouble\fR is not a class type.
+.P
+For the second example, suppose that we want
+to use one of the builtin integral types, 
+say \f(CWSHORT\fR, but the application 
+requires that zero be treated as
+a significant value rather than as a synonym for null;  
+instead, we want to use the value 9999
+as a synonym for null.
+This rules out using the G2++ type \f(CWSHORT\fR.
+Fortunately, the following definition is 
+all it takes to get the job done:
+.DS
+.ft CW
+
+        short   USER
+                .header iostream.h
+                .null   9999
+
+.ft R
+.DE
+.ix "%end G2++~user-defined~([USER])~types
+.nr Cl 0
+.RP 0 1
+.nr Cl 2
