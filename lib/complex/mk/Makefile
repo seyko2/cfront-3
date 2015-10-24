@@ -23,6 +23,8 @@ CCFLAGS	= -DPRAGMATIC -I../../../incl
 libcomplex.a:	$(O_COMPLEX)
 	ar r libcomplex.a $(O_COMPLEX)
 	if test "$(BSD)" ; then ranlib libcomplex.a; fi
+	if test -f ../../../$@; then mv ../../../$@ ../../../$@.old; fi
+	cp $@ ../../../
 
 libcomplex_b.a:	$(O_COMPLEX)
 	ar r libcomplex_b.a $(O_COMPLEX)
@@ -73,4 +75,5 @@ sqrt.o:	../complex/sqrt.C
 	$(CC) $(CCFLAGS) -I../complex -c ../complex/sqrt.C
 
 clean:
-	rm -f $(O_COMPLEX)
+	-@rm -f $(O_COMPLEX)
+	-@rm libcomplex*.a
