@@ -1,0 +1,188 @@
+.\" ident	@(#)aoutdem:man/demangle.1	3.2
+.\"
+.\" C++ Standard Components, Release 3.0.
+.\"
+.\" Copyright (c) 1991, 1992 AT&T and UNIX System Laboratories, Inc.
+.\" Copyright (c) 1988, 1989, 1990 AT&T.  All Rights Reserved.
+.\"
+.\" THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and UNIX System
+.\" Laboratories, Inc.  The copyright notice above does not evidence
+.\" any actual or intended publication of such source code.
+.\" 
+.TH \f3demangle\f1 \f31C++\f1 " "
+.SH NAME
+c++filt, dem, demangle \- demangle C++ encoded symbol names
+.SH SYNOPSIS
+.B
+c++filt [ \f2files\f3 ]
+
+.B
+dem \f2encodedname\f3 ...
+
+.B
+demangle [ -dfnostvx ] [ -q\f2qualstring\f4 ] \f2a.out\f3 ...
+.SH DESCRIPTION
+.LP
+These commands all have to do with demangling the encoded symbol names
+produced by AT&T versions of
+\f3CC(1C++)\f1.
+.PP
+\f3c++filt\f1
+copies the contents of \f3files\f1( standard input if no file name is given ) to standard output after demangling
+tokens which look like C++ encoded symbols names. The previous options in previous release,
+.B \-m
+,
+.B \-s
+,
+and 
+.B \-v
+,are no longer supported.
+.PP
+.sp
+\f3dem\f1
+demangles the tokens in its argument list, all of which are assumed
+to be encoded C++ symbol names.
+Output is in the form 
+.RS
+.Bf
+encodedname1 == demangledname1
+encodedname2 == demangledname2
+\f2etc.\f4
+.Be
+.RE
+.PP
+.sp
+\f3demangle\f1
+demangles all the C++ symbol names 
+strewn throughout each of the object files in the argument list.
+\f3demangle\f1
+overwrites each file with a new file in which the names are demangled.
+Use of
+\f3demangle\f1
+makes it easier to use debuggers such as 
+\f3dbx(1)\f1
+and
+\f3sdb(1)\f1,
+and it allows tools such as 
+\f3nm(1)\f1
+and
+\f3gprof(1)\f1
+to produce output with pleasant symbol names.  
+.PP
+The various options modify the behavior of 
+\f3demangle\f1
+as follows:
+.TP 14
+.B \-f
+Do not demangle function names (including operator names).
+.TP
+.B \-o
+Do not demangle operator names.
+.TP
+.B \-s
+Omit signatures on all function names.
+.TP
+.B \-t
+Omit signatures on all function names, except for the second and all 
+successively encountered instances 
+of overloaded functions.
+.TP
+.BI \-q qualstring
+Use
+.I qualstring
+as the class qualifier instead of "::".
+.TP
+.B \-d
+Equivalent to 
+.B \-t
+and the C++ only characters in the second and the successive instances of overloaded function names will be replaced as follows :
+(Necessary when preparing an object file for debugging.
+See the warnings section below.)
+.sp
+.RS
+.Bf
+"(" --> _lp_
+")" --> _rp_
+"[" --> _ls_
+"]" --> _rs_
+"*" --> _st_
+"&" --> _am_
+"," --> _cm_
+" " --> _sp_
+"<" --> _la_
+">" --> _ra_
+"::" --> _cc_
+"~" -->	_dt_
+"+" --> _pl_
+"=" --> _eq_
+"-" --> _mi_
+"%" --> _pc_
+"!" --> _bn_
+"|" --> _or_ 
+"/" --> _di_ 
+"^" --> _er_
+.Be
+.RE
+.sp
+.TP
+.B \-v
+Lets you see the name demanglings taking place.
+.TP
+.B \-x
+Lets you see the 
+\f3dbx(5)\f1
+symbol table translations taking place.
+.TP
+.B \-n
+No execution mode.  Go through the motions without actually overwriting
+the input object file.  Useful with 
+.B \-v
+and
+.BR \-x .
+.SH EXAMPLES
+.RS
+.Bf
+nm p | c++filt | more
+dem __rs__FR7istreamR6String 
+demangle -d p
+.Be
+.RE
+.sp
+The first command prints out a pleasant version of 
+.IR p 's 
+symbol table;
+the second command prints out the demangled version of one of the
+symbols found in 
+.IR p ;
+the last command actually changes
+.IR p 's
+symbol table, to make it easier to debug
+.I p
+with 
+\f3dbx(1)\f1.
+.SH WARNINGS
+These routines
+work only with 2.0 or later versions of AT&T's
+\f3CC(1C++)\f1.
+.PP
+\f3demangle\f1's
+.B \-d
+option is defined the way it is
+in order to prevent most debuggers
+from dumping core, and to
+enable the setting of breakpoints on instances of overloaded functions.
+.PP
+If 
+\f3demangle\f1
+doesn't understand the meaning of something in an object file, 
+it may fail to demangle a name which needs demangling.
+\f3demangle\f1
+may (with 
+.I extremely 
+low probability) demangle a name which shouldn't have been demangled.
+.PP
+\f3demangle\f1
+trys to demangle names with template type in it as much as possible so that
+the original information of names can be recovered.
+.SH "SEE ALSO"
+\f3demangle(3C++)\f1, \f3CC(1C++)\f1, \f3a.out(5)\f1, \f3ld(1)\f1, \f3nm(1)\f1

@@ -1,0 +1,375 @@
+.  \"ident	"@(#)cls4:man/CC.1	1.6"
+.  \"/**********************************************************************
+.  \"
+.  \"C++ source for the C++ Language System, Release 3.0.  This product
+.  \"is a new release of the original cfront developed in the computer
+.  \"science research center of AT&T Bell Laboratories.
+.  \"
+.  \"Copyright (c) 1993  UNIX System Laboratories, Inc.
+.  \"Copyright (c) 1991, 1992 AT&T and UNIX System Laboratories, Inc.
+.  \"Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+.  \"
+.  \"THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+.  \"Laboratories, Inc.  The copyright notice above does not evidence
+.  \"any actual or intended publication of such source code.
+.  \"
+.  \"***********************************************************************/
+.nr X
+.if \nX=0 .ds x} CC 1C++ "" "\&"
+.if \nX=1 .ds x} CC 1C++ ""
+.if \nX=2 .ds x} CC 1C++ "" "\&"
+.if \nX=3 .ds x} CC "" "" "\&"
+.TH \*(x}
+.tr ~
+.SH NAME
+CC \- C++ translator (``cfront'')
+.SH SYNOPSIS
+\f(CWCC [ \fIoptions\fP ] \fIfile\fP ...
+.SH DESCRIPTION
+\f(CWCC\f1
+is the C++ compiler.
+The command uses
+\f(CWcpp(1)\f1
+for preprocessing,
+\f(CWcfront\fP
+for syntax and type checking, and
+\f(CWcc(1)\f1
+for code generation.
+.PP
+\f(CWCC\f1
+takes arguments ending in \f(CW.c\fR, \f(CW.C\fR or \f(CW.i\fR
+to be C++ source files.  \f(CW.i\fR 
+files are presumed to be the output of 
+\f(CWcpp(1)\f1.
+Both \f(CW.s\fR and \f(CW.o\fR
+files are also accepted by the 
+\f3CC\f1
+command and passed to
+\f(CWcc(1)\f1.
+.PP
+For each C++ source file,
+\f(CWCC\f1
+creates a temporary file, \fIfile\f(CW.c\f1, in 
+\f(CW/usr/tmp\fR,
+containing the generated C file for compilation with 
+\f(CWcc(1)\f1.
+The \f(CW-F\f1~\-\fI.suffix\fP option saves a copy of this file
+in the current directory with the name \fIfile.suffix\fP.
+The \f(CW+i\fP option saves a copy of the generated C 
+code (minus \f(CW#line\fP directives)
+in the current directory with the name \fIfile\f(CW..c\f1.
+.PP
+In addition to the options described below,
+\f(CWCC\f1
+accepts other options and passes them on to the C compilation system tools.
+See \f(CWcpp\f1(1) for preprocessor options,
+\f(CWcc\f1(1) for C compiler options,
+\f(CWld\f1(1) for link editor options, and
+\f(CWas\f1(1) for assembler options.
+.PP
+The following options apply to the C++-specific parts of the 
+compilation process:
+.TP 10
+\f(CW\-ec \fIxxx\fR
+Escape option to pass options to the C compiler.
+For example:
+.RS
+\f(CWCC -ec xxx -ec yyy\fR ...
+.br
+will pass "xxx yyy" to the C compiler.
+.RE
+.TP
+\f(CW\-el \fIxxx\fR
+Escape option to pass options to the linker.
+.TP
+\f(CW\-gdem\fR
+Unmangle struct member and local variable names except where
+ambiguous.
+.TP
+\f(CW\-gdump\fR
+Dump out structs in C output even if not used.  This feature
+is no longer automatically enabled by \f(CW\-g\fR.  \f(CW\-gdump\fR imposes a
+performance penalty.
+.TP
+\f(CW-ispace\fR
+Decrease inline cutoff (less inlining will be done).  This
+will in general decrease program speed but make the program smaller.
+Inlining of very small inline functions will continue to be done.
+.TP
+\f(CW-ispeed\fR
+Increase inline cutoff (more inlining will be done).  This
+will in general increase program speed at the expense of increased
+space.
+.TP
+\f(CW\-E\fR
+Run only
+\f(CWcpp(1)\f1
+on the C++ source
+files and send the result to standard output.
+.TP
+\f(CW\-F\fR
+Run only
+\f(CWcpp(1)\f1
+and
+\f(CWcfront\f1
+on the C++ source
+files, and send the result to standard output.
+The output contains \f(CW#line\fP directives.
+.TP
+\f(CW\-.\fP\fIsuffix\fP
+When used in combination with
+\f(CW\-E\fR
+or
+\f(CW\-F\fR,
+place the output from each input file in a file with the specified suffix
+in the current directory.
+.TP
++\f(CWa\fP[\f(CW01\fP]
+The C++ compiler can generate either ANSI C-conforming or K&R C-style declarations.
+The \f(CW+a\fP option specifies which style of declarations to produce.
+The default, \f(CW+a0\fP, causes the compiler to produce K&R C-style declarations.
+The \f(CW+a1\fP option causes the compiler to produce ANSI C-conforming declarations.
+.TP
++\f(CWd\f1
+Do not inline-expand functions declared inline.
+.TP
++\f(CWe\fP[\f(CW01\fP]
+Only to be used on classes for which virtual functions
+are present, and all the virtual functions are defined either
+as inline or pure.  In this circumstance, this
+option optimizes a program to use less space by ensuring
+that only one virtual table per class is generated.
++\f(CWe1\fP causes virtual tables to be external and
+defined.  +\f(CWe0\fP causes virtual tables to be external but
+only declared.  This option is ignored for any class
+that contains an out-of-line virtual function.
+.TP
+\f(CW+i\f1
+Leave the intermediate \f(CW..c\f1 files in the current directory
+during the compilation process.
+These files do not contain any preprocessing directives,
+although the files passed to the C compiler do. When templates are
+used,
+it causes the instantiation system to leave \&\f(CW..c\fR files in the
+repository.
+.TP
++\f(CWp\fP
+Disallow all anachronistic constructs.
+Ordinarily the translator warns about anachronistic constructs;
+under \f(CW+p\fP (for ``pure''), the translator will not compile
+code containing anachronistic constructs.
+See the \fIC++ Language System Product Reference Manual\fP
+for a list of anachronisms.
+.TP
++\f(CWw\fP
+Warn about constructs that are likely to be mistakes,
+be nonportable, or be inefficient.
+Without the \f(CW+w\fP option,
+the compiler issues warnings only about
+constructs that are almost certainly errors.
+.TP
++\f(CWx\fP\fIfile\fP
+Read a file of size and alignments created by compiling and 
+executing \f(CWszal.c\f1.
+The form of the created file is identical to the entries in
+\f(CWsize.h\f1.
+This option is useful for cross compilations and for porting the translator.
+See the \fIC++ Language System Release Release Notes\fP for
+more information.
+.PP
+The template instantiation system adds several options to
+\&\f(CWCC\fR.
+These are specified on the \&\f(CWCC\fR line or by setting the
+environment variable \&\f(CWPTOPTS\fR.
+For example, to permanently enable verbose mode, you would say:
+.RS
+\&\f(CWexport PTOPTS=-ptv \fR(for SysV)\fP
+.br
+setenv PTOPTS -ptv\fR (for BSD)
+.RE
+.TP 10
+\f(CW\-pta\fP
+Instantiate a whole template class rather than
+only those members that are needed.
+.TP
+\f(CW\-ptd\fIpathname\fR
+Dump list of instantiation objects to a file if any
+were recompiled or the file does not exist.
+Also bypasses actual link
+step.
+Can be used with \f(CW-pti\fR in
+makefiles of the form:
+.RS
+.nf 
+\f(CWappl:		appl.o ilist
+		CC -pti -o appl `cat ilist` appl.o
+ 
+appl.o:	appl.c Vector.h A.h C.h
+		CC -c appl.c
+ 
+ilist:	always
+		CC -ptdilist appl.o
+ 
+always:
+.fi
+.RE
+.TP
+\f(CW\-pth\fR
+Force repository names to be less than 14 characters even if the OS
+supports long names.  This is useful in building archive libraries.
+.TP
+\f(CW\-pti\fR
+Ignore ptlink pass.
+.TP
+\f(CW-ptk\fR
+Force ptlink to continue trying to instantiate even after
+instantiation errors on previous template classes.
+.TP
+\f(CW\-ptm\fIpathname\fR
+Have ptlink dump out a "link map" showing what actions
+the link simulator took.
+.TP
+\f(CW\-ptn\fP
+Change the default instantiation
+behavior for one-file programs to that of larger programs,
+where instantiation is broken out separately and the repository updated.
+One-file programs normally have instantiation optimized so that
+instantiation is done into the application object itself.
+.TP
+\f(CW\-ptr\fR\fIpathname\fR
+Specify a repository,
+with \&\f(CW./ptrepository\fR the default.
+If several repositories are given, only the first is writeable, and
+the default repository is ignored unless explicitly named.
+.TP
+\f(CW\-pts\fP
+Split instantiations into separate object
+files, with one function per object (including overloaded functions),
+and all class static data and
+virtual functions grouped into a single object.\*F
+.TP
+\f(CW\-ptv\fR
+Turn on verbose or verify mode, which displays each
+phase of instantiation as it occurs, together with the elapsed time in
+seconds that phase took to complete.
+Use of this option is recommended if you are new to templates.
+With verbose mode, the reason why an instantiation is done and the
+exact \&\f(CWCC\fR command used are displayed.
+.PP
+In release 3.0, \f(CW-pts\fR and \f(CW-pta\fR cannot be used together,
+that is, \&\f(CW-pts\fR can be used only to split up \fIneeded\fR
+functions rather than \fIall\fR functions.
+.PP
+The preprocessor directives \f(CW-I\fR and \f(CW-D\fR work as they
+normally do, but must also be specified at link time, to pick up the
+various template and application type header files.
+.SH ENVIRONMENT
+The following are some of the user-settable environment variables:
+.PD 0
+.de TT
+.if t \{ .TP 35 \}
+.if n \{ .TP 25 \}
+..
+.TT
+\f(CWccC\f1
+C compiler (default: \f(CWcc\f1)
+.TP
+\f(CWcfrontC\f1
+cfront (default: \fICCROOTDIR\f(CW/cfront\f1)
+.TP
+\f(CWcppC\f1
+C preprocessor (default: \f(CW/lib/cpp\f1)
+.PD
+.SH FILES
+.PD 0
+.TT
+\fIfile\f(CW.[Cc]\f1
+C++ source file
+.TP
+\fIfile\f(CW..c\f1
+optional cfront output
+.TP
+\fIfile\f(CW.i\f1
+C++ source after preprocessing
+.TP
+\fIfile\f(CW.s\f1
+assembly language file
+.TP
+\fIfile\f(CW.o\f1
+object file
+.TP
+\f(CWa.out\f1
+linked output
+.TP
+\f(CW/lib/cpp\f1
+C preprocessor (see \f(CWcpp\fP(1))
+.TP
+\f(CW/bin/cc\f1
+C compiler
+.TP
+\f(CW/lib/libc.a\f1
+standard C library
+.TP
+\fICCROOTDIR\f(CW/CC\f1
+C++ driver shell script
+.TP
+\fICCROOTDIR\f(CW/cfront\f1
+C++-to-C translator
+.TP
+\fICCROOTDIR\f(CW/patch\f1 or \f(CWmunch\f1
+post-link editor
+.TP
+\fICCROOTDIR\f(CW/c++filt\f1
+name demangler for diagnostic messages
+.TP
+\fICCROOTDIR\f(CW/ptcomp\fR and \f(CWptlink\fR
+enable template instantiation
+.TP
+\fICCLIBDIR\f(CW/libC.a\f1
+C++ standard library
+.TP
+\fICCLIBDIR\f(CW/libtask.a\f1
+C++ coroutine library
+.TP
+\fICCLIBDIR\f(CW/libcomplex.a\f1
+C++ complex arithmetic library
+.TP
+\fII\f1
+colon-separated list of standard 
+directories for \f(CW#include\f1 files
+.sp
+.PP
+The usual locations for the standard directories are as follows:
+.TT
+\fICCROOTDIR\f1
+\f(CW/usr/bin\f1
+.TP
+\fICCLIBDIR\f1
+\f(CW/usr/lib\f1
+.TP
+\fII\f1
+\f(CW/usr/include/CC\f1
+.PD
+.SH "SEE ALSO"
+\f(CWcpp(1)\f1, 
+\f(CWcc(1)\f1, 
+\f(CWas(1)\f1,
+\f(CWld(1)\f1.
+.br
+Stan Lippman.
+.I C++ Primer, Second Edition
+Addison-Wesley 1991.
+.br
+B. W. Kernighan and D. M. Ritchie.
+.I The C Programming Language,
+Prentice-Hall 1988.
+.br
+Bjarne Stroustrup.
+.I The C++ Programming Language, Second Edition
+Addison-Wesley, 1991.
+.SH DIAGNOSTICS
+The diagnostics produced by
+\f(CWCC\f1
+itself are intended to be
+self-explanatory.
+Occasional messages may be produced by the assembler or link editor.
