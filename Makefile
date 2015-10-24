@@ -38,19 +38,12 @@ scratch: always
 #files.  This is used to port to another machine.
 
 fillscratch:
-#	make sure the directories exist:
-	if test ! -d scratch/src; then mkdir -p scratch/src; fi
-	if test ! -d scratch/mnch; then mkdir -p scratch/mnch; fi
-	if test ! -d scratch/lib; then mkdir -p scratch/lib; fi
-#	cd src; yacc gram.y
+	make -C src szal.result y.tab.C yystype.h
+	cp src/_stdio.c scratch/src/
 	cd scratch/src; $(CC) -I../../src         -I../../incl -Fc -..c ../../src/*.C;
 	cd scratch/lib; $(CC) -I../../lib/complex -I../../incl -Fc -..c ../../lib/new/*.C
 	cd scratch/lib; $(CC) -I../../lib/complex -I../../incl -Fc -..c ../../lib/static/*.C
-#	-@rm scratch/lib/munch..c
-#Dont need a real munch here:
-	echo "main(){ exit(0); }" >scratch/mnch/munch..c
-	# chmod +x CC patch/CC scratch/bsd.sed
-	cp lib/mk/_stdio..c     scratch/lib/_stdio..c
-	rm -f scratch/lib/exit..c
+	cp _munch/*.c scratch/mnch/
+	cd scratch/mnch; $(CC) -I../../lib/complex -I../../incl -Fc -..c ../../_munch/*.C
 
 always:	

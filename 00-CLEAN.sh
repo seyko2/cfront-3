@@ -1,15 +1,12 @@
 #!/bin/bash
 
-rm LOG.02 LOG.03 LOG.04 2> /dev/null
-rm cfront cfront.old libC.a munch 2> /dev/null
+rm LOG.0? 2> /dev/null
+rm cfront cfront.old munch munch.old libC.a libC.a.old 2> /dev/null
+
 [ -L incl ] && rm incl
-
 make -C src clean 2> /dev/null
+make -C scratch clean 2> /dev/null
 
-rm scratch/lib/*..c 2> /dev/null
-rm scratch/mnch/*..c 2> /dev/null
-rm scratch/src/*..c  2> /dev/null
-rm scratch/*..o scratch/libC.a  2> /dev/null
 rm lib/mk/*.o 2> /dev/null
 rm lib/complex/mk/*.o lib/complex/mk/*.a 2> /dev/null
 
