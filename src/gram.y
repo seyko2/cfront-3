@@ -1272,9 +1272,9 @@ type		:  tp
 cm		: CM {in_arg_list = 2; check_decl();}
 
 temp_inst_parms : temp_inst_parms cm temp_inst_parm
-                  {$<el>1->add(new expr(ELIST,$<pe>3,NULL)) ; }
+                  {$<el>1->add(new expr(ELIST,$<pe>3,0)) ; }
                 | temp_inst_parm
-		  	{ in_arg_list=0; $<el>$ = new elist(new expr(ELIST,$<pe>1,NULL)); }
+		  	{ in_arg_list=0; $<el>$ = new elist(new expr(ELIST,$<pe>1,0)); }
 		;
 
 new_decl2	: %prec NO_ID
@@ -1366,7 +1366,7 @@ template_parm_list : template_parm_list CM template_parm
                    | template_parm
                    | /* empty */
 			{ 
-				$<pn>$ = NULL;
+				$<pn>$ = 0;
 				error("emptyYZL");
 			}
 		;

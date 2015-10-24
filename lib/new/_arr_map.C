@@ -65,7 +65,7 @@ class RECORD {
 friend class pnd;
 friend int	__insert_new_array(KEYTYP addr, int count);
 	inline void*	operator new(size_t);
-	inline void	operator delete(void* p, size_t);
+	inline void	operator delete(void* p, size_t s);
 		inline RECORD(unsigned long k, int cnt);
 		inline ~RECORD();
 	unsigned long	key;	// rotated address of array

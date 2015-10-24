@@ -1,4 +1,3 @@
-#ident	"@(#)cfront:CC	1.7"
 #!/bin/sh
 #
 # CC from the cfront-1. Can't handle templates.
@@ -16,8 +15,16 @@
 	Y="-Du3b"
 	LIBRARY=$CF/libC.a
 	
-	ccC="gcc -w"
-	cppC="cpp -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0"
+	TINYCC=$(which tcc)
+	if test -z "$TINYCC"
+	then
+	  ccC="gcc -w"
+	  cppC="gcc -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0 -E"
+	else
+	  ccC="tcc -w"
+	  cppC="tcc -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0 -E"
+	  cppC="$cppC -U__SIZE_TYPE__ -D__SIZE_TYPE__=unsigned -U__PTRDIFF_TYPE__ -D__PTRDIFF_TYPE__=int"
+	fi
 
 # -----------------------------------------
 
@@ -26,7 +33,8 @@ LIBRARY=${LIBRARY--l${LIB_ID}}
 NMFLAGS=${NMFLAGS-}
 C= EE=0 FON=
 O=
-PON= R= SUF= X= Y=${Y-} DASHR= PLUSI=
+PON= R= SUF= X= Y=${Y-} DASHR= 
+#PLUSI=1
 Z=
 E=0
 CF=

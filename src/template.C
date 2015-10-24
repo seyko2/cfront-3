@@ -3361,7 +3361,7 @@ basic_inst::save_state(Pname p)  {
   next_active = basic_inst::head; 
   basic_inst::head = this;
   context.init() ;
-  Cdcl = p; Cstmt = NULL;
+  Cdcl = p; Cstmt = 0;
   curr_file = (Cdcl) ? Cdcl->where.file : 0;
   expose_parameter_names() ;
 } 
@@ -3370,7 +3370,7 @@ void
 basic_inst::restore_state() {
   context.restore() ;
   hide_parameter_names() ;
-  basic_inst::head = next_active ; next_active = NULL ;
+  basic_inst::head = next_active ; next_active = 0;
   if (basic_inst::head)
     basic_inst::head->expose_parameter_names() ;
 } 

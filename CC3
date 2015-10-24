@@ -38,8 +38,16 @@
 	Y="-Du3b"
 	LIBRARY=$CF/libC.a
 	
-	ccC="gcc -w"
-	cppC="cpp -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0"
+	TINYCC=$(which tcc)
+	if test -z "$TINYCC"
+	then
+	  ccC="gcc -w"
+	  cppC="gcc -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0 -E"
+	else
+	  ccC="tcc -w"
+	  cppC="tcc -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0 -E"
+	  cppC="$cppC -U__SIZE_TYPE__ -D__SIZE_TYPE__=unsigned -U__PTRDIFF_TYPE__ -D__PTRDIFF_TYPE__=int"
+	fi
 
 # -----------------------------------------
 
@@ -48,7 +56,8 @@
 # PT environment
 PTPATH=$PATH
 # end PT
-PATH=/bin:/usr/bin
+
+#PATH=/bin:/usr/bin
 
 # If 3D Files System will be used, there are several additions to the CC
 # script that must be made.  First of all, k-shell must be forced, instead
