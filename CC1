@@ -1,8 +1,8 @@
 #ident	"@(#)cfront:CC	1.7"
 #!/bin/sh
 #
-# CC from the cfront-1. Can't habdle templates.
-# Much smaller and fuster by 1/3 then
+# CC from the cfront-1. Can't handle templates.
+# Much smaller and faster by 1/3 then
 # CC from cfront-3.0.3
 # -----------------------------------------
 
