@@ -24,8 +24,8 @@ libC.a:	always
 	cd lib/mk; $(MAKE) CC=$(CC) CCFLAGS="$(CCFLAGS)" BSD=$(BSD)
 	mv lib/mk/libC.a .
 
-munch:	_munch/munch.C
-	$(CC) $(CCFLAGS) -o munch _munch/munch.C
+munch:	_munch/munch.c
+	cc -o munch _munch/munch.c
 
 cfront: always
 	cd src; $(MAKE) CXX=$(CC) CCFLAGS="$(CCFLAGS)"
@@ -44,6 +44,5 @@ fillscratch:
 	cd scratch/lib; $(CC) -I../../lib/complex -I../../incl -Fc -..c ../../lib/new/*.C
 	cd scratch/lib; $(CC) -I../../lib/complex -I../../incl -Fc -..c ../../lib/static/*.C
 	cp _munch/*.c scratch/mnch/
-	cd scratch/mnch; $(CC) -I../../lib/complex -I../../incl -Fc -..c ../../_munch/*.C
 
 always:	

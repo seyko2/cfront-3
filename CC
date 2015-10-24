@@ -17,6 +17,32 @@
 #
 ###############################################################################
 
+# -----------------------------------------
+
+	CF=$(dirname $0)
+	CCROOTDIR=$CF
+	CCLIBDIR=$CF
+	TMPDIR=$CF/tmpdir
+
+	AON=+a1
+	LINE_OPT=+L
+	LIBRARY=$CF/libC.a
+	NMFLAGS=
+	DEMANGLE=1
+
+	cfrontC="$CF/cfront"
+	munch=$CF/munch
+	cplusfiltC=$CF/c++filt}
+
+	I=$CF/incl
+	Y="-Du3b"
+	LIBRARY=$CF/libC.a
+	
+	ccC="gcc -w"
+	cppC="cpp -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0"
+
+# -----------------------------------------
+
 # This is the AT&T C++ driver.
 
 # PT environment
@@ -76,7 +102,7 @@ fi
 cfrontC=${cfrontC-${CCROOTDIR}cfront}
 
 # top level makefile will set this to MUNCH (default) or PATCH
-PM_FLAG=PATCH
+PM_FLAG=MUNCH
 
 if test "$PM_FLAG" = "PATCH"
 then
@@ -157,7 +183,7 @@ fi
 
 # sys.fix will set SYS to the designated system
 # it will then be defined for each CC invocation
-SYS=-DBSD
+#SYS=-DBSD
 
 export CCROOTDIR
 export cppC
@@ -497,11 +523,11 @@ for A do
 		;;
 	-.*)	SUF=`expr "$A" : '-\(.*\)'`
 		;;
-	*.[Cc]) if	test -f $A
+	*.[Cc])	if	test -f $A
 		then
 			case $A in
-				*.c) B=`basename $A .c` ;;
-				*.C) B=`basename $A .C` ;;
+				*.c) B=`basename $A .c`; CXX_FILE=0 ;;
+				*.C) B=`basename $A .C`; CXX_FILE=1 ;;
 			esac
 
 			if	test $PON
@@ -551,6 +577,13 @@ for A do
 				*)	AFAIL=1; break
 					;;
 				esac
+			elif	test $CXX_FILE != 1
+			then
+				# C file, add to list to be compiled in $TEMPDIR
+				X="$X $B.c"
+				cp $A $TEMPDIR/$B.c
+				Z="$Z $TEMPDIR/$B.o"	# add object entry to the load list
+				APASS=1			# setting APASS to 1 causes link step to execute
 			else
 				echo "CC $O $A:" 1>&2
 				#echo "$cppC $Y $deflist $CPLUS $cPLUS $SYS $IDIRS $A" 1>&2
@@ -616,7 +649,6 @@ for A do
 					elif [ -d $ptr -a ! -w $ptr ]
 					then
 						echo "CC[ptcomp] warning: repository $ptr is not writable, ignoring type information" 1>&2
-
 					# update repository
 					elif [ $err2 -eq 0 -o -d $ptr ]
 					then
@@ -632,14 +664,13 @@ for A do
 						do
 							echo $pti
 						done > $ptincl
-					 	PATH=$PTPATH $ptcompC $ptflags $ptflags3 $ptr $TEMPDIR/ptcf2 $ptdmap $A $ptincl
+						PATH=$PTPATH $ptcompC $ptflags $ptflags3 $ptr $TEMPDIR/ptcf2 $ptdmap $A $ptincl
 						progname=$A
 						if test "$OON"
 						then
 							progname=$FINALNAME
 						fi
 						# PATH=$PTPATH $ptcompC $ptflags $ptflags3 $ptr $TEMPDIR/ptcf2 $ptdmap $progname $ptincl
-
 						if [ $? -ne 0 ]
 						then
 							AFAIL=1
@@ -669,9 +700,7 @@ for A do
 		;;
 	*.h)	if	test -f $A
 		then
-
 			B=`basename $A .h`
-
 			if	test $PON
 			then
 				if test $SUF
@@ -698,7 +727,6 @@ for A do
 		;;
 	*.i)    if test -f $A
 		then
-
 			if test $PON
 			then
 				echo "CC -E $A incompatible: ignoring $A" 1>&2
@@ -717,7 +745,7 @@ for A do
 					then
 						AFAIL=1
 					fi
-  				else	
+				else	
 					B=`basename $A .i`
 					echo "CC $O $A:" 1>&2
 					$cfrontC ${LINE_OPT} +f$A $O $AON < $A > $TEMPDIR/$B$ISUF
@@ -738,7 +766,6 @@ for A do
 				esac
 				fi
 			fi
-
 		else
 			echo "CC: $A not found" 1>&2
 			EE=1
@@ -749,7 +776,6 @@ for A do
 		X="$X $B.s"
 		cp $A $TEMPDIR/$B.s
 		APASS=1
-
 		#if test "$NOLOAD" != "-c" 
 		#then
 			# add object entry to the load list
@@ -843,20 +869,20 @@ case $APASS in
 
 	if test "$NOLOAD"
 	then
- 		# make sure there are some .c, .s, or .i files in X
- 		ANY_CS=`expr "$X" : '.*\(\.[CcSsi]\).*'`
- 		if test "$ANY_CS"
- 		then
+		# make sure there are some .c, .s, or .i files in X
+		ANY_CS=`expr "$X" : '.*\(\.[CcSsi]\).*'`
+		if test "$ANY_CS"
+		then
 			echo "$ccC $EC $P $NLO $X" 1>&2
-   			# contortions to cope with bug handling path in cc
+			# contortions to cope with bug handling path in cc
 			#compile, no load
-   			(cd $TEMPDIR; $ccC $EC $P $NLO $X)
- 			EE=$?
-   			if test $EE = 0
-   			then
- 				# move products back into current directory
-			        ls $TEMPDIR/*$NOLOAD >$TEMPDIR/_lsout_ 2>/dev/null
-			        if test -s $TEMPDIR/_lsout_
+			(cd $TEMPDIR; $ccC $EC $P $NLO $X)
+			EE=$?
+			if test $EE = 0
+			then
+				# move products back into current directory
+				ls $TEMPDIR/*$NOLOAD >$TEMPDIR/_lsout_ 2>/dev/null
+				if test -s $TEMPDIR/_lsout_
 				then
 					# if -c and -o were both specified,
 					# and only one source file was 
@@ -869,36 +895,36 @@ case $APASS in
 					fi
 
 				fi
-   			fi
- 		fi
+			fi
+		fi
 	else
 		echo "$ccC $EL $P $LLIBPATH $OF $X $LIBRARY" 1>&2
- 		
+		
 		# run cc on the cfront-generated files.
 		# first have to remove .o's from the argument list
 		# passed to cc, since some cc's don't like .o's with -c
 		cfiles=
 		xxx=
- 		for x in $X
- 		do
- 			case $x in
- 			*${ISUF})	cfiles="$cfiles $x"
- 				;;
+		for x in $X
+		do
+			case $x in
+			*${ISUF})	cfiles="$cfiles $x"
+				;;
 			*.o)	;;
 			*.a)	;;
 			*)	xxx="$xxx $x"
 				;;
- 			esac
- 		done
- 		if [ "$cfiles" != "" ]
- 		then
+			esac
+		done
+		if [ "$cfiles" != "" ]
+		then
 			#echo "$ccC $P -c $xxx $cfiles in $TEMPDIR" 1>&2
- 	  		(cd $TEMPDIR; $ccC $EC $P -c $xxx $cfiles)  # compile, no load
- 			EE=$?	# don't link if there was an error
- 		else
- 			EE=0	# okay to link
- 		fi
- 		
+			(cd $TEMPDIR; $ccC $EC $P -c $xxx $cfiles)  # compile, no load
+			EE=$?	# don't link if there was an error
+		else
+			EE=0	# okay to link
+		fi
+		
 		case $EE in
 		0) # load
 			#echo "$ccC $P $LLIBPATH $Z $LIBRARY"
@@ -1053,8 +1079,8 @@ case $APASS in
 				*)
 					CTDT=__ctdt$$
 					TCTDT=${TEMPDIR}/${CTDT}
-					$NM $NMFLAGS $OO | \
-						$munchC > ${TCTDT}.c
+					# echo "$NM $NMFLAGS $OO | $munchC > ${TCTDT}.c"
+					$NM $NMFLAGS $OO | $munchC > ${TCTDT}.c
                                         EE=$?
                                         if test $EE = 0 -a -s ${TCTDT}.c
 					then
@@ -1081,7 +1107,7 @@ case $APASS in
 					else chmod 755 $FINALNAME
 					fi
 				fi
-				if test "$STRIP"
+			if test "$STRIP"
 				then
 					strip $OO
 				fi
@@ -1108,10 +1134,10 @@ if test "$R"
 then
    if test "$PLUSI"
    then
- 	for A in $MVLIST
- 	do
- 		mv $TEMPDIR/$A${ISUF} $A.${ISUF} 2> /dev/null
- 	done
+	for A in $MVLIST
+	do
+		mv $TEMPDIR/$A${ISUF} $A.${ISUF} 2> /dev/null
+	done
    fi
 fi
 

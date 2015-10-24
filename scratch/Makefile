@@ -29,9 +29,9 @@ libC.a:	$(LIBFILES)
 	if test "$(BSD)"; then ranlib libC.a; fi
 	cp $@ ../$@
 
-munch:		mnch/munch..c libC.a
+munch:		mnch/munch.c
 	[ -f ../$@ ] && mv ../$@ ../$@.old
-	cc -o munch mnch/munch..c libC.a
+	cc -o munch mnch/munch.c
 	cp $@ ../$@
 
 cfront: 	libC.a $(SRCFILES) munch
