@@ -18,6 +18,9 @@ any actual or intended publication of such source code.
 #ifndef __SYSENT_H
 #define __SYSENT_H
 
+
+extern "C" {
+
 //#ifndef __TYPES_H
 //#include <sys/types.h>
 //#endif
@@ -32,7 +35,10 @@ any actual or intended publication of such source code.
 #include <unistd.h>
 #endif
 
-extern "C" {
+typedef int mode_t;
+typedef int off_t;
+typedef int ptrdiff_t;
+
 	void _exit(int);
 	int access(const char*, int);
 	int acct(const char*);

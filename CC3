@@ -29,6 +29,7 @@
 	LIBRARY=$CF/libC.a
 	NMFLAGS=
 	DEMANGLE=1
+	PLUSI=0
 
 	cfrontC="$CF/cfront"
 	munch=$CF/munch
@@ -38,7 +39,8 @@
 	LIBRARY=$CF/libC.a
 	
 	TINYCC=$(which tcc)
-	if test -z "$TINYCC"
+#	if test -z "$TINYCC"
+	if true
 	then
 	  ccC="gcc -w"
 	  cppC="gcc -Du3b -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0 -E"
@@ -229,7 +231,8 @@ done
 TMPDIR=${TMPDIR-/usr/tmp}
 TEMPDIR=$TMPDIR/CC.$$
 C= EE=0 FON= XON= O= EON=0 EC= EL= ELISTC= ELISTL= PTLISTC=
-PON= R= SUF= X= DASHR= PLUSI= STRIP=
+PON= R= SUF= X= DASHR= STRIP=
+PLUSI=1
 Z= E=0 OF= P=
 ION=
 NOLOAD= NLO=
@@ -586,6 +589,7 @@ for A do
 					;;
 				esac
 			elif	test $CXX_FILE != 1
+#			elif	false
 			then
 				# C file, add to list to be compiled in $TEMPDIR
 				X="$X $B.c"

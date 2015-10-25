@@ -142,4 +142,4 @@ _stdio.o: _stdio.c
 clean:
 	-@rm szal.result szal/szal
 	-@rm y.tab.C yystype.h
-	-@rm *.o cfront
+	-@rm *.o cfront *..c

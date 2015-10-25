@@ -7,8 +7,8 @@ rm cfront cfront.old munch munch.old libC.a libC.a.old 2> /dev/null
 make -C src clean 2> /dev/null
 make -C scratch clean 2> /dev/null
 
-rm lib/mk/*.o 2> /dev/null
-rm lib/complex/mk/*.o lib/complex/mk/*.a 2> /dev/null
+rm lib/mk/*.o lib/mk/*..c 2> /dev/null
+rm lib/complex/mk/*.o lib/complex/mk/*.a lib/complex/mk/*..c 2> /dev/null
 
 D=demo/hello
 rm $D/hello.i $D/hello..c $D/hello.o $D/hello..o 2> /dev/null

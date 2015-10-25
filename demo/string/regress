@@ -1,0 +1,100 @@
+#!/bin/sh
+#ident	"@(#)local:bin/regress	3.1" 
+###############################################################################
+#
+# C++ Standard Components, Release 3.0.
+#
+# Copyright (c) 1991, 1992 AT&T and Unix System Laboratories, Inc.
+# Copyright (c) 1988, 1989, 1990 AT&T.  All Rights Reserved.
+#
+# THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T and Unix System
+# Laboratories, Inc.  The copyright notice above does not evidence
+# any actual or intended publication of such source code.
+#
+###############################################################################
+
+badargs=0
+keepE=0
+makefile=makefile
+if [ -f Makefile ]; then
+	makefile=Makefile
+fi
+set -- `getopt Em: $*`
+if [ $? -ne 0 ]
+then	badargs=1
+fi
+for i in $*
+do	case $i in
+	-E)	keepE=1
+		shift;;
+	-m)	makefile=$2
+		shift; shift;;
+	--)	shift; break;;
+	-*)	shift;;
+	esac
+done
+if [ $badargs -eq 1 ]
+then	echo
+	echo "regress [-E] [-m makefile] [test[.V] ...]" 1>&2
+	echo "-E = keep .E file even if test succeeds" 1>&2
+	echo "makefile = makefile to generate .r" 1>&2
+	echo "if no tests are specified, *.V is assumed" 1>&2
+	exit 2
+fi
+
+#while getopts :m: arg
+#do	case $arg in
+#	m)	makefile=$OPTARG
+#		shift; shift;;
+#	:)	echo "$0: $OPTARG requires a value"
+#		exit 2;;
+#	\?)	echo "$0: unknown option $OPTARG"
+#		echo "usage: $0 [-m makefile] [test1 ...]"
+#		exit 2;;
+#	esac
+#done
+
+if [ $# -eq 0 ]
+then	tests=`ls *.V`
+else	tests=$*
+fi
+
+if [ -x ./rVcmp ]
+then	specialcmp=1
+	cmptest="rVcmp"
+else	specialcmp=0
+	cmptest="cmp -s"
+fi
+retval=0
+for t in $tests
+do	t=`basename $t .V`
+	if [ ! -f $t.V ]
+	then	echo "Regression file missing for $t!"
+	else	rm -rf $t.r $t.E
+		make -e -f $makefile $t.E
+		if [ $? -ne 0 ]
+		then	echo "Couldn't make regression test for $t!"
+		else
+			$t.E > $t.r
+			$cmptest $t.r $t.V > /dev/null 2>&1
+			if [ $? -eq 0 ]
+			then	echo "$t: passed"
+				rm -f $t.r
+				if [ $keepE -eq 0 ]
+				then	rm -f $t.E
+				fi
+			else	echo
+				echo "$t: FAILED" 
+				echo "faulty output can be found in $t.r"
+				if [ $specialcmp -eq 1 ]
+				then	echo "(remember you are using $cmptest for comparison with .V)"
+				fi
+				echo
+				retval=1
+			fi
+		fi
+	fi
+done
+
+exit $retval
+
