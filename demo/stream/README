@@ -1,0 +1,47 @@
+/*ident	"@(#)cls4:demo/stream/README	1.1" */
+/*******************************************************************************
+ 
+C++ source for the C++ Language System, Release 3.0.  This product
+is a new release of the original cfront developed in the computer
+science research center of AT&T Bell Laboratories.
+
+Copyright (c) 1991 AT&T and UNIX System Laboratories, Inc.
+Copyright (c) 1984, 1989, 1990 AT&T.  All Rights Reserved.
+
+THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE of AT&T and UNIX System
+Laboratories, Inc.  The copyright notice above does not evidence
+any actual or intended publication of such source code.
+
+*******************************************************************************/
+/******************
+
+	The files in this directory, lengthdemo.h and lengthdemo.C,
+	contain an example of the way that the iostream
+        library may be used.
+
+        They contain an implementation of a class, "Length," that is
+        used to represent linear dimensions with units.  If such a
+        class were present in a library it would be reasonable to
+        declare functions to deal with iostream operations.
+
+        In particular, an inserter (to output Lengths) and an
+        extractor (to input them) should be declared.
+
+        Since the external form of Length may include a unit, it is
+        convenient to set up a "state variable" for each stream.  In
+        ostreams this will be used to indicate how the Length should
+        be scaled and what string to print with the number.  In
+        istreams it can be used to indicate what unit should be used
+        when none is explicitly present.
+
+        A manipulator is also declared to allow easy setting of this
+        state variable.
+
+        A technique for proper initialization of libraries is
+        illustrated. The problem it solves is to ensure that the
+        library is initialized even if it is used in a constructor
+        that is called as part of the startup. (I.e a constructor
+        that is called to construct a static object.)
+
+ *****************/
+
