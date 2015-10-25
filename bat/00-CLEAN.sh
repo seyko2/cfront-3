@@ -27,3 +27,8 @@ rm libcomplex*.a  2> /dev/null
 for i in *.sh; do
     [ -L $i ] && rm $i
 done
+
+[ -L CC ] && {
+    rm CC
+    ln -s CC3 CC
+}
