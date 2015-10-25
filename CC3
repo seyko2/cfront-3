@@ -35,17 +35,16 @@
 	cplusfiltC=$CF/c++filt}
 
 	I=$CF/incl
-	Y="-Du3b"
 	LIBRARY=$CF/libC.a
 	
 	TINYCC=$(which tcc)
 	if test -z "$TINYCC"
 	then
 	  ccC="gcc -w"
-	  cppC="gcc -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0 -E"
+	  cppC="gcc -Du3b -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0 -E"
 	else
 	  ccC="tcc -w"
-	  cppC="tcc -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0 -E"
+	  cppC="tcc -Du3b -U__GNUC__ -D__cfront__ -D__cplusplus=1 -D__signed__= -D__null=0 -E"
 	  cppC="$cppC -U__SIZE_TYPE__ -D__SIZE_TYPE__=unsigned -U__PTRDIFF_TYPE__ -D__PTRDIFF_TYPE__=int"
 	fi
 
