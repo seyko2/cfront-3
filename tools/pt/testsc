@@ -1,4 +1,4 @@
-#!/bin/ksh
+#!/bin/sh
 ###############################################################################
 #
 # C++ source for the C++ Language System, Release 3.0.  This product
@@ -16,24 +16,27 @@
 #
 ###############################################################################
 
-PATH=/bin:/usr/bin:/usr/ucb
-
+# PATH=/bin:/usr/bin:/usr/ucb
 pn="ts"
 
-test_CC=${test_CC-"`pwd`/../../CC"}
+CURDIR=`pwd`
+test_CC=${test_CC-"$CURDIR/../../CC"}
 if [ ! -x "$test_CC" ]
 then
-	print 'test_CC not executable'
+	echo 'test_CC not executable'
 	exit 1
 fi
-NMFLAGS="-p"		# use empty string for UTS systems, -B for mips
+
+# NMFLAGS="-p"		# use empty string for UTS systems, -B for mips
 
 nmap=defmap
 rep=ptrepository
 repm=$rep/$nmap
 sep='==============='
 
-TMPDIR=${TMPDIR-/usr/tmp}
+#TMPDIR=${TMPDIR-/usr/tmp}
+TMPDIR=${TMPDIR-$CURDIR/tmpdir}
+
 rm -rf $TMPDIR/$pn.td*.*
 td=$TMPDIR/$pn.td.$$
 td2=$TMPDIR/$pn.td2.$$
@@ -43,140 +46,140 @@ mkdir $td2
 chmod g-s $td2
 cd $td
 
-t1=$td/t1.$$.c
+t1=$td/t1.$$.C
 t1o=t1o.$$.o
 t2=$td/t2.$$
 t2x=$td/t2x.$$
-t3=$td/t3.$$.c
-t4=$td/t4.$$.c
-t5=$td/t5.c
+t3=$td/t3.$$.C
+t4=$td/t4.$$.C
+t5=$td/t5.C
 t5x=$td/t5.x
-t6=$td/t6.$$.c
-t7=$td/t7.$$.c
-t8=t8.$$.c
+t6=$td/t6.$$.C
+t7=$td/t7.$$.C
+t8=t8.$$.C
 t8h=t8.h
-t8c=t8.c
+t8c=t8.C
 t8o=t8.$$.o
-t9=$td/t9.$$.c
+t9=$td/t9.$$.C
 t9h=$td/t9.h
-t9c=$td/t9.c
-t10=$td/t10.$$.c
+t9c=$td/t9.C
+t10=$td/t10.$$.C
 t10h=$td/t10.h
-t10c=$td/t10.c
+t10c=$td/t10.C
 t10h2=$td/t10_2.h
 t10h3=$td/t10_3.h
-t11=$td/t11.$$.c
+t11=$td/t11.$$.C
 t11h=$td/t11.h
-t11c=$td/t11.c
-t11_2=$td/t11_2.c
+t11c=$td/t11.C
+t11_2=$td/t11_2.C
 mkdir $td/xxx
 mkdir $td/xxx/xxx
 mkdir $td/yyy
-t12=$td/xxx/t12.$$.c
+t12=$td/xxx/t12.$$.C
 t12h=$td/xxx/t12.h
-t12c=$td/xxx/t12.c
-t12_2=$td/xxx/t12_2.c
+t12c=$td/xxx/t12.C
+t12_2=$td/xxx/t12_2.C
 t12_3=$td/yyy/t12_3.h
-t13=$td/t13.$$.c
+t13=$td/t13.$$.C
 t13h=$td/t13.h
-t13c=$td/t13.c
+t13c=$td/t13.C
 t13o=$td/t13.$$.o
-t14=$td/t14.c
+t14=$td/t14.C
 t14h1=$td/t14_1.h
 t14h2=$td/t14_2.h
-t14c1=$td/t14_1.c
-t14c2=$td/t14_2.c
-t15=$td/t15.c
+t14c1=$td/t14_1.C
+t14c2=$td/t14_2.C
+t15=$td/t15.C
 t15h=$td/t15.h
-t16=$td/t16.c
+t16=$td/t16.C
 t16h=$td/t16.h
-t17=$td/t17.c
+t17=$td/t17.C
 t17h=$td/t17x.h
-t17c=$td/t17xx.c
-t18=$td/t18.c
+t17c=$td/t17xx.C
+t18=$td/t18.C
 t18h=$td/t18_1.h
-t18c=$td/t18_1.c
+t18c=$td/t18_1.C
 t18h2=$td/t18_2.h
-t18c2=$td/t18_2.c
-t19=$td/t19app..c
+t18c2=$td/t18_2.C
+t19=$td/t19app..C
 t19a=$td/t19.a
 t19h=$td/t19.h
-t19c=$td/t19.c
-t19a1=$td/t19a1.c
-t19a2=$td/t19a2.c
+t19c=$td/t19.C
+t19a1=$td/t19a1.C
+t19a2=$td/t19a2.C
 t19o1=$td/t19a1.o
 t19o2=$td/t19a2.o
-t20c=$td/t20.c
+t20c=$td/t20.C
 t20o=$td/t20.o
-t21=$td/t21.c
+t21=$td/t21.C
 t21h=$td/t21_1.h
-t21c=$td/t21_1.c
-t22=$td/t22.c
+t21c=$td/t21_1.C
+t22=$td/t22.C
 t22h=$td/t22_1.h
-t22c=$td/t22_1.c
-t23=$td/t23.c
+t22c=$td/t22_1.C
+t23=$td/t23.C
 t23h=$td/19t23_1.h
-t23c=$td/19t23_1.c
-t24=$td/t24.c
-t25s1=$td/t25s1.c
-t25s2=$td/t25s2.c
-t25s3=$td/t25s3.c
-t25s4=$td/t25s4.c
+t23c=$td/19t23_1.C
+t24=$td/t24.C
+t25s1=$td/t25s1.C
+t25s2=$td/t25s2.C
+t25s3=$td/t25s3.C
+t25s4=$td/t25s4.C
 t25s1o=$td/t25s1.o
 t25s2o=$td/t25s2.o
 t25s3o=$td/t25s3.o
 t25s4o=$td/t25s4.o
-t26=$td/t26.$$.c
+t26=$td/t26.$$.C
 t26h=$td/t26.h
-t27=$td/t27.$$.c
+t27=$td/t27.$$.C
 t27h=$td/t27.h
-t27c=$td/t27.c
-t28=$td/t28.$$.c
+t27c=$td/t27.C
+t28=$td/t28.$$.C
 t28h=$td/t28.h
-t28c=$td/t28.c
-t29=$td/t29.c
-t30=$td/t30.c
-t31=$td/t31.c
-t32=$td/t32.c
-t33=$td/t33.c
-t34=$td/t34.c
-t35=$td/t35.c
+t28c=$td/t28.C
+t29=$td/t29.C
+t30=$td/t30.C
+t31=$td/t31.C
+t32=$td/t32.C
+t33=$td/t33.C
+t34=$td/t34.C
+t35=$td/t35.C
 t35h=$td/t35_1.h
-t35c=$td/t35_1.c
-t36=$td/t36.c
-t37=$td/t37.c
+t35c=$td/t35_1.C
+t36=$td/t36.C
+t37=$td/t37.C
 t37o=$td/t37.o
-t38=$td/t38.c
-t39=$td/t39.c
-t40=$td/t40.c
+t38=$td/t38.C
+t39=$td/t39.C
+t40=$td/t40.C
 t40h=$td/t40_1.h
-t40c=$td/t40_1.c
-t41=$td/t41.c
-t42_1=$td/t42_1.c
-t42_2=$td/t42_2.c
-t42_3=$td/t42_3.c
-t42_4=$td/t42_4.c
-t42_5=$td/t42_5.c
-t42_6=$td/t42_6.c
-t43=$td/t43.c
-t44=$td/t44.c
-t45=$td/t45.c
+t40c=$td/t40_1.C
+t41=$td/t41.C
+t42_1=$td/t42_1.C
+t42_2=$td/t42_2.C
+t42_3=$td/t42_3.C
+t42_4=$td/t42_4.C
+t42_5=$td/t42_5.C
+t42_6=$td/t42_6.C
+t43=$td/t43.C
+t44=$td/t44.C
+t45=$td/t45.C
 t451=$td/t45_1.h
-t452=$td/t45_1.c
-t453=$td/t45_2.c
+t452=$td/t45_1.C
+t453=$td/t45_2.C
 t453o=$td/t45_2.o
-t46a=$td/t46a.c
-t46b=$td/t46b.c
+t46a=$td/t46a.C
+t46b=$td/t46b.C
 t461=$td/t46_1.h
-t462=$td/t46_1.c
-t47=$td/t47.c
-t48=$td/t48.c
-t491=$td/t491.c
-t492=$td/t492.c
+t462=$td/t46_1.C
+t47=$td/t47.C
+t48=$td/t48.C
+t491=$td/t491.C
+t492=$td/t492.C
 t491o=$td/t491.o
 t492o=$td/t492.o
-t50=$td/t50.c
-t51=$td/t51.c
+t50=$td/t50.C
+t51=$td/t51.C
 t51h=$td/51.h
 t51hx=$td/xxx/51.h
 
@@ -326,20 +329,20 @@ struct Q2 {
 }
 EOF
 cat <<EOF >$t5x
-A "t5.c"
-B "t5.c"
-C "t5.c"
-D "t5.c"
-G "t5.c"
-G__pt__2_i "t5.c"
-I "t5.c"
-K "t5.c"
-L "t5.c"
-M "t5.c"
-N "t5.c"
-P "t5.c"
-Q "t5.c"
-__nt "t5.c"
+A "t5.C"
+B "t5.C"
+C "t5.C"
+D "t5.C"
+G "t5.C"
+G__pt__2_i "t5.C"
+I "t5.C"
+K "t5.C"
+L "t5.C"
+M "t5.C"
+N "t5.C"
+P "t5.C"
+Q "t5.C"
+__nt "t5.C"
 EOF
 
 cat <<EOF >$t6
@@ -801,7 +804,7 @@ template <class T> struct A {
 	int f();
 };
 EOF
-cat <<EOF >$td/t1.c
+cat <<EOF >$td/t1.C
 template <class T> int A<T>::f() {return 37;}
 EOF
 cat <<EOF >$td/t2.h
@@ -810,7 +813,7 @@ template <class T> struct B {
 	int g();
 };
 EOF
-cat <<EOF >$td/t2.c
+cat <<EOF >$td/t2.C
 template <class T> int B<T>::f()
 {
 	return 37;
@@ -823,7 +826,7 @@ EOF
 cat <<EOF >$td/t3.h
 template <class T> int f(T);
 EOF
-cat <<EOF >$td/t3.c
+cat <<EOF >$td/t3.C
 template <class T> int f(T t)
 {
 	return 83;
@@ -1463,258 +1466,258 @@ EOF
 
 ############################## PTLINK TESTS ##############################
 
-print "$sep dynamic extensions $sep"
+echo "$sep dynamic extensions $sep"
 cleanup
 PTHDR= $test_CC -ptn $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 egrep 'assuming INC_EXT' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 PTSRC= $test_CC -ptn $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 egrep 'assuming SRC_EXT' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
 PTSRC="." $test_CC -ptn $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 egrep 'illegal extension' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 cleanup
 PTHDR="xxx" $test_CC -ptn $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 egrep 'illegal extension' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 cleanup
 PTSRC=".xxxx" $test_CC -ptn $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 egrep 'illegal extension' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #10 ***'
+	echo '*** error #10 ***'
 fi
 cleanup
-PTHDR=".xxx,.yyy,   ,,,,   .h  " PTSRC=".zzz,,,	.c" $test_CC -ptn $t37 >/dev/null 2>$t2
+PTHDR=".xxx,.yyy,   ,,,,   .h  " PTSRC=".zzz,,,	.C" $test_CC -ptn $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #11 ***'
+	echo '*** error #11 ***'
 fi
 egrep 'illegal extension' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #12 ***'
+	echo '*** error #12 ***'
 fi
 
-print "$sep pass through cfront options $sep"
+echo "$sep pass through cfront options $sep"
 cleanup
 $test_CC -ptn -ptv -gdump $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 fgrep 'gdump' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 $test_CC -ptn -ptv -gdem $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 fgrep 'gdem' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
 $test_CC -ptn -ptv -ispeed $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 fgrep 'ispeed' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 cleanup
 $test_CC -ptn -ptv -ispace $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 fgrep 'ispace' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 cleanup
 $test_CC -ptn -ptv +d $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 fgrep '+d' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #10 ***'
+	echo '*** error #10 ***'
 fi
 
-print "$sep -pth $sep"
+echo "$sep -pth $sep"
 cleanup
 $test_CC -ptn -pth $t37 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 x=`ls $rep/pt[0-9]* | wc -l`
 if [ $x -lt 5 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep -I optimization $sep"
+echo "$sep -I optimization $sep"
 cleanup
 $test_CC -ptn -ptv $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 fgrep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 $test_CC -Ixxxx -ptn -ptv $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 fgrep 'compiled' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
 $test_CC -I. -ptn -ptv $t51 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 fgrep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 $test_CC -Ixxx -I. -ptn -ptv $t51 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 fgrep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 $test_CC -Ixxx -I. -ptn -ptv $t51 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 fgrep 'compiled' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #10 ***'
+	echo '*** error #10 ***'
 fi
 $test_CC -I. -ptn -ptv $t51 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #11 ***'
+	echo '*** error #11 ***'
 fi
 fgrep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #12 ***'
+	echo '*** error #12 ***'
 fi
 
-print "$sep -ptm $sep"
+echo "$sep -ptm $sep"
 cleanup
 $test_CC -ptn -ptm./xmap $t37 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 egrep 'unconditional' xmap >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 egrep 'symbol.*needed' xmap >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 
-print "$sep -ptk $sep"
+echo "$sep -ptk $sep"
 cleanup
 $test_CC -ptn -ptk $t50 >/dev/null 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 fgrep 'fatal error' $t2 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 fgrep 'instantiation errors' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 
-print "$sep countdown list $sep"
+echo "$sep countdown list $sep"
 cleanup
 $test_CC -ptn -ptv $t37 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 fgrep 'left to do' $t2 1>/dev/null 2>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep @tab in middle $sep"
+echo "$sep @tab in middle $sep"
 cleanup
 mkdir $rep
 cat <<EOF >$rep/nmap001
@@ -1727,30 +1730,30 @@ EOF
 $test_CC -ptn $t37 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep spacing in map file $sep"
+echo "$sep spacing in map file $sep"
 cleanup
 $test_CC -ptn -c $t37 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 sed 's/\(@de[cf]\) /\1     /g' $repm >x
 cp x $repm
 $test_CC -ptn $t37o >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep link order $sep"
+echo "$sep link order $sep"
 cleanup
 $test_CC -c -ptn $t491 $t492 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 rm -f xlib.a
 ar cr xlib.a $t491o
@@ -1761,51 +1764,51 @@ fi
 $test_CC $t492o xlib.a >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep -ptt with header cache $sep"
+echo "$sep -ptt with header cache $sep"
 cleanup
 $test_CC -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 $test_CC -Ixxx -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 $test_CC -Dxxx -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 rm -f $rep/*.he
 $test_CC -Dxxx -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 for i in $rep/*.he
 do
@@ -1814,273 +1817,273 @@ done
 $test_CC -Dxxx -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #10 ***'
+	echo '*** error #10 ***'
 fi
-touch $rep/*.c
+touch $rep/*.C
 $test_CC -Dxxx -ptn -ptt -ptv $t37 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #11 ***'
+	echo '*** error #11 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #12 ***'
+	echo '*** error #12 ***'
 fi
-fgrep '.c' $rep/*.he | fgrep -v 't37'
+fgrep '.C' $rep/*.he | fgrep -v 't37'
 cleanup
 $test_CC -ptt -ptv $t23 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #13 ***'
+	echo '*** error #13 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #14 ***'
+	echo '*** error #14 ***'
 fi
 $test_CC -ptt -ptv $t23 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #15 ***'
+	echo '*** error #15 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #16 ***'
+	echo '*** error #16 ***'
 fi
 $test_CC -ptt -ptv $t23 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #17 ***'
+	echo '*** error #17 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #18 ***'
+	echo '*** error #18 ***'
 fi
 touch $t23c
 $test_CC -ptt -ptv $t23 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #19 ***'
+	echo '*** error #19 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #20 ***'
+	echo '*** error #20 ***'
 fi
 fgrep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #21 ***'
+	echo '*** error #21 ***'
 fi
-touch $rep/*.c
+touch $rep/*.C
 $test_CC -ptt -ptv $t23 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #22 ***'
+	echo '*** error #22 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #23 ***'
+	echo '*** error #23 ***'
 fi
 fgrep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #24 ***'
+	echo '*** error #24 ***'
 fi
 $test_CC -DZZZ -ptt -ptv $t23 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #25 ***'
+	echo '*** error #25 ***'
 fi
 fgrep 'rebuilt header file cache' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #26 ***'
+	echo '*** error #26 ***'
 fi
 fgrep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #27 ***'
+	echo '*** error #27 ***'
 fi
-sort $rep/*.he | uniq -c | awk '$1 > 1{print}'
-awk 'NR > 1 && NF == 1 && $1 + 0 == 0{print}' $rep/*.he >$t2
+sort $rep/*.he | uniq -c | awk '$1 > 1{echo}'
+awk 'NR > 1 && NF == 1 && $1 + 0 == 0{echo}' $rep/*.he >$t2
 sort $t2 | cmp - $t2
 
-print "$sep pointer to function as actual $sep"
+echo "$sep pointer to function as actual $sep"
 cleanup
 $test_CC -ptn $t48 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep -I prefixes $sep"
+echo "$sep -I prefixes $sep"
 cleanup
 mv $t8h $td/xxx/xxx
 $test_CC -c -I$td/xxx -I$td/xxx/xxx $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 mv $td/xxx/xxx/t8.h .
 grep 'xxx' $repm >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep -pta and @alltc $sep"
+echo "$sep -pta and @alltc $sep"
 cleanup
 $test_CC -ptn -pta $t36 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC -ptn -ptv $t36 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
-print 'int zzz = 57;' >> $t36
+echo 'int zzz = 57;' >> $t36
 $test_CC -ptn -ptv $t36 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 
-print "$sep check defmap in multiple repositories $sep"
+echo "$sep check defmap in multiple repositories $sep"
 cleanup
 $test_CC -c $t37 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 mkdir zzz
 $test_CC -ptrzzz -ptr$rep -ptn $t37o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 rm -rf zzz
 
-print "$sep -ptt and local files $sep"
+echo "$sep -ptt and local files $sep"
 cleanup
 cp $t8h $t8c $td2
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 touch $t8h
 $test_CC -ptt -ptv $t8 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 touch $td2/t8.h
 $test_CC -ptt -ptv $t8 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 cleanup
 rm -f t8.h
 $test_CC -ptt -ptv -I$td2 $t8 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
-cp $td2/t8.c .
+cp $td2/t8.C .
 $test_CC -ptt -ptv -I$td2 $t8 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 cp $td2/t8.h .
 
-print "$sep -pts and dependency analysis $sep"
+echo "$sep -pts and dependency analysis $sep"
 cleanup
 $test_CC -pts $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC -pts -ptv $t8 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 $test_CC -pts -ptt -ptv $t8 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 
-print "$sep definitions found down -I path $sep"
+echo "$sep definitions found down -I path $sep"
 cleanup
 mv $t8c $td2
 $test_CC -I$td2 -ptv $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
-mv $td2/t8.c .
+mv $td2/t8.C .
 
-print "$sep basenames and archives $sep"
+echo "$sep basenames and archives $sep"
 cleanup
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 rm -f xlib.a
 ar cr xlib.a $t8o
@@ -2088,37 +2091,37 @@ if [ -x /bin/ranlib -o -x /usr/bin/ranlib ]
 then
 	ranlib xlib.a
 fi
-print 'void f() {main();}' >x.c
-cc -c x.c
+echo 'void f() {main();}' >x.C
+cc -c x.C
 $test_CC x.o xlib.a 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 rm -f xlib.a
 
-print "$sep CC path $sep"
+echo "$sep CC path $sep"
 cleanup
 PATH="`dirname $test_CC`":$PATH CC -ptn $t37 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep inlines and vtbls $sep"
+echo "$sep inlines and vtbls $sep"
 cleanup
 $test_CC -ptn $t47 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep preserving quotes or brackets $sep"
+echo "$sep preserving quotes or brackets $sep"
 cleanup
 $test_CC -c -I. $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 cat <<EOF >$rep/nmap001
 @dec A
@@ -2126,7 +2129,7 @@ cat <<EOF >$rep/nmap001
 @dec f
 <t8.h>
 @dec Lurch
-"t8.$$.c"
+"t8.$$.C"
 EOF
 cat <<EOF >$repm
 @dec ZZZ
@@ -2135,17 +2138,17 @@ EOF
 $test_CC -I. $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
-grep '"t8\.[hc]"' $rep/*.c >/dev/null
+grep '"t8\.[hc]"' $rep/*.C >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
-grep "<t8\.$$\..c>" $rep/*.c
+grep "<t8\.$$\..C>" $rep/*.C
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cat <<EOF >$rep/nmap001
 @dec A
@@ -2153,84 +2156,84 @@ cat <<EOF >$rep/nmap001
 @dec f
 "t8.h"
 @dec Lurch
-<t8.$$.c>
+<t8.$$.C>
 EOF
 $test_CC -I. $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
-grep '<t8\.[hc]>' $rep/*.c >/dev/null
+grep '<t8\.[hc]>' $rep/*.C >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
-grep "\"t8\.$$\.c\"" $rep/*.c
+grep "\"t8\.$$\.C\"" $rep/*.C
 if [ $? -eq 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 
-print "$sep numeric literals $sep"
+echo "$sep numeric literals $sep"
 cleanup
 $test_CC -ptn $t29 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep literals and pointers $sep"
+echo "$sep literals and pointers $sep"
 cleanup
 $test_CC -ptn $t42_1 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 cleanup
 $test_CC -ptn $t42_2 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 $test_CC -ptn $t42_3 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 cleanup
 $test_CC -ptn $t42_4 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
 $test_CC -ptn $t42_5 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 cleanup
 $test_CC -ptn $t42_6 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 
-print "$sep type checking of unused $sep"
+echo "$sep type checking of unused $sep"
 cleanup
 $test_CC -ptn $t35 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC -ptn -DBAD $t35 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep deleting old entries $sep"
+echo "$sep deleting old entries $sep"
 cleanup
 cat <<EOF >$t15h
 template <class T> struct A {};
@@ -2239,12 +2242,12 @@ EOF
 $test_CC -c $t15 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 printmap2 | grep "@dec E t15" >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cat <<EOF >$t15h
 template <class T> struct A {};
@@ -2252,12 +2255,12 @@ EOF
 $test_CC -c $t15 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 printmap2 | grep "@dec E .*t15" >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
 cat <<EOF >$t15h
@@ -2267,12 +2270,12 @@ EOF
 $test_CC -c $t15 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 printmap2 | grep "@dec E t15" >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 cat <<EOF >$t16h
 template <class T> struct A {};
@@ -2281,12 +2284,12 @@ EOF
 $test_CC -c $t16 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 printmap2 | grep "@dec E t15" >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 cat <<EOF >$t16h
 template <class T> struct A {};
@@ -2294,12 +2297,12 @@ EOF
 $test_CC -c $t16 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 printmap2 | grep "@dec E t15" >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #10 ***'
+	echo '*** error #10 ***'
 fi
 cleanup
 cat <<EOF >$t15h
@@ -2309,12 +2312,12 @@ EOF
 $test_CC -c $t15 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #11 ***'
+	echo '*** error #11 ***'
 fi
 printmap2 | grep "@dec E t15" >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #12 ***'
+	echo '*** error #12 ***'
 fi
 cat <<EOF >$repm
 @dec A t15
@@ -2329,12 +2332,12 @@ EOF
 $test_CC -c $t15 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #13 ***'
+	echo '*** error #13 ***'
 fi
 printmap2 | grep "@dec E t15" >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #14 ***'
+	echo '*** error #14 ***'
 fi
 cat <<EOF >$repm
 @dec A t15
@@ -2348,235 +2351,235 @@ EOF
 $test_CC -c $t15 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #15 ***'
+	echo '*** error #15 ***'
 fi
 printmap2 | grep "@dec E t15" >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #16 ***'
+	echo '*** error #16 ***'
 fi
 
-print "$sep basenames carried along $sep"
+echo "$sep basenames carried along $sep"
 cleanup
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 printmap2 | grep " t8.$$" >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 printmap2 | grep "t8.$$ t8.$$" >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 $test_CC $t10 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 printmap2 | grep "@dec A .*t8.$$" >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 printmap2 | grep "@dec A t10.$$" >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 
-print "$sep override quotes with brackets $sep"
+echo "$sep override quotes with brackets $sep"
 cleanup
-print 'template <class T> struct A {};' >xxx5.h
-print '#include "xxx5.h"' >xxx5.c
-$test_CC -c xxx5.c 2>/dev/null 1>&2
+echo 'template <class T> struct A {};' >xxx5.h
+echo '#include "xxx5.h"' >xxx5.C
+$test_CC -c xxx5.C 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
-print 'template <class T> struct A {};' >$td2/xxx5.h
-print '#include <xxx5.h>' >xxx5.c
-$test_CC -c -I$td2 xxx5.c 2>/dev/null 1>&2
+echo 'template <class T> struct A {};' >$td2/xxx5.h
+echo '#include <xxx5.h>' >xxx5.C
+$test_CC -c -I$td2 xxx5.C 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 x=`grep 'xxx5.h' $repm | wc -l`
 if [ $x -ne 1 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 
-print "$sep quotes vs brackets $sep"
+echo "$sep quotes vs brackets $sep"
 cleanup
-print 'foobar' >$td2/t46_1.h
+echo 'foobar' >$td2/t46_1.h
 $test_CC -I$td2 $t46a 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 cleanup
 cp t46_1.h t46_1.bak
-cp t46_1.h t46_1.c $td2
-print 'foobar' >$td/t46_1.h
+cp t46_1.h t46_1.C $td2
+echo 'foobar' >$td/t46_1.h
 $test_CC -I$td2 $t46b 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cp t46_1.bak t46_1.h
 
-print "$sep cross device repositories $sep"
+echo "$sep cross device repositories $sep"
 cleanup
 cp $t37 $HOME
 cp $t37 t37.bak
 cd
-rm -f $TMPDIR/*.cs 2>/dev/null
-$test_CC -ptn -ptr$TMPDIR t37.c 2>/dev/null 1>&2
+rm -f $TMPDIR/*.Cs 2>/dev/null
+$test_CC -ptn -ptr$TMPDIR t37.C 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
-rm -f t37.c
+rm -f t37.C
 cd $td
-cp t37.bak t37.c
+cp t37.bak t37.C
 
-print "$sep +a0 $sep"
+echo "$sep +a0 $sep"
 cleanup
 $test_CC +a0 -ptn -ptv $t37 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep '\+a0' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep vtbl and specializations $sep"
+echo "$sep vtbl and specializations $sep"
 cleanup
 $test_CC -c $t453 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC $t45 $t453o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep -pto $sep"
+echo "$sep -pto $sep"
 cleanup
 $test_CC -ptn $t37 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC -ptn -ptv $t37 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 cd $rep
 ls *.o | sed -n '1,1p' > ../x
 cd ..
-print '@delete' >>x
+echo '@delete' >>x
 $test_CC -ptn -ptv -ptox $t37 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 if [ -f x ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
-print '@delete' >x
+echo '@delete' >x
 $test_CC -ptn -ptv -ptox $t37 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if  [ $? -eq 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 if [ -f x ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 
-print "$sep .c not overwritten $sep"
+echo "$sep .C not overwritten $sep"
 cleanup
 $test_CC -ptn $t37 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 if [ -f $rep/_instfile ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 $test_CC -ptn $t37 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 if [ ! -f $rep/_instfile ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 
-print "$sep .H/.C $sep"
+echo "$sep .H/.C $sep"
 cleanup
 cp $t8h t8.H
 cp $t8c t8.C
 $test_CC $t44 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep long lists of basenames $sep"
+echo "$sep long lists of basenames $sep"
 cleanup
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
 do
-	cp $t8 xx${i}.c
-	$test_CC -c -ptn xx${i}.c 2>/dev/null 1>&2
+	cp $t8 xx${i}.C
+	$test_CC -c -ptn xx${i}.C 2>/dev/null 1>&2
 	if [ $? -ne 0 ]
 	then
-		print '*** error #1 ***'
+		echo '*** error #1 ***'
 	fi
 done
 $test_CC xx25.o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 rm -f xx[0-9]*
 
-print "$sep hard path with -ptt $sep"
+echo "$sep hard path with -ptt $sep"
 cleanup
 mkdir $rep
 rm -rf xdir
@@ -2589,24 +2592,24 @@ EOF
 $test_CC -ptt -Ixdir $t37 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 rm -rf xdir
 
-print "$sep function templates and pointers to members $sep"
+echo "$sep function templates and pointers to members $sep"
 cleanup
 $test_CC -ptn $t43 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep U then C when fakelinking $sep"
+echo "$sep U then C when fakelinking $sep"
 cleanup
-print 'extern int x; void f() {x++;}' > x1.c
-print 'int x;' > x2.c
-print 'int x = 59;' > x3.c
-cc -c x1.c x2.c x3.c >/dev/null 2>&1
+echo 'extern int x; void f() {x++;}' > x1.C
+echo 'int x;' > x2.C
+echo 'int x = 59;' > x3.C
+cc -c x1.C x2.C x3.C >/dev/null 2>&1
 ar cr xlib.a x2.o >/dev/null 2>&1
 if [ -x /bin/ranlib -o -x /usr/bin/ranlib ]
 then
@@ -2615,161 +2618,161 @@ fi
 $test_CC -ptn x1.o xlib.a x3.o $t37 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 rm -f xlib.a
 
-print "$sep use of forwards $sep"
+echo "$sep use of forwards $sep"
 cleanup
 $test_CC $t22 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC -ptt $t22 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep PTOPTS $sep"
+echo "$sep PTOPTS $sep"
 cleanup
 PTOPTS="-ptv -ptz" $test_CC -C -ptn $t37 2>$t2 1>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'ptlink' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep basenames for x/y $sep"
+echo "$sep basenames for x/y $sep"
 cleanup
 mkdir x
 mv $t37 x
-$test_CC -ptn x/t37.c 2>/dev/null 1>&2
+$test_CC -ptn x/t37.C 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
-mv x/t37.c .
+mv x/t37.C .
 rm -rf x
 
-print "$sep demangle works on ld output $sep"
+echo "$sep demangle works on ld output $sep"
 cleanup
 $test_CC $t30 1>$t2 2>/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep "class 'A':" $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 grep "class 'A::B':" $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 
-print "$sep use of literals $sep"
+echo "$sep use of literals $sep"
 cleanup
 $test_CC $t21 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep -pts after -pta $sep"
+echo "$sep -pts after -pta $sep"
 cleanup
 $test_CC -pta $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 $test_CC -pta $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 $test_CC -pts $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
-fi
-cleanup
-$test_CC $t8 2>/dev/null 1>&2
-if [ $? -ne 0 ]
-then
-	print '*** error #5 ***'
-fi
-$test_CC -pta $t8 2>/dev/null 1>&2
-if [ $? -ne 0 ]
-then
-	print '*** error #6 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
-fi
-$test_CC -pts $t8 2>/dev/null 1>&2
-if [ $? -ne 0 ]
-then
-	print '*** error #8 ***'
-fi
-cleanup
-$test_CC -pts $t8 2>/dev/null 1>&2
-if [ $? -ne 0 ]
-then
-	print '*** error #9 ***'
+	echo '*** error #5 ***'
 fi
 $test_CC -pta $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #10 ***'
+	echo '*** error #6 ***'
+fi
+cleanup
+$test_CC $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	echo '*** error #7 ***'
+fi
+$test_CC -pts $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	echo '*** error #8 ***'
 fi
 cleanup
 $test_CC -pts $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #11 ***'
+	echo '*** error #9 ***'
+fi
+$test_CC -pta $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	echo '*** error #10 ***'
+fi
+cleanup
+$test_CC -pts $t8 2>/dev/null 1>&2
+if [ $? -ne 0 ]
+then
+	echo '*** error #11 ***'
 fi
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #12 ***'
+	echo '*** error #12 ***'
 fi
 
-print "$sep archive searched repeatedly $sep"
+echo "$sep archive searched repeatedly $sep"
 cleanup
 $test_CC -c $t19a1 $t19a2 1>/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 rm -f $t19a
 ar cr $t19a $t19o1 $t19o2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 if [ -x /bin/ranlib -o -x /usr/bin/ranlib ]
 then
 	ranlib $t19a
 	if [ $? -ne 0 ]
 	then
-		print '*** error #3 ***'
+		echo '*** error #3 ***'
 	fi
 fi
 cleanup
@@ -2782,25 +2785,25 @@ cat <<EOF >$repm
 @dec ZZZ
 zzz.h
 @def ZZZ
-zzz.c
+zzz.C
 EOF
 $test_CC $t19 $t19a 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 
-print "$sep cppC options $sep"
+echo "$sep cppC options $sep"
 cleanup
 #export cppC="/lib/cpp -Ifoo"
 cppC="${cppC-/lib/cpp} -Ifoo" $test_CC -ptn $t37 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 #unset cppC
 
-print "$sep map file formatting $sep"
+echo "$sep map file formatting $sep"
 cleanup
 mkdir $rep
 cat <<EOF >$repm
@@ -2812,7 +2815,7 @@ EOF
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 cleanup
 mkdir $rep
@@ -2826,7 +2829,7 @@ EOF
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 mkdir $rep
@@ -2837,7 +2840,7 @@ EOF
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 cleanup
 mkdir $rep
@@ -2849,7 +2852,7 @@ EOF
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
 mkdir $rep
@@ -2862,7 +2865,7 @@ EOF
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 cleanup
 mkdir $rep
@@ -2876,7 +2879,7 @@ EOF
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 cleanup
 mkdir $rep
@@ -2887,7 +2890,7 @@ EOF
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 cleanup
 mkdir $rep
@@ -2899,57 +2902,57 @@ EOF
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 
-print "$sep -ptr. $sep"
+echo "$sep -ptr. $sep"
 cleanup
 $test_CC -ptr. $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep two +T $sep"
+echo "$sep two +T $sep"
 cleanup
-$test_CC +Tx +Ty zzz.c 2>$t2
+$test_CC +Tx +Ty zzz.C 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'warning: second' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep -ptt $sep"
+echo "$sep -ptt $sep"
 cleanup
 $test_CC -ptn $t37 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC -ptn -ptt -ptv $t37 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 touch $t37
 $test_CC -ptn -ptt -ptv $t37 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 rm -rf x1
 mkdir x1
@@ -2961,12 +2964,12 @@ touch x1/*.o
 $test_CC -ptn -ptt -ptv -ptr$rep -ptrx1 $t37 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 rm -rf x1
 cleanup
@@ -2979,117 +2982,117 @@ EOF
 $test_CC -ptr$rep -ptrx1 $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 touch $td/t8.h
 $test_CC -ptr$rep -ptrx1 -ptt -ptv $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #10 ***'
+	echo '*** error #10 ***'
 fi
 rm -rf x1
 
-print "$sep -lX $sep"
+echo "$sep -lX $sep"
 cleanup
 $test_CC -ptn $t33 -lcomplex 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep +T and -ptn $sep"
-print 'void foo() {}' >x.c
+echo "$sep +T and -ptn $sep"
+echo 'void foo() {}' >x.C
 cleanup
 $test_CC -c $t37 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 nm $NMFLAGS $t37o | egrep ' T [ ]*.*f2.*A__pt|.*f2.*A__pt.*text' >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
-$test_CC $t37 x.c 2>/dev/null 1>&2
+$test_CC $t37 x.C 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 nm $NMFLAGS $t37o | egrep ' T [ ]*.*f2.*A__pt|.*f2.*A__pt.*text' >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
-$test_CC -ptn $t37 x.c 2>/dev/null 1>&2
+$test_CC -ptn $t37 x.C 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 nm $NMFLAGS $t37o | egrep ' T [ ]*.*f2.*A__pt|.*f2.*A__pt.*text' >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 cleanup
-print '@none' >x
+echo '@none' >x
 $test_CC +Tx $t37 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 nm $NMFLAGS $t37o | egrep ' T [ ]*.*f2.*A__pt|.*f2.*A__pt.*text' >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 
-print "$sep excessive iteration when unresolved $sep"
+echo "$sep excessive iteration when unresolved $sep"
 cleanup
 $test_CC -ptv $t41 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 x=`grep 'compiled' $t2 | wc -l`
 if [ $x -ne 1 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep demangler on filenames $sep"
+echo "$sep demangler on filenames $sep"
 cleanup
 $test_CC -ptn $t40 >$t2 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 egrep 'f\(int|long\)' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep ft laydown $sep"
+echo "$sep ft laydown $sep"
 cleanup
 $test_CC -ptn $t39 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep nmapNNN wins $sep"
+echo "$sep nmapNNN wins $sep"
 cleanup
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 cat <<EOF >$rep/nmap001
 @dec A t8.$$
@@ -3106,7 +3109,7 @@ EOF
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cat <<EOF >$rep/nmap001
 @dec f t8.$$
@@ -3121,10 +3124,10 @@ EOF
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 
-print "$sep use of -I / -D / hard paths $sep"
+echo "$sep use of -I / -D / hard paths $sep"
 cleanup
 mkdir $rep
 cat <<EOF >$rep/nmap001
@@ -3136,93 +3139,93 @@ EOF
 $test_CC -DN=23 $t12 -DZZZ 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 cleanup
 $test_CC -Ixxx -DN=23 -Iyyy -DXXX $t12 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep AFAIL $sep"
+echo "$sep AFAIL $sep"
 cleanup
 $test_CC $t38 $t8 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'ptlink' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep inlines $sep"
+echo "$sep inlines $sep"
 cleanup
 $test_CC -ptn -I. $t32 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 nm $NMFLAGS $rep/*.o | egrep ' T [ ]*.*f__10A|.*f__10A.*text' >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 $test_CC -ptn -DINLINE $t32 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 nm $NMFLAGS $rep/*.o 2>/dev/null | egrep ' T [ ]*.*f__10A|.*f__10A.*text' >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 
-print "$sep +T $sep"
+echo "$sep +T $sep"
 cleanup
-cat <<EOF >xx.c
+cat <<EOF >xx.C
 #include "t8.h"
-#include "t8.c"
+#include "t8.C"
 typedef A<double> _dummy;
 EOF
-print '@alltc' >instfile
-$test_CC +Tinstfile -c xx.c 2>/dev/null 1>&2
+echo '@alltc' >instfile
+$test_CC +Tinstfile -c xx.C 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 nm $NMFLAGS xx.o | egrep ' T [ ]*[_]*f__10A__pt__2_dFv|f__10A__pt__2_dFv.*text' >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
-print 'f' >instfile
-$test_CC +Tinstfile -c xx.c 2>/dev/null 1>&2
+echo 'f' >instfile
+$test_CC +Tinstfile -c xx.C 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 nm $NMFLAGS xx.o | egrep ' T [ ]*[_]*f__10A__pt__2_dFv|f__10A__pt__2_dFv.*text' >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 nm $NMFLAGS xx.o | egrep ' T [ ]*[_]*g__10A__pt__2_dFv|g__10A__pt__2_dFv.*text' >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 
-print "$sep objects in archive $sep"
+echo "$sep objects in archive $sep"
 cleanup
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 rm -f xlib.a
 cp $t8o x.o
@@ -3234,32 +3237,32 @@ fi
 $test_CC -ptv $t7 xlib.a 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
-print 'static void f() {main();}' > xx.c
-cc -c xx.c
+echo 'static void f() {main();}' > xx.C
+cc -c xx.C
 $test_CC -ptv xx.o xlib.a 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 grep 'compiled' $t2 >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 
-print "$sep repository permissions $sep"
+echo "$sep repository permissions $sep"
 cleanup
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 ls -l $repm | egrep -v 'rw-r--r--'
 set `ls -ld .`
@@ -3268,14 +3271,14 @@ set `ls -ld $rep`
 y=$1
 if [ "$x" != "$y" ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 chmod 777 .
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 ls -l $repm | egrep -v 'rw-rw-rw-'
 set `ls -ld .`
@@ -3284,13 +3287,13 @@ set `ls -ld $rep`
 y=$1
 if [ "$x" != "$y" ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 chmod 755 .
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 ls -l $repm | egrep -v 'rw-rw-rw-'
 set `ls -ld .`
@@ -3299,14 +3302,14 @@ set `ls -ld $rep`
 y=$1
 if [ "$x" = "$y" ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 chmod 755 .
 cleanup
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 ls -l $rep/* | egrep -v 'rw-r--r--'
 chmod 777 .
@@ -3314,47 +3317,47 @@ cleanup
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 ls -l $rep/* | egrep -v 'rw-rw-rw-'
 chmod 755 .
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 ls -l $rep/* | egrep -v 'rw-rw-rw-'
 
-print "$sep order of inclusion of arguments $sep"
+echo "$sep order of inclusion of arguments $sep"
 cleanup
 $test_CC $t10 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
-ln1=`grep -n t10.h < $rep/*.c | awk -F: '{print $1}'`
-ln2=`grep -n t10_2.h < $rep/*.c | awk -F: '{print $1}'`
-ln3=`grep -n t10_3.h < $rep/*.c | awk -F: '{print $1}'`
+ln1=`grep -n t10.h < $rep/*.C | awk -F: '{echo $1}'`
+ln2=`grep -n t10_2.h < $rep/*.C | awk -F: '{echo $1}'`
+ln3=`grep -n t10_3.h < $rep/*.C | awk -F: '{echo $1}'`
 if [ $ln1 -ge $ln2 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 if [ $ln2 -ge $ln3 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 
-print "$sep order of archives and objects $sep"
+echo "$sep order of archives and objects $sep"
 cleanup
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 rm -f xlib.a
 ar cr xlib.a $rep/*.o >/dev/null 2>&1
@@ -3365,12 +3368,12 @@ fi
 $test_CC -ptv $t8o xlib.a 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 grep 'dependency' $t2 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
 mkdir $rep
@@ -3381,112 +3384,112 @@ EOF
 $test_CC xlib.a $t8o 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 
-print "$sep defined then undefined in objects $sep"
+echo "$sep defined then undefined in objects $sep"
 cleanup
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 $test_CC -ptv $rep/*.o $t8o 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 grep 'dependency check' $t2 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 
-print "$sep ptcomp fails $sep"
+echo "$sep ptcomp fails $sep"
 cleanup
 mkdir $rep
-print '@dec' > $repm
+echo '@dec' > $repm
 $test_CC $t7 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep missing template.c $sep"
+echo "$sep missing template.C $sep"
 cleanup
 $test_CC -ptn $t26 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'warning: ##### template definition file' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep specialization of virtuals $sep"
+echo "$sep specialization of virtuals $sep"
 cleanup
 $test_CC -ptn $t37 1>/dev/null 2>/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep race condition on vtbls $sep"
+echo "$sep race condition on vtbls $sep"
 cleanup
 $test_CC -ptn $t36 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC -ptn -ptv $t36 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 grep 'compiled' $t2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 
-print "$sep static data initializers $sep"
+echo "$sep static data initializers $sep"
 cleanup
 $test_CC -ptn $t34 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep duplicate -Is $sep"
+echo "$sep duplicate -Is $sep"
 cleanup
 $test_CC -Ixxyyzz $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'xxyyzz.*xxyyzz' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep type lookup $sep"
+echo "$sep type lookup $sep"
 cleanup
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 cleanup
 mkdir $rep
-print '@dec ZZZ\nZZZ.H' >$repm
+echo '@dec ZZZ\nZZZ.H' >$repm
 cat <<EOF >$rep/nmap001
 @dec A t8.$$
 t8.h
@@ -3496,11 +3499,11 @@ EOF
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 mkdir $rep
-print '@dec ZZZ\nZZZ.H' >$repm
+echo '@dec ZZZ\nZZZ.H' >$repm
 cat <<EOF >$rep/nmap001
 @dec A
 t8.h
@@ -3510,7 +3513,7 @@ EOF
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 cleanup
 mkdir $rep
@@ -3523,11 +3526,11 @@ EOF
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
 mkdir $rep
-print '@dec ZZZ\nZZZ.H' >$repm
+echo '@dec ZZZ\nZZZ.H' >$repm
 cat <<EOF >$rep/nmap001
 @dec A
 t8.h
@@ -3537,27 +3540,27 @@ EOF
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 cleanup
 rm -rf xxxx
 mkdir $rep xxxx
-print '@dec ZZZ\nZZZ.H' >$repm
+echo '@dec ZZZ\nZZZ.H' >$repm
 cat <<EOF >xxxx/nmap001
 @def A t8.$$
-t8.c
+t8.C
 @def f t8.$$
-t8.c
+t8.C
 EOF
 $test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 cleanup
 rm -rf xxxx
 mkdir $rep xxxx
-print '@dec ZZZ\nZZZ.H' >$repm
+echo '@dec ZZZ\nZZZ.H' >$repm
 cat <<EOF >xxxx/nmap001
 @dec A
 t8.h
@@ -3567,12 +3570,12 @@ EOF
 $test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 cleanup
 rm -rf xxxx
 mkdir $rep xxxx
-print '@dec ZZZ\nZZZ.H' >$repm
+echo '@dec ZZZ\nZZZ.H' >$repm
 cat <<EOF >xxxx/nmap001
 @dec A t8.$$
 t8.h
@@ -3582,12 +3585,12 @@ EOF
 $test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 cleanup
 rm -rf xxxx
 mkdir $rep xxxx
-print '@dec ZZZ\nZZZ.H' >$repm
+echo '@dec ZZZ\nZZZ.H' >$repm
 cat <<EOF >xxxx/nmap001
 @dec A
 t8.h
@@ -3597,16 +3600,16 @@ EOF
 $test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 cleanup
 mkdir $rep
-print '@dec ZZZ\nZZZ.H' >$repm
+echo '@dec ZZZ\nZZZ.H' >$repm
 cat <<EOF >$rep/nmap001
 @def A t8.$$
-t8.c
+t8.C
 @def f t8.$$
-t8.c
+t8.C
 EOF
 cat <<EOF >$rep/nmap2
 @def A t8.$$
@@ -3617,11 +3620,11 @@ EOF
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #10 ***'
+	echo '*** error #10 ***'
 fi
 cleanup
 mkdir $rep
-print '@dec ZZZ\nZZZ.H' >$repm
+echo '@dec ZZZ\nZZZ.H' >$repm
 cat <<EOF >$rep/nmap001
 @dec A
 zzz.h
@@ -3637,11 +3640,11 @@ EOF
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #11 ***'
+	echo '*** error #11 ***'
 fi
 cleanup
 mkdir $rep
-print '@dec ZZZ\nZZZ.H' >$repm
+echo '@dec ZZZ\nZZZ.H' >$repm
 cat <<EOF >$rep/nmap002
 @dec A t8.$$
 t8.h
@@ -3657,7 +3660,7 @@ EOF
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #12 ***'
+	echo '*** error #12 ***'
 fi
 cleanup
 mkdir $rep
@@ -3676,7 +3679,7 @@ EOF
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #13 ***'
+	echo '*** error #13 ***'
 fi
 cleanup
 mkdir $rep
@@ -3686,14 +3689,14 @@ zzz.h
 @def f
 zzz.h
 @def A t8.$$
-t8.c
+t8.C
 @def f t8.$$
-t8.c
+t8.C
 EOF
 $test_CC $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #14 ***'
+	echo '*** error #14 ***'
 fi
 cleanup
 rm -rf xxxx
@@ -3713,7 +3716,7 @@ EOF
 $test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #15 ***'
+	echo '*** error #15 ***'
 fi
 cleanup
 rm -rf xxxx
@@ -3733,12 +3736,12 @@ EOF
 $test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #16 ***'
+	echo '*** error #16 ***'
 fi
 cleanup
 rm -rf xxxx
 mkdir $rep xxxx
-print '@dec ZZZ\nZZZ.H' >$repm
+echo '@dec ZZZ\nZZZ.H' >$repm
 cat <<EOF >$rep/nmap002
 @dec A
 t8.h
@@ -3754,27 +3757,27 @@ EOF
 $test_CC -ptr$rep -ptrxxxx $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #17 ***'
+	echo '*** error #17 ***'
 fi
 
-print "$sep defmap.old written $sep"
+echo "$sep defmap.old written $sep"
 cleanup
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 if [ ! -f ${repm}.old ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 
-print "$sep flookup() fails $sep"
+echo "$sep flookup() fails $sep"
 cleanup
 mkdir $rep
 cat <<EOF >$rep/nmap001
@@ -3784,131 +3787,131 @@ EOF
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep map files wrongly formatted $sep"
+echo "$sep map files wrongly formatted $sep"
 cleanup
 mkdir $rep
-print 'xxx' >$rep/nmap001
+echo 'xxx' >$rep/nmap001
 $test_CC $t8 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 mkdir $rep
-print '@xxx' >$rep/nmap001
+echo '@xxx' >$rep/nmap001
 $test_CC $t8 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
 mkdir $rep
-print '@ xxx' >$rep/nmap001
+echo '@ xxx' >$rep/nmap001
 $test_CC $t8 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 cleanup
 mkdir $rep
-print '@' >$rep/nmap001
+echo '@' >$rep/nmap001
 $test_CC $t8 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 cleanup
 mkdir $rep
-print '@dec' >$rep/nmap001
+echo '@dec' >$rep/nmap001
 $test_CC $t8 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #10 ***'
+	echo '*** error #10 ***'
 fi
 cleanup
 mkdir $rep
-print '@decxxx' >$rep/nmap001
+echo '@decxxx' >$rep/nmap001
 $test_CC $t8 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #11 ***'
+	echo '*** error #11 ***'
 fi
 grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #12 ***'
+	echo '*** error #12 ***'
 fi
 cleanup
 mkdir $rep
-print 'xxx.h' >$rep/nmap001
+echo 'xxx.h' >$rep/nmap001
 $test_CC $t8 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #13 ***'
+	echo '*** error #13 ***'
 fi
 grep 'error.*incorrectly formatted' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #14 ***'
+	echo '*** error #14 ***'
 fi
 
-print "$sep same file twice in a row $sep"
+echo "$sep same file twice in a row $sep"
 cleanup
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 awk '{for (i = 1; i <= NF; i++) printf "%s\n", $i}' $repm | sort > $td/x99
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 awk '{for (i = 1; i <= NF; i++) printf "%s\n", $i}' $repm | sort | diff - $td/x99
 
-print "$sep ft expansion $sep"
+echo "$sep ft expansion $sep"
 cleanup
 $test_CC -ptv $t31 1>/dev/null 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'wrote instantiation file' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep map file formatting $sep"
+echo "$sep map file formatting $sep"
 cleanup
 mkdir $rep
 cat <<EOF >$repm
@@ -3921,7 +3924,7 @@ EOF
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 cleanup
 mkdir $rep
@@ -3931,7 +3934,7 @@ EOF
 $test_CC $t8 2>/dev/null 1>/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 mkdir $rep
@@ -3942,7 +3945,7 @@ EOF
 $test_CC $t8 2>/dev/null 1>/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 cleanup
 mkdir $rep
@@ -3953,7 +3956,7 @@ EOF
 $test_CC $t8 2>/dev/null 1>/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 cleanup
 mkdir $rep
@@ -3964,7 +3967,7 @@ EOF
 $test_CC $t8 2>/dev/null 1>/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 cleanup
 mkdir $rep
@@ -3974,7 +3977,7 @@ EOF
 $test_CC $t8 2>/dev/null 1>/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 cleanup
 mkdir $rep
@@ -3984,151 +3987,151 @@ EOF
 $test_CC $t8 2>/dev/null 1>/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 cleanup
 mkdir $rep
-print '@dec T1' >$repm
-print -n 't1.h' >> $repm
+echo '@dec T1' >$repm
+echo -n 't1.h' >> $repm
 $test_CC $t8 2>/dev/null 1>/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 
-print "$sep only data needed $sep"
+echo "$sep only data needed $sep"
 cleanup
 $test_CC -DINIT -DVAL=37 $t28 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 ./a.out
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep global common $sep"
+echo "$sep global common $sep"
 cleanup
 $test_CC -DVAL=0 $t28 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep support for +i $sep"
+echo "$sep support for +i $sep"
 cleanup
 $test_CC +i $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 ls $rep/*..[ci] >$t2
 if [ ! -s $t2 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep static data $sep"
+echo "$sep static data $sep"
 cleanup
 $test_CC -DVAL=37 $t27 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 ./a.out
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 $test_CC -DVAL=47 -DOVER $t27 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 ./a.out
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 
-print "$sep specializations $sep"
+echo "$sep specializations $sep"
 cleanup
 $test_CC -c $t25s1 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC -c $t25s2 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 $test_CC -c $t25s3 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 $test_CC -c $t25s4 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 $test_CC $t25s1o $t25s2o $t25s3o $t25s4o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 ./a.out
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
 
-print "$sep type defined twice in @def $sep"
+echo "$sep type defined twice in @def $sep"
 cleanup
 mkdir $rep
 cat <<EOF >$rep/nmap001
 @dec A t17
 t17x.h
 @def A t17
-t17xx.c
+t17xx.C
 @def A t17
-t17xx.c
+t17xx.C
 EOF
 $test_CC $t17 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep bad map file formatting $sep"
+echo "$sep bad map file formatting $sep"
 cleanup
 mkdir $rep
 cat <<EOF >$rep/nmap001
 @dec 2A t17
 t17x.h
 @def A t17
-t17xx.c
+t17xx.C
 EOF
 $test_CC $t17 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 cleanup
 mkdir $rep
 cat <<EOF >$rep/nmap001
 @dec A t17
 @def A t17
-t17xx.c
+t17xx.C
 EOF
 $test_CC $t17 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 mkdir $rep
@@ -4137,14 +4140,14 @@ cat <<EOF >$rep/nmap001
 t17x.h
 @def A t17
 EOF
-print -n 't17xx.c' >>$rep/nmap001
+echo -n 't17xx.C' >>$rep/nmap001
 $test_CC $t17 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 
-print "$sep handling whitespace $sep"
+echo "$sep handling whitespace $sep"
 cleanup
 mkdir $rep
 cat <<EOF >$rep/nmap001
@@ -4155,206 +4158,206 @@ cat <<EOF >$rep/nmap001
 
  @def A		t17
 
-	 t17xx.c
+	 t17xx.C
 
 EOF
 $test_CC $t17 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep -E / -F $sep"
+echo "$sep -E / -F $sep"
 cleanup
 $test_CC -ptv -E t8 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 egrep 'ptcomp|ptlink' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 $test_CC -ptv -F t8 >/dev/null 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 egrep 'ptcomp|ptlink' $t2 >/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 if [ -d $rep ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 
-print "$sep multiple repositories $sep"
+echo "$sep multiple repositories $sep"
 cleanup
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 mv $rep x1
 $test_CC -Ixxx -Iyyy -DXXX -DN=23 $t12 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 mv $rep x2
 $test_CC -ptrx2 -ptrx1 $t8o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 if [ -d $rep ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 rm -rf x1 x2
 
-print "$sep replaying .c files $sep"
+echo "$sep replaying .C files $sep"
 cleanup
 $test_CC $t24 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 x=`ls $rep/*.o 2>/dev/null | wc -l`
 if [ $x -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep -ptn $sep"
+echo "$sep -ptn $sep"
 cleanup
 $test_CC -ptn $t24 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 x=`ls $rep/*.o 2>/dev/null | wc -l`
 if [ $x -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep multiple -I $sep"
+echo "$sep multiple -I $sep"
 cleanup
 $test_CC -Ixxx -DN=23 -Iyyy -DXXX $t12 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep -pts $sep"
+echo "$sep -pts $sep"
 cleanup
 $test_CC -pts $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep -pts with -pta $sep"
+echo "$sep -pts with -pta $sep"
 cleanup
 $test_CC -pta -pts $t8 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'pta and -pts cannot both be specified' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep use of I/O library $sep"
+echo "$sep use of I/O library $sep"
 cleanup
 $test_CC $t23 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 ./a.out >/dev/null
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep use of -o $sep"
+echo "$sep use of -o $sep"
 cleanup
 $test_CC $t8 -o xxxt8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 ./xxxt8
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep use of -pta $sep"
+echo "$sep use of -pta $sep"
 cleanup
 $test_CC -pta $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 ./a.out
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep passing options to instantiation $sep"
+echo "$sep passing options to instantiation $sep"
 cleanup
 $test_CC -ptv -g $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep ' -c *-g' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep bad/missing object files $sep"
+echo "$sep bad/missing object files $sep"
 cleanup
-print 'asdflkjasdlfjkad' >$t20o
+echo 'asdflkjasdlfjkad' >$t20o
 $test_CC $t8 $t20o 1>/dev/null 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'fatal' $t2 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 $test_CC $t8 dflkadsjfasd.o 1>/dev/null 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 grep 'fatal' $t2 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 
-print "$sep long lists of object files $sep"
+echo "$sep long lists of object files $sep"
 cleanup
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 for j in 1 2 3 4 5 6 7 8 9 10
 do
-	print $t20o
+	echo $t20o
 done
 done >$t2
 rm -f $t20o
@@ -4362,31 +4365,31 @@ cc -c $t20c
 $test_CC -ptv $t8 `<$t2` 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep support for locking $sep"
+echo "$sep support for locking $sep"
 cleanup
-($test_CC $t8 2>/dev/null 1>&2; print $? >$t2) &
-($test_CC $t8 2>/dev/null 1>&2; print $? >$t2x) &
+($test_CC $t8 2>/dev/null 1>&2; echo $? >$t2) &
+($test_CC $t8 2>/dev/null 1>&2; echo $? >$t2x) &
 wait
 read x <$t2
 if [ "$x" -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 read x <$t2x
 if [ "$x" -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep no symbols needed from archive $sep"
+echo "$sep no symbols needed from archive $sep"
 cleanup
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 rm -f x.a
 ar cr x.a $t8o >/dev/null 2>&1
@@ -4395,432 +4398,432 @@ then
 	ranlib x.a
 	if [ $? -ne 0 ]
 	then
-		print '*** error #2 ***'
+		echo '*** error #2 ***'
 	fi
 fi
 cleanup
 $test_CC $t7 x.a 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 
-print "$sep another iteration required $sep"
+echo "$sep another iteration required $sep"
 cleanup
 $test_CC  $t18 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep empty object for nm $sep"
+echo "$sep empty object for nm $sep"
 cleanup
-print 'struct A {int x;};' > x.c
-cc -c x.c 2>/dev/null 1>&2
+echo 'struct A {int x;};' > x.C
+cc -c x.C 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 $test_CC $t8 x.o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep handling @def $sep"
+echo "$sep handling @def $sep"
 cleanup
 mkdir $rep
 cat <<EOF >$rep/nmap001
 @dec A t17
 t17x.h
 @def A t17
-t17xx.c
+t17xx.C
 EOF
 $test_CC $t17 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep print list of unresolved $sep"
+echo "$sep echo list of unresolved $sep"
 cleanup
 $test_CC $t9 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep "^	A<int>::g(void)$" $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep type defined twice $sep"
+echo "$sep type defined twice $sep"
 cleanup
 $test_CC $t11 $t11_2 2>$t2 1>/dev/null
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'error.*type.*defined twice' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep merging fts $sep"
+echo "$sep merging fts $sep"
 cleanup
 $test_CC $t14 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep mapping .c to .h $sep"
+echo "$sep mapping .C to .h $sep"
 cleanup
 mkdir $rep
 cat <<EOF >$rep/nmap001
 @def f t13.$$
-t13.c
+t13.C
 @def A t13.$$
-t13.c
+t13.C
 EOF
 $test_CC -c $t13 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
-print '@dec ZZZ' >$repm
-print 'lurch.h' >>$repm
+echo '@dec ZZZ' >$repm
+echo 'lurch.h' >>$repm
 $test_CC $t13o 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep multiple types used as template args $sep"
+echo "$sep multiple types used as template args $sep"
 cleanup
 $test_CC $t10 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 
-print "$sep type not found in map files $sep"
+echo "$sep type not found in map files $sep"
 cleanup
 $test_CC -c $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
-print '@dec ZZZ' > $repm
-print 'ZZZ.h' >> $repm
+echo '@dec ZZZ' > $repm
+echo 'ZZZ.h' >> $repm
 $test_CC $t8o 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 #grep 'warning: ##### assuming template type' $t2 >/dev/null 2>&1
 #if [ $? -ne 0 ]
 #then
-#	print '*** error #3 ***'
+#	echo '*** error #3 ***'
 #fi
 
-print "$sep named repositories at link time $sep"
+echo "$sep named repositories at link time $sep"
 cleanup
 rm -rf xxxx
 $test_CC -ptrxxxx $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
-x=`ls xxxx/*.c xxxx/*.o xxxx/*.cs | wc -l`
+x=`ls xxxx/*.C xxxx/*.o xxxx/*.Cs | wc -l`
 if [ $x -ne 12 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 rm -rf xxxx
 
-print "$sep loop detected in ptlink $sep"
+echo "$sep loop detected in ptlink $sep"
 cleanup
 $test_CC $t9 2>$t2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'error.*resolved' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep non-PT case works optimally $sep"
+echo "$sep non-PT case works optimally $sep"
 cleanup
 $test_CC -ptv $t7 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 if [ -d $rep ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 grep 'CC\[pt' $t2 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 cleanup
 mkdir $rep
 $test_CC -ptv $t7 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 grep 'CC\[ptlink' $t2 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 
-print "$sep partitioning into files $sep"
+echo "$sep partitioning into files $sep"
 cleanup
 $test_CC $t8 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
-x=`ls $rep/*.c $rep/*.o $rep/*.cs | wc -l`
+x=`ls $rep/*.C $rep/*.o $rep/*.Cs | wc -l`
 if [ $x -ne 12 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep dependency management and checksums $sep"
+echo "$sep dependency management and checksums $sep"
 cleanup
 $test_CC -ptv $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'compiled' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 $test_CC -ptv $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 grep 'compiled' $t2 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 rm -f $rep/*.o
 $test_CC -ptv $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 grep 'compiled' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #6 ***'
+	echo '*** error #6 ***'
 fi
-rm -f $rep/*.cs
+rm -f $rep/*.Cs
 $test_CC -ptv $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #7 ***'
+	echo '*** error #7 ***'
 fi
 grep 'compiled' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #8 ***'
+	echo '*** error #8 ***'
 fi
 $test_CC -ptv $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #9 ***'
+	echo '*** error #9 ***'
 fi
 grep 'compiled' $t2 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #10 ***'
+	echo '*** error #10 ***'
 fi
-print ' ' >> $t8h
+echo ' ' >> $t8h
 $test_CC -ptv $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #11 ***'
+	echo '*** error #11 ***'
 fi
 grep 'compiled' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #12 ***'
+	echo '*** error #12 ***'
 fi
-print ' ' >> $t8c
+echo ' ' >> $t8c
 $test_CC -ptv $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #13 ***'
+	echo '*** error #13 ***'
 fi
 grep 'compiled' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #14 ***'
+	echo '*** error #14 ***'
 fi
 $test_CC -ptv $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #15 ***'
+	echo '*** error #15 ***'
 fi
 grep 'compiled' $t2 >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
-	print '*** error #16 ***'
+	echo '*** error #16 ***'
 fi
-print 'int zzz = 89;' >> $t8c
+echo 'int zzz = 89;' >> $t8c
 $test_CC -ptv $t8 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #17 ***'
+	echo '*** error #17 ***'
 fi
 grep 'compiled' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #18 ***'
+	echo '*** error #18 ***'
 fi
 
-print "$sep duplicate information elided $sep"
+echo "$sep duplicate information elided $sep"
 cleanup
 $test_CC -c $t6 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
-printmap $repm | uniq -c | awk '$1 != 1{print}'
+printmap $repm | uniq -c | awk '$1 != 1{echo}'
 
-print "$sep right information extracted $sep"
+echo "$sep right information extracted $sep"
 cleanup
 $test_CC -c -I$td $t5 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 printmap $repm | diff - $t5x
 
-print "$sep named repositories work $sep"
+echo "$sep named repositories work $sep"
 cleanup
 rm -rf x999
 $test_CC -c -ptr./x999 $t1 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 if [ ! -s x999/$nmap ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 rm -rf x999
 
-print "$sep -ptr followed by nothing $sep"
+echo "$sep -ptr followed by nothing $sep"
 cleanup
 $test_CC -c -ptr $t1 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'warning.*no repository' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep repository is a file $sep"
+echo "$sep repository is a file $sep"
 cleanup
 > $rep
 $test_CC -c $t1 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'warning: could not create' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep cannot create repository $sep"
+echo "$sep cannot create repository $sep"
 cleanup
 cd /
 $test_CC -c $t1 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 cd $OLDPWD
 grep 'warning: could not create' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep repository not writeable $sep"
+echo "$sep repository not writeable $sep"
 cleanup
 mkdir $rep
 chmod 555 $rep
 $test_CC -c $t1 2>$t2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 grep 'warning: repository.*is not writable' $t2 >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep rep not created if not needed $sep"
+echo "$sep rep not created if not needed $sep"
 cleanup
 $test_CC -c $t3 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 if [ -d $rep ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 
-print "$sep no update if compile fails $sep"
+echo "$sep no update if compile fails $sep"
 cleanup
 $test_CC -c $t4 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #1 ***'
+	echo '*** error #1 ***'
 fi
 if [ -d $rep ]
 then
-	print '*** error #2 ***'
+	echo '*** error #2 ***'
 fi
 cleanup
 $test_CC -c $t1 2>/dev/null 1>&2
 if [ $? -ne 0 ]
 then
-	print '*** error #3 ***'
+	echo '*** error #3 ***'
 fi
 rm -f $repm
 $test_CC -c $t4 2>/dev/null 1>&2
 if [ $? -eq 0 ]
 then
-	print '*** error #4 ***'
+	echo '*** error #4 ***'
 fi
 if [ -d $repm ]
 then
-	print '*** error #5 ***'
+	echo '*** error #5 ***'
 fi
 
 

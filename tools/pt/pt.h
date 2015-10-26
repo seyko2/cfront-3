@@ -27,8 +27,9 @@ any actual or intended publication of such source code.
 #if defined(svr4) || defined(solaris)
 #define NMPATH "/usr/ccs/bin/nm"
 #endif
+
 #ifndef NMPATH
-#define NMPATH "/bin/nm"
+#define NMPATH "/usr/bin/nm"
 #endif
 
 #ifdef sun				/* if have fast fork() */
