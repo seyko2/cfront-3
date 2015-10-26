@@ -51,7 +51,7 @@ any actual or intended publication of such source code.
 
 #define LSPATH "/bin/ls"		/* ls path and options */
 
-#define SRC_EXT ".c"			/* extension of C++ source files */
+#define SRC_EXT ".C"			/* extension of C++ source files */
 #define INC_EXT ".h"			/* extension of C++ header files */
 #define OBJ_EXT ".o"			/* extension of object files */
 #define ARC_EXT ".a"			/* extension of archive libraries */

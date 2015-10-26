@@ -2418,10 +2418,10 @@ Slist* dip;
 #ifdef CHECKSUM
 /*
  *  If CHECKSUM is defined, ptlink will use the old-fashioned scheme
- *  for building checksum files.  Each instantation file (.c file) in
+ *  for building checksum files.  Each instantation file (.C file) in
  *  the repository will have a corresponding .cs file.  The first line
  *  of the .cs file will be a checksum that is generated from the
- *  preprocessor output of the .c file.
+ *  preprocessor output of the .C file.
  *
  *  The dodep() function defined in this section will compute a new
  *  checksum for its instantiation file and compare it with the
@@ -2836,7 +2836,7 @@ int ptoflag;
 /*
  *  If CHECKSUM is not defined, ptlink will use the new header file
  *  cache scheme to determine if an instantiation file needs to be
- *  recompiled.  Each instantation file (.c file) in the repository
+ *  recompiled.  Each instantation file (.C file) in the repository
  *  will have a corresponding .cs and .he files.  The .cs file won't
  *  contain a checksum, just a list of the member functions that have
  *  been instantiated from the given class.
@@ -3665,7 +3665,7 @@ int ptoflag;
 /* compile an instantiation file */
 /* docomp(ptr, bbuf, ccpath, incl, ccopts, dip, prevcs, cpp)
 
-   An "instantiation file" is a .c file in the ptrepository directory
+   An "instantiation file" is a .C file in the ptrepository directory
    that is generated in the main loop of ptlink.  Compiling the
    instantiation file will generate an object file with either:
 	- the definitions of selected member functions of a template class, or
